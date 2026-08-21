@@ -6,18 +6,4 @@ compatibility_flags = [ "nodejs_compat" ]
 [browser]
 binding = "BROWSER"
 
-# Build configuration to handle playwright-core issues
-[build.upload]
-format = "modules"
-
-[rules]
-globs = ["**/*.js"]
-type = "ESModule"
-
-
-[build]
-command = "npm run build"
-
-[vars]
-# Variáveis de ambiente
-
+# No custom build command, let wrangler handle it but we will pass flags via CLI if needed.
