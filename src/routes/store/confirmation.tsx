@@ -2,12 +2,20 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { CheckCircle2, Package, ArrowRight, Share2, Zap, Smartphone, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
+import { useCart } from '@/hooks/useCart';
 
 export const Route = createFileRoute('/store/confirmation')({
   component: ConfirmationPage,
 });
 
 function ConfirmationPage() {
+  const { clearCart } = useCart();
+
+  useEffect(() => {
+    // Limpar o carrinho apenas quando a confirmação for exibida com sucesso
+    clearCart();
+  }, []);
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-primary selection:text-white flex flex-col items-center justify-center p-6 text-center">
       {/* Background decoration */}
