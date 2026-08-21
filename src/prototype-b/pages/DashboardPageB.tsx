@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { ShellB } from '@/prototype-b/components/ShellB';
 import { CardMetric, AcquisitionFunnel, HubTable } from '@/prototype-b/components/ui-b';
+import { cn } from '@/lib/utils';
 import { 
   TrendingUp, CircleDollarSign, Package, Store, 
   Users, Activity, MousePointer2, Zap 
 } from 'lucide-react';
+
 
 export default function DashboardPageB() {
   return (
