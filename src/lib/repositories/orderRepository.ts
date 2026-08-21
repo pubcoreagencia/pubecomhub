@@ -56,19 +56,17 @@ export class OrderRepository implements IOrderRepository {
         id: `MOCK-${Math.random().toString(36).substr(2, 9)}`,
         createdAt: new Date().toISOString(),
       };
-      // We don't push to mockOrders as it's static in mock.ts, 
-      // but a real app would update a local cache.
       return newOrder;
     }
 
     const { data, error } = await supabase
       .from('orders')
       .insert({
-        external_id: order.external_id,
+        external_id: order.external_id ?? null,
         store_id: order.storeId,
         customer_id: order.customerId,
-        influencer_id: order.influencerId,
-        affiliate_id: order.affiliateId,
+        influencer_id: order.influencerId ?? null,
+        affiliate_id: order.affiliateId ?? null,
         amount: order.amount,
         cost: order.cost,
         shipping: order.shipping,
@@ -86,11 +84,11 @@ export class OrderRepository implements IOrderRepository {
   private mapDbOrderToType(dbOrder: any): Order {
     return {
       id: dbOrder.id,
-      external_id: dbOrder.external_id,
+      external_id: dbOrder.external_id ?? undefined,
       storeId: dbOrder.store_id,
       customerId: dbOrder.customer_id,
-      influencerId: dbOrder.influencer_id,
-      affiliateId: dbOrder.affiliate_id,
+      influencerId: dbOrder.influencer_id ?? undefined,
+      affiliateId: dbOrder.affiliate_id ?? undefined,
       amount: Number(dbOrder.amount),
       cost: Number(dbOrder.cost),
       shipping: Number(dbOrder.shipping),
