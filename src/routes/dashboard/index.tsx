@@ -71,7 +71,9 @@ function DashboardPage() {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="flex items-center gap-2">
                 <div className={cn("p-2 rounded-lg bg-slate-50", m.color.replace('text-', 'bg-').replace('600', '100'))}>
-                  <m.icon className={cn("h-4 w-4", m.color)} />
+                  {React.createElement(m.icon, {
+                    className: cn("h-4 w-4", m.color)
+                  })}
                 </div>
                 <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{m.label}</CardTitle>
               </div>
