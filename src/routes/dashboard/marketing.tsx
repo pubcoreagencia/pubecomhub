@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, Users, Target, BarChart, ExternalLink } from 'lucide-react';
+import { TrendingUp, Users, Target, BarChart, ExternalLink, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute('/dashboard/marketing')({
@@ -23,7 +23,7 @@ function MarketingPage() {
                 <CardTitle>Meta Ads</CardTitle>
                 <p className="text-xs text-muted-foreground mt-1">Status: Conectado</p>
              </div>
-             <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">∞</div>
+             <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white"><Megaphone className="h-4 w-4" /></div>
           </CardHeader>
           <CardContent className="space-y-4">
              <div className="grid grid-cols-2 gap-4">

@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { mockOrders, calculateFinance } from '@/data/mock';
-import { DollarSign, ShoppingCart, Users, TrendingUp, ArrowUpRight, ArrowDownRight, Package } from 'lucide-react';
+import { DollarSign, ShoppingCart, Users, TrendingUp, ArrowUpRight, ArrowDownRight, Package, LayoutDashboard } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -29,10 +29,10 @@ function DashboardPage() {
   }, []);
 
   const metrics = [
-    { label: 'Faturamento Bruto', value: finance.grossRevenue, icon: DollarSign, trend: '+12.5%', color: 'text-emerald-600' },
-    { label: 'Pedidos Ativos', value: mockOrders.length, icon: ShoppingCart, trend: '+4', color: 'text-blue-600' },
-    { label: 'Lucro Líquido PUB', value: finance.pubEcomNetResult, icon: TrendingUp, trend: '+8.2%', color: 'text-indigo-600' },
-    { label: 'Visitantes Online', value: 42, icon: Users, trend: 'Tempo real', color: 'text-amber-600' },
+    { label: 'Faturamento Bruto', value: finance.grossRevenue, icon: DollarSign, trend: '+12.5%', color: 'text-emerald-600', description: 'Total de vendas brutas' },
+    { label: 'Pedidos Ativos', value: mockOrders.length, icon: ShoppingCart, trend: '+4', color: 'text-blue-600', description: 'Pedidos em processamento' },
+    { label: 'Lucro Líquido PUB', value: finance.pubEcomNetResult, icon: TrendingUp, trend: '+8.2%', color: 'text-indigo-600', description: 'Resultado final da plataforma' },
+    { label: 'Visitantes Online', value: 42, icon: Users, trend: 'Tempo real', color: 'text-amber-600', description: 'Usuários ativos agora' },
   ];
 
   if (loading) {
@@ -69,14 +69,22 @@ function DashboardPage() {
         {metrics.map((m, i) => (
           <Card key={i} className="shadow-sm border-slate-100 transition-all hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs font-semibold uppercase text-slate-500">{m.label}</CardTitle>
-              <m.icon className={cn("h-4 w-4", m.color)} />
+              <div className="flex items-center gap-2">
+                <div className={cn("p-2 rounded-lg bg-slate-50", m.color.replace('text-', 'bg-').replace('600', '100'))}>
+                  <m.icon className={cn("h-4 w-4", m.color)} />
+                </div>
+                <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{m.label}</CardTitle>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">R$ {m.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
               <p className="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
                 {m.trend.includes('+') ? <ArrowUpRight className="h-3 w-3 text-emerald-500" /> : null}
                 {m.trend}
+                <span className="text-slate-400 font-normal"> vs. período anterior</span>
+              </p>
+              <p className="text-[10px] text-slate-400 mt-2 font-medium">
+                {m.description}
               </p>
             </CardContent>
           </Card>

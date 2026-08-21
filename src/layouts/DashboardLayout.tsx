@@ -16,10 +16,12 @@ import {
   Search,
   Bell,
   Menu,
-  Box,
+  Boxes,
   Target,
   Trophy,
-  Globe
+  Globe,
+  ExternalLink,
+  Wallet
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -41,8 +43,8 @@ const navigation = [
     items: [
       { label: 'Produtos', icon: Package, to: '/dashboard' }, // Simulated for now
       { label: 'Fornecedores', icon: Truck, to: '/dashboard' },
-      { label: 'Estoque', icon: Box, to: '/dashboard' },
-      { label: 'Financeiro', icon: DollarSign, to: '/dashboard/finance' },
+      { label: 'Estoque', icon: Boxes, to: '/dashboard' },
+      { label: 'Financeiro', icon: Wallet, to: '/dashboard/finance' },
     ]
   },
   {
@@ -51,7 +53,7 @@ const navigation = [
       { label: 'Audience Engine', icon: Target, to: '/dashboard/audience' },
       { label: 'Marketing & Ads', icon: BarChart3, to: '/dashboard/marketing' },
       { label: 'Ranking & Prêmios', icon: Trophy, to: '/dashboard' },
-      { label: 'SEO', icon: Globe, to: '/dashboard' },
+      { label: 'SEO', icon: Search, to: '/dashboard' },
     ]
   },
   {
@@ -162,7 +164,7 @@ export default function DashboardLayout() {
           <div className="flex items-center gap-2 md:gap-4">
             <Link to="/store">
               <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2 rounded-full border-slate-200 hover:bg-slate-50">
-                <Globe className="h-3.5 w-3.5" />
+                <ExternalLink className="h-3.5 w-3.5" />
                 <span>Loja Pública</span>
               </Button>
             </Link>
