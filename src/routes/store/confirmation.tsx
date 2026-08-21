@@ -1,122 +1,127 @@
+import * as React from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { CheckCircle2, Package, ArrowRight, Share2, Zap, Smartphone, ShoppingBag } from 'lucide-react';
+import { 
+  CheckCircle2, 
+  ShoppingBag, 
+  ArrowRight, 
+  Package, 
+  Truck, 
+  ShieldCheck,
+  Star,
+  ExternalLink
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { mockProducts } from '../../../prototype-b/data/mock';
 import { cn } from '@/lib/utils';
-import { useEffect } from 'react';
-import { useCart } from '@/hooks/useCart';
 
-export const Route = createFileRoute('/store/confirmation')({
-  component: ConfirmationPage,
+export const Route = createFileRoute('/prototype-b/store/confirmation')({
+  component: StorefrontConfirmationB
 });
 
-function ConfirmationPage() {
-  const { clearCart } = useCart();
-
-  useEffect(() => {
-    // Limpar o carrinho apenas quando a confirmação for exibida com sucesso
-    clearCart();
-  }, []);
+function StorefrontConfirmationB() {
   return (
-    <div className="min-h-screen bg-white font-sans selection:bg-primary selection:text-white flex flex-col items-center justify-center p-6 text-center">
-      {/* Background decoration */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-20">
-         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/20 blur-[150px] rounded-full" />
-         <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[150px] rounded-full" />
-      </div>
-
-      <div className="max-w-[600px] w-full space-y-16 relative z-10">
-        <div className="space-y-8">
-          <div className="relative inline-flex">
-             <div className="h-28 w-28 rounded-[3rem] bg-emerald-500 flex items-center justify-center text-white shadow-[0_20px_50px_rgba(16,185,129,0.3)] animate-in zoom-in-50 duration-700">
-               <CheckCircle2 className="h-14 w-14 stroke-[3px]" />
-             </div>
-             <div className="absolute -top-4 -right-4 h-12 w-12 rounded-full bg-white shadow-2xl flex items-center justify-center animate-bounce duration-[2000ms] border-4 border-emerald-50">
-                <Zap className="h-6 w-6 text-primary fill-primary" />
-             </div>
+    <div className="min-h-screen bg-white font-sans selection:bg-primary/10 selection:text-primary">
+      {/* Mini Navbar */}
+      <nav className="h-20 border-b border-slate-50 flex items-center justify-center px-8 bg-white/80 backdrop-blur-xl z-50">
+        <Link to="/prototype-b/store" className="flex items-center gap-3 group">
+          <div className="h-10 w-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+            <ShoppingBag className="h-6 w-6 text-white" />
           </div>
-          
+          <span className="text-2xl font-black tracking-tighter text-slate-900 uppercase">PUB ECOM</span>
+        </Link>
+      </nav>
+
+      <main className="container px-8 mx-auto max-w-[800px] py-20 lg:py-32 text-center">
+        <div className="space-y-12 animate-in fade-in zoom-in duration-700">
+          <div className="flex justify-center">
+            <div className="h-32 w-32 rounded-[40px] bg-emerald-50 flex items-center justify-center shadow-2xl shadow-emerald-500/10">
+              <CheckCircle2 className="h-16 w-16 text-emerald-500 animate-bounce" />
+            </div>
+          </div>
+
           <div className="space-y-4">
-            <h1 className="text-6xl lg:text-7xl font-black tracking-tighter text-slate-900 leading-[0.85]">
-              VALEU PELA <br/> <span className="text-emerald-500 uppercase tracking-tight">CONFIANÇA.</span>
+            <Badge variant="outline" className="border-emerald-100 text-emerald-600 font-black px-6 py-2 rounded-full uppercase tracking-widest text-[10px]">
+              Pagamento Confirmado
+            </Badge>
+            <h1 className="text-6xl md:text-7xl font-black tracking-tighter text-slate-900 uppercase">
+              OBRIGADO PELA <br/>
+              <span className="text-primary italic">CONFIANÇA.</span>
             </h1>
-            <p className="text-slate-400 font-black text-[11px] uppercase tracking-[0.3em] pt-2">
-              Pedido #ORD-99231 • Confirmado com Sucesso
+            <p className="text-xl font-bold text-slate-500 max-w-lg mx-auto leading-relaxed">
+              Seu pedido <span className="text-slate-900 italic">#PUB-2026-88X</span> foi processado com sucesso e já está sendo preparado.
             </p>
           </div>
-        </div>
 
-        <div className="bg-white p-10 lg:p-12 rounded-[3.5rem] shadow-[0_32px_64px_rgba(0,0,0,0.06)] border border-slate-100 text-left space-y-10 relative overflow-hidden group hover:shadow-[0_40px_80px_rgba(16,185,129,0.1)] transition-all duration-700">
-          <div className="flex items-center gap-6">
-            <div className="h-14 w-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
-               <Package className="h-7 w-7" />
+          <Card className="rounded-[40px] border-none ring-1 ring-slate-100 shadow-xl bg-slate-50/50 p-10 max-w-md mx-auto">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-bold text-slate-400 uppercase tracking-widest italic">Status do Pedido</span>
+                <span className="font-black text-blue-600 uppercase">Em Preparação</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-bold text-slate-400 uppercase tracking-widest italic">Previsão de Entrega</span>
+                <span className="font-black text-slate-900 uppercase">2-4 Dias Úteis</span>
+              </div>
+              <div className="pt-6 border-t border-slate-200">
+                <Button variant="outline" className="w-full rounded-2xl border-slate-200 font-black text-xs uppercase tracking-widest h-14 bg-white hover:shadow-lg transition-all group">
+                  Rastrear Pedido <ExternalLink className="ml-2 h-4 w-4 text-slate-400 group-hover:text-primary transition-colors" />
+                </Button>
+              </div>
             </div>
-            <div className="flex-1">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Status da Operação</p>
-              <p className="text-xl font-black text-slate-900 tracking-tight">Preparando para envio</p>
-            </div>
-            <div className="text-right">
-               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Entrega Estimada</p>
-               <p className="text-base font-black text-slate-900">2 a 5 dias úteis</p>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="h-4 bg-slate-50 rounded-full overflow-hidden p-1 shadow-inner">
-              <div className="h-full w-1/4 bg-emerald-500 rounded-full animate-in slide-in-from-left duration-1500 ease-out shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
-            </div>
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-               <span className="text-emerald-500">Confirmado</span>
-               <span>Processando</span>
-               <span>Em Trânsito</span>
-               <span>Entregue</span>
-            </div>
-          </div>
-        </div>
+          </Card>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <Link to="/store">
-            <Button variant="outline" className="w-full rounded-full h-20 font-black uppercase tracking-[0.2em] text-[11px] border-2 border-slate-100 hover:bg-slate-50 hover:border-slate-900 transition-all">
-              Voltar para Home
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-6">
+            <Link to="/prototype-b/store">
+              <Button className="w-full sm:w-auto rounded-2xl font-black text-sm uppercase tracking-widest px-12 h-16 shadow-2xl shadow-primary/30 group">
+                Voltar à Loja <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-2 transition-transform" />
+              </Button>
+            </Link>
+            <Button variant="ghost" className="text-slate-400 font-black text-xs uppercase tracking-[0.2em] hover:text-slate-900">
+              Imprimir Recibo
             </Button>
-          </Link>
-          <Button className="w-full rounded-full h-20 font-black uppercase tracking-[0.2em] text-[11px] shadow-[0_20px_40px_rgba(var(--primary),0.2)] hover:scale-[1.02] hover:shadow-[0_25px_50px_rgba(var(--primary),0.3)] transition-all gap-3 group">
-            <Share2 className="h-4 w-4" /> 
-            Compartilhar Compra
-          </Button>
-        </div>
+          </div>
 
-        <div className="pt-12 border-t border-slate-100 flex flex-wrap items-center justify-center gap-10 text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">
-           <div className="flex items-center gap-3 hover:text-emerald-500 transition-colors cursor-default">
-              <ShieldCheck className="h-5 w-5 text-emerald-500" />
-              Compra Protegida
-           </div>
-           <div className="flex items-center gap-3 hover:text-primary transition-colors cursor-default">
-              <ShoppingBag className="h-5 w-5 text-primary" />
-              Tech Store Oficial
-           </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-16 border-t border-slate-50">
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center">
+                <ShieldCheck className="h-6 w-6 text-emerald-500" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Compra 100% Segura</p>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center">
+                <Package className="h-6 w-6 text-blue-500" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Embalagem Titanium</p>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center">
+                <Star className="h-6 w-6 text-yellow-500" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Avaliação 5 Estrelas</p>
+            </div>
+          </div>
         </div>
+      </main>
 
-      </div>
+      <footer className="py-16 text-center border-t border-slate-50">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+          © 2026 PUB ECOM Prototype B. Powered by Titanium Engine.
+        </p>
+      </footer>
     </div>
   );
 }
 
-function ShieldCheck({ className }: { className?: string }) {
+function Badge({ children, variant, className }: any) {
   return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="3" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
+    <div className={cn(
+      "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+      variant === "outline" ? "text-foreground" : "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+      className
+    )}>
+      {children}
+    </div>
   );
 }
