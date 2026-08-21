@@ -44,7 +44,7 @@
 
 :root {
   --radius: 0.5rem;
-  --background: oklch(0.99 0 0);
+  --background: oklch(0.99 0.00 0);
   --foreground: oklch(0.15 0.02 260);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.15 0.02 260);
@@ -90,6 +90,7 @@
   --border: oklch(0.25 0.03 260);
   --input: oklch(0.25 0.03 260);
   --ring: oklch(0.70 0.15 260);
+
 }
 
 @layer base {
