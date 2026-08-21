@@ -54,7 +54,9 @@ function StoreHome() {
             </div>
           </div>
           <div className="flex-1 w-full max-w-[500px]">
-             <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800" alt="Featured" className="rounded-3xl shadow-2xl" />
+             <Link to="/store/product">
+               <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800" alt="Featured" className="rounded-3xl shadow-2xl cursor-pointer hover:opacity-90 transition-opacity" />
+             </Link>
           </div>
         </div>
       </section>
@@ -71,18 +73,22 @@ function StoreHome() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {mockProducts.map((p) => (
             <Card key={p.id} className="group border-none shadow-none">
-              <CardContent className="p-0 overflow-hidden rounded-2xl aspect-square mb-4 bg-slate-100 relative">
-                 <img src={p.image} alt={p.name} className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110" />
-                 <Button className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity rounded-full shadow-lg translate-y-2 group-hover:translate-y-0 duration-300">
-                   Adicionar ao Carrinho
-                 </Button>
-              </CardContent>
+              <Link to="/store/product">
+                <CardContent className="p-0 overflow-hidden rounded-2xl aspect-square mb-4 bg-slate-100 relative">
+                  <img src={p.image} alt={p.name} className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110" />
+                  <Button className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity rounded-full shadow-lg translate-y-2 group-hover:translate-y-0 duration-300">
+                    Ver Detalhes
+                  </Button>
+                </CardContent>
+              </Link>
               <CardFooter className="flex flex-col items-start p-0 gap-1">
                 <div className="flex items-center gap-1 text-yellow-500 mb-1">
                    {[1, 2, 3, 4, 5].map(s => <Star key={s} className="h-3 w-3 fill-current" />)}
                    <span className="text-[10px] text-muted-foreground ml-1">(48 avaliações)</span>
                 </div>
-                <h3 className="font-semibold text-slate-900">{p.name}</h3>
+                <Link to="/store/product">
+                  <h3 className="font-semibold text-slate-900 hover:text-primary transition-colors">{p.name}</h3>
+                </Link>
                 <p className="text-primary font-bold">R$ {p.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
               </CardFooter>
             </Card>
