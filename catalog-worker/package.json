@@ -1,8 +1,14 @@
 {
   "name": "pub-ecom-catalog-worker",
   "version": "1.0.0",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "typecheck": "tsc --noEmit"
+  },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240821.0",
+    "typescript": "^5.5.4",
     "wrangler": "^3.72.0"
   },
   "dependencies": {
