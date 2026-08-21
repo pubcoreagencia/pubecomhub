@@ -11,7 +11,7 @@ export interface SaleMetrics {
 
 export const calculateSaleMargins = (gross: number, cost: number, shipping: number, taxRate: number = 0.05): SaleMetrics => {
   const taxes = gross * taxRate;
-  const discounts = 0; // Simplified for prototype
+  const discounts = 0; // Simplified for current phase
   const net_profit = gross - cost - shipping - taxes - discounts;
   
   // Rule: Influencer gets 50% of Net Profit
