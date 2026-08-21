@@ -19,7 +19,9 @@ import {
   TrendingUp,
   Award,
   CircleDollarSign,
-  Share2
+  Share2,
+  Globe,
+  Gift
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
