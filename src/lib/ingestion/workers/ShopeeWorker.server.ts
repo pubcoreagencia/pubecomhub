@@ -18,13 +18,22 @@ interface WorkerResult {
 
 function validateUrl(url: string) {
   const parsed = new URL(url);
-  if (!parsed.hostname.endsWith('shopee.com.br')) {
-    throw new Error("Domínio não permitido.");
+  
+  // Accept only shopee.com.br and its legitimate subdomains
+  const hostname = parsed.hostname.toLowerCase();
+  const isLegitShopee = hostname === 'shopee.com.br' || hostname.endsWith('.shopee.com.br');
+  
+  if (!isLegitShopee) {
+    throw new Error("Domínio não permitido. Apenas shopee.com.br é aceito.");
   }
-  const blockedIps = ['127.0.0.1', '0.0.0.0', 'localhost', '169.254.169.254'];
-  if (blockedIps.includes(parsed.hostname.toLowerCase())) {
+
+  // Block local/private IPs and sensitive endpoints
+  const blockedHostnames = ['localhost', '127.0.0.1', '0.0.0.0', '169.254.169.254'];
+  if (blockedHostnames.includes(hostname)) {
     throw new Error("Origem inválida.");
   }
+
+  // Strict protocol check
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
     throw new Error("Protocolo não suportado.");
   }
