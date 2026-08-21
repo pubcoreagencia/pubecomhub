@@ -16,7 +16,7 @@ function Index() {
         <div className="space-y-4 border-b border-emerald-500/20 pb-8">
           <div className="flex items-center justify-between">
             <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">
-              FASE 2F.7 — CORRIGIR INSTRUMENTAÇÃO DE DIAGNÓSTICO
+              FASE 2F.7 — GARANTIR QUE A INSTRUMENTAÇÃO EXISTE NO CÓDIGO EXECUTADO
             </h1>
             <Badge variant="outline" className="border-emerald-500/50 text-emerald-400 bg-emerald-500/5 px-3 py-1 text-sm font-medium">
               OPERACIONAL
