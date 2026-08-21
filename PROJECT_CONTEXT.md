@@ -33,7 +33,7 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - **Audience Engine**: Gestão de clientes e leads.
 - **Financeiro**: Controle de vendas, lucros e repasses.
 - **Operação**: Gestão de pedidos, estoque, produtos e fornecedores.
-- **Ingestion Engine**: Motor de importação automática de catálogos via adapters (Shopee/Mock).
+- **Ingestion Engine**: Motor de importação automática de catálogos via adapters (Shopee/Mock) com interface operacional completa, preview e confirmação de importação.
 - **Crescimento**: Marketing, SEO, Afiliados e Influenciadores.
 
 ## Regras de Negócio e Domínio
