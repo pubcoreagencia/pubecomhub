@@ -118,11 +118,12 @@ function DashboardPage() {
   );
 }
 
-function Badge({ children, variant = 'default' }: { children: React.ReactNode; variant?: 'default' | 'outline' }) {
+function Badge({ children, variant = 'default', className }: { children: React.ReactNode; variant?: 'default' | 'outline', className?: string }) {
   return (
     <span className={cn(
       "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase",
-      variant === 'outline' ? "border text-slate-600" : "bg-primary text-white"
+      variant === 'outline' ? "border text-slate-600" : "bg-primary text-white",
+      className
     )}>
       {children}
     </span>
