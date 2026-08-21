@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { mockOrders, calculateFinance } from '@/data/mock';
-import { DollarSign, ShoppingCart, Users, TrendingUp } from 'lucide-react';
+import { DollarSign, ShoppingCart, Users, TrendingUp, ArrowUpRight, ArrowDownRight, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/dashboard/')({
   component: DashboardPage,
@@ -18,12 +19,19 @@ function DashboardPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  const metrics = [
+    { label: 'Faturamento Bruto', value: finance.grossRevenue, icon: DollarSign, trend: '+12.5%', color: 'text-emerald-600' },
+    { label: 'Pedidos Ativos', value: mockOrders.length, icon: ShoppingCart, trend: '+4', color: 'text-blue-600' },
+    { label: 'Lucro Líquido PUB', value: finance.pubEcomNetResult, icon: TrendingUp, trend: '+8.2%', color: 'text-indigo-600' },
+    { label: 'Visitantes Online', value: 42, icon: Users, trend: 'Tempo real', color: 'text-amber-600' },
+  ];
+
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <Card key={i}>
+            <Card key={i} className="shadow-sm border-slate-100">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <Skeleton className="h-4 w-[100px]" />
                 <Skeleton className="h-4 w-4" />
@@ -35,104 +43,71 @@ function DashboardPage() {
             </Card>
           ))}
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="col-span-4">
-            <CardHeader><Skeleton className="h-6 w-[150px]" /></CardHeader>
-            <CardContent><Skeleton className="h-[200px] w-full" /></CardContent>
-          </Card>
-          <Card className="col-span-3">
-            <CardHeader><Skeleton className="h-6 w-[150px]" /></CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="flex items-center gap-4">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-[100px]" />
-                      <Skeleton className="h-3 w-[60px]" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     );
   }
 
-
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Visão Geral da Operação</h2>
+        <div className="flex gap-2">
+           <Badge variant="outline" className="bg-white">Últimos 30 dias</Badge>
+        </div>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Faturamento Bruto</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ {finance.grossRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+20.1% em relação ao mês anterior</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vendas Realizadas</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+{mockOrders.length}</div>
-            <p className="text-xs text-muted-foreground">+12 desde ontem</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lucro Líquido (PUB)</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ {finance.pubEcomNetResult.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Margem: {finance.margin.toFixed(2)}%</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Visitantes Online</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">42</div>
-            <p className="text-xs text-green-500">Em tempo real</p>
-          </CardContent>
-        </Card>
+        {metrics.map((m, i) => (
+          <Card key={i} className="shadow-sm border-slate-100 transition-all hover:shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xs font-semibold uppercase text-slate-500">{m.label}</CardTitle>
+              <m.icon className={cn("h-4 w-4", m.color)} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900">R$ {m.value.toLocaleString()}</div>
+              <p className="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
+                {m.trend.includes('+') ? <ArrowUpRight className="h-3 w-3 text-emerald-500" /> : null}
+                {m.trend}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+        <Card className="col-span-4 shadow-sm border-slate-100">
           <CardHeader>
-            <CardTitle>Visão Geral</CardTitle>
+            <CardTitle className="text-base">Desempenho de Vendas (Diário)</CardTitle>
           </CardHeader>
-          <CardContent className="pl-2">
-            <div className="h-[200px] flex items-end justify-between gap-2 px-4">
+          <CardContent>
+            <div className="h-[250px] flex items-end justify-between gap-3 px-4 pt-4">
               {[40, 60, 45, 90, 65, 80, 50].map((h, i) => (
-                <div key={i} className="bg-primary/20 w-full rounded-t-md hover:bg-primary/40 transition-colors" style={{ height: `${h}%` }} />
+                <div key={i} className="bg-indigo-100 w-full rounded-t-lg hover:bg-primary/20 transition-all cursor-pointer relative group">
+                   <div className="absolute inset-x-0 bottom-0 bg-primary/80 rounded-t-lg transition-all" style={{ height: `${h}%` }} />
+                   <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                      {h * 10}
+                   </span>
+                </div>
               ))}
             </div>
           </CardContent>
         </Card>
-        <Card className="col-span-3">
+        <Card className="col-span-3 shadow-sm border-slate-100">
           <CardHeader>
-            <CardTitle>Vendas Recentes</CardTitle>
+            <CardTitle className="text-base">Pedidos Recentes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {mockOrders.map(order => (
-                <div key={order.id} className="flex items-center">
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">Pedido #{order.id}</p>
-                    <p className="text-xs text-muted-foreground">Loja Tech</p>
+                <div key={order.id} className="flex items-center gap-4 group">
+                  <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                     <Package className="h-5 w-5" />
                   </div>
-                  <div className="ml-auto font-medium">+R$ {order.amount}</div>
+                  <div className="flex-1 space-y-0.5">
+                    <p className="text-sm font-bold text-slate-900">Pedido #{order.id}</p>
+                    <p className="text-xs text-slate-500">Loja Tech • Smartphone Pro</p>
+                  </div>
+                  <div className="text-sm font-bold text-slate-900">+R$ {order.amount}</div>
                 </div>
               ))}
             </div>
@@ -140,5 +115,16 @@ function DashboardPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+function Badge({ children, variant = 'default' }: { children: React.ReactNode; variant?: 'default' | 'outline' }) {
+  return (
+    <span className={cn(
+      "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase",
+      variant === 'outline' ? "border text-slate-600" : "bg-primary text-white"
+    )}>
+      {children}
+    </span>
   );
 }
