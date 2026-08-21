@@ -10,6 +10,9 @@ export const Route = createFileRoute('/store/product')({
 
 function ProductPage() {
   const product = mockProducts[0];
+  
+  if (!product) return <div>Produto não encontrado</div>;
+
 
   return (
     <div className="min-h-screen bg-white">
