@@ -2,6 +2,7 @@
   "name": "pub-ecom-catalog-worker",
   "version": "1.0.0",
   "scripts": {
+    "build": "wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
     "typecheck": "tsc --noEmit"

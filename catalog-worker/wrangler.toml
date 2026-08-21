@@ -6,8 +6,14 @@ compatibility_flags = [ "nodejs_compat" ]
 [browser]
 binding = "BROWSER"
 
-# Secrets (configuradas via wrangler secret put):
-# CATALOG_WORKER_TOKEN
+# Build configuration to handle playwright-core issues
+[build.upload]
+format = "modules"
+
+[rules]
+globs = ["**/*.js"]
+type = "ESModule"
+
 
 [build]
 command = "npm run build"
