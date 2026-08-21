@@ -2,13 +2,65 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { mockOrders, calculateFinance } from '@/data/mock';
 import { DollarSign, ShoppingCart, Users, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const Route = createFileRoute('/dashboard/')({
   component: DashboardPage,
 });
 
 function DashboardPage() {
+  const [loading, setLoading] = useState(true);
   const finance = calculateFinance(mockOrders);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-[120px] mb-2" />
+                <Skeleton className="h-3 w-[150px]" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+          <Card className="col-span-4">
+            <CardHeader><Skeleton className="h-6 w-[150px]" /></CardHeader>
+            <CardContent><Skeleton className="h-[200px] w-full" /></CardContent>
+          </Card>
+          <Card className="col-span-3">
+            <CardHeader><Skeleton className="h-6 w-[150px]" /></CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-[100px]" />
+                      <Skeleton className="h-3 w-[60px]" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="space-y-6">

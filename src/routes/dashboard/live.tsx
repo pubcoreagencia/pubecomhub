@@ -3,13 +3,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { mockOrders } from '@/data/mock';
 import { Activity, ShoppingCart, UserCheck, CreditCard, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const Route = createFileRoute('/dashboard/live')({
   component: LiveShopPage,
 });
 
 function LiveShopPage() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Simulando eventos em tempo real baseados nos pedidos
+
   const events = [
     { type: 'sale', label: 'Venda Realizada', store: 'Loja Tech', time: 'Agora mesmo', icon: CheckCircle2, color: 'text-green-500' },
     { type: 'checkout', label: 'Checkout Ativo', store: 'Moda Fashion', time: '2 min atrás', icon: CreditCard, color: 'text-blue-500' },
