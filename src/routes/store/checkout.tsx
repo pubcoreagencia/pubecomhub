@@ -110,11 +110,12 @@ function CheckoutPage() {
             </div>
             
             <div className="pt-4">
-              <Link to="/store/confirmation">
-                <Button className="w-full h-20 text-lg font-black uppercase tracking-[0.2em] rounded-full shadow-2xl shadow-primary/20 hover:scale-[1.01] transition-all gap-3 group">
-                  Finalizar Pagamento <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              <Link to="/store/confirmation" onClick={() => clearCart()}>
+                <Button className="w-full h-24 text-xl font-black uppercase tracking-[0.3em] rounded-full shadow-[0_20px_50px_rgba(var(--primary),0.2)] hover:scale-[1.01] hover:shadow-[0_25px_60px_rgba(var(--primary),0.3)] transition-all gap-4 group">
+                  Finalizar Pagamento <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-2" />
                 </Button>
               </Link>
+
               <div className="mt-8 flex items-center justify-center gap-6">
                  <div className="h-10 w-16 bg-white border border-slate-100 rounded-lg flex items-center justify-center text-[8px] font-black grayscale opacity-50 uppercase tracking-tighter">Visa</div>
                  <div className="h-10 w-16 bg-white border border-slate-100 rounded-lg flex items-center justify-center text-[8px] font-black grayscale opacity-50 uppercase tracking-tighter">Master</div>
