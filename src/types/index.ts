@@ -46,14 +46,13 @@ export interface Customer {
 
 export interface Order {
   id: string;
-  external_id?: string;
-
+  external_id?: string | null;
   storeId: string;
   productId?: string; // Legacy compatibility
   supplierId?: string;
   customerId: string;
-  influencerId?: string;
-  affiliateId?: string;
+  influencerId?: string | null;
+  affiliateId?: string | null;
   amount: number;
   cost: number;
   shipping: number;
@@ -120,4 +119,3 @@ export interface IStoreRepository {
   getByOwner(ownerId: string): Promise<Store[]>;
   getBySubdomain(subdomain: string): Promise<Store | null>;
 }
-
