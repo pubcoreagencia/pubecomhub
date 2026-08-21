@@ -1,5 +1,12 @@
 # Changelog - PUB ECOM HUB
 
+## [1.6.1] - 2026-08-21
+### Adicionado
+- **Fase 2F.2 - Deploy do Catalog Worker**: Preparação técnica para o deploy na Cloudflare.
+- **Endpoint /health**: Implementado health check público para monitoramento de disponibilidade.
+- **SSRF Validation**: Proteção robusta contra ataques de Server-Side Request Forgery no worker.
+- **TypeScript & Build**: Configuração de `tsconfig.json` e scripts de build independentes no `catalog-worker/`.
+
 ## [1.6.0] - 2026-08-21
 ### Adicionado
 - **Fase 2E - Infraestrutura de Worker Externo**: Integração com Cloudflare Browser Run.

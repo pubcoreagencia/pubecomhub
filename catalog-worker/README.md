@@ -1,19 +1,38 @@
 # PUB ECOM Catalog Worker
 
-Infraestrutura de automação de browser para o PUB ECOM HUB utilizando Cloudflare Browser Run.
+Worker independente para automação de browser (scraping) do PUB ECOM HUB utilizando Cloudflare Browser Run.
 
-## Arquitetura
-Este worker é um projeto independente responsável exclusivamente pela execução de browser automation para extração de catálogos (Shopee, etc.).
+## Funcionalidades
 
-## Setup
-1. Instale as dependências: `npm install`
-2. Configure o secret: `wrangler secret put CATALOG_WORKER_TOKEN`
-3. Deploy: `wrangler deploy`
+- **Health Check**: `GET /health`
+- **Ingestion Shopee**: `POST /ingestion/shopee`
+- **Segurança**:
+  - Autenticação via Bearer Token.
+  - Validação de Hostname (Apenas Shopee).
+  - Proteção SSRF básica.
+- **Runtime**: Cloudflare Workers com `browser` binding.
 
-## API Contract
-`POST /ingestion/shopee`
-- **Auth**: `Authorization: Bearer <TOKEN>`
-- **Body**: `{ "url": "...", "limit": 100 }`
+## Desenvolvimento
 
-## Limites
-- Sujeito aos limites do Cloudflare Browser Run (Workers Free vs Paid).
+```bash
+cd catalog-worker
+npm install
+npm run typecheck
+npm run dev
+```
+
+## Deploy
+
+```bash
+# Configurar token secreto (Primeira vez)
+npx wrangler secret put CATALOG_WORKER_TOKEN
+
+# Deploy
+npm run deploy
+```
+
+## Estrutura
+
+- `src/index.ts`: Ponto de entrada e handlers.
+- `wrangler.toml`: Configuração do worker e bindings.
+- `tsconfig.json`: Configuração TypeScript para o worker.
