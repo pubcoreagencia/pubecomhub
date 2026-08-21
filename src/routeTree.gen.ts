@@ -28,11 +28,13 @@ import { Route as PrototypeBDashboardIndexRouteImport } from './routes/prototype
 import { Route as PrototypeBDashboardAudienceRouteImport } from './routes/prototype-b/dashboard/audience'
 import { Route as PrototypeBDashboardFinanceRouteImport } from './routes/prototype-b/dashboard/finance'
 import { Route as PrototypeBDashboardInfluencersRouteImport } from './routes/prototype-b/dashboard/influencers'
+import { Route as PrototypeBDashboardInventoryRouteImport } from './routes/prototype-b/dashboard/inventory'
 import { Route as PrototypeBDashboardLiveRouteImport } from './routes/prototype-b/dashboard/live'
 import { Route as PrototypeBDashboardMarketingRouteImport } from './routes/prototype-b/dashboard/marketing'
 import { Route as PrototypeBDashboardOrdersRouteImport } from './routes/prototype-b/dashboard/orders'
 import { Route as PrototypeBDashboardProductsRouteImport } from './routes/prototype-b/dashboard/products'
 import { Route as PrototypeBDashboardRankingRouteImport } from './routes/prototype-b/dashboard/ranking'
+import { Route as PrototypeBDashboardSeoRouteImport } from './routes/prototype-b/dashboard/seo'
 import { Route as PrototypeBDashboardSettingsRouteImport } from './routes/prototype-b/dashboard/settings'
 import { Route as PrototypeBDashboardStoresRouteImport } from './routes/prototype-b/dashboard/stores'
 import { Route as PrototypeBDashboardSuppliersRouteImport } from './routes/prototype-b/dashboard/suppliers'
@@ -142,6 +144,12 @@ const PrototypeBDashboardInfluencersRoute =
     path: '/influencers',
     getParentRoute: () => PrototypeBDashboardRouteRoute,
   } as any)
+const PrototypeBDashboardInventoryRoute =
+  PrototypeBDashboardInventoryRouteImport.update({
+    id: '/inventory',
+    path: '/inventory',
+    getParentRoute: () => PrototypeBDashboardRouteRoute,
+  } as any)
 const PrototypeBDashboardLiveRoute = PrototypeBDashboardLiveRouteImport.update({
   id: '/live',
   path: '/live',
@@ -171,6 +179,11 @@ const PrototypeBDashboardRankingRoute =
     path: '/ranking',
     getParentRoute: () => PrototypeBDashboardRouteRoute,
   } as any)
+const PrototypeBDashboardSeoRoute = PrototypeBDashboardSeoRouteImport.update({
+  id: '/seo',
+  path: '/seo',
+  getParentRoute: () => PrototypeBDashboardRouteRoute,
+} as any)
 const PrototypeBDashboardSettingsRoute =
   PrototypeBDashboardSettingsRouteImport.update({
     id: '/settings',
@@ -236,11 +249,13 @@ export interface FileRoutesByFullPath {
   '/prototype-b/dashboard/audience': typeof PrototypeBDashboardAudienceRoute
   '/prototype-b/dashboard/finance': typeof PrototypeBDashboardFinanceRoute
   '/prototype-b/dashboard/influencers': typeof PrototypeBDashboardInfluencersRoute
+  '/prototype-b/dashboard/inventory': typeof PrototypeBDashboardInventoryRoute
   '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
   '/prototype-b/dashboard/marketing': typeof PrototypeBDashboardMarketingRoute
   '/prototype-b/dashboard/orders': typeof PrototypeBDashboardOrdersRoute
   '/prototype-b/dashboard/products': typeof PrototypeBDashboardProductsRoute
   '/prototype-b/dashboard/ranking': typeof PrototypeBDashboardRankingRoute
+  '/prototype-b/dashboard/seo': typeof PrototypeBDashboardSeoRoute
   '/prototype-b/dashboard/settings': typeof PrototypeBDashboardSettingsRoute
   '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
   '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
@@ -268,11 +283,13 @@ export interface FileRoutesByTo {
   '/prototype-b/dashboard/audience': typeof PrototypeBDashboardAudienceRoute
   '/prototype-b/dashboard/finance': typeof PrototypeBDashboardFinanceRoute
   '/prototype-b/dashboard/influencers': typeof PrototypeBDashboardInfluencersRoute
+  '/prototype-b/dashboard/inventory': typeof PrototypeBDashboardInventoryRoute
   '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
   '/prototype-b/dashboard/marketing': typeof PrototypeBDashboardMarketingRoute
   '/prototype-b/dashboard/orders': typeof PrototypeBDashboardOrdersRoute
   '/prototype-b/dashboard/products': typeof PrototypeBDashboardProductsRoute
   '/prototype-b/dashboard/ranking': typeof PrototypeBDashboardRankingRoute
+  '/prototype-b/dashboard/seo': typeof PrototypeBDashboardSeoRoute
   '/prototype-b/dashboard/settings': typeof PrototypeBDashboardSettingsRoute
   '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
   '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
@@ -303,11 +320,13 @@ export interface FileRoutesById {
   '/prototype-b/dashboard/audience': typeof PrototypeBDashboardAudienceRoute
   '/prototype-b/dashboard/finance': typeof PrototypeBDashboardFinanceRoute
   '/prototype-b/dashboard/influencers': typeof PrototypeBDashboardInfluencersRoute
+  '/prototype-b/dashboard/inventory': typeof PrototypeBDashboardInventoryRoute
   '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
   '/prototype-b/dashboard/marketing': typeof PrototypeBDashboardMarketingRoute
   '/prototype-b/dashboard/orders': typeof PrototypeBDashboardOrdersRoute
   '/prototype-b/dashboard/products': typeof PrototypeBDashboardProductsRoute
   '/prototype-b/dashboard/ranking': typeof PrototypeBDashboardRankingRoute
+  '/prototype-b/dashboard/seo': typeof PrototypeBDashboardSeoRoute
   '/prototype-b/dashboard/settings': typeof PrototypeBDashboardSettingsRoute
   '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
   '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
@@ -339,11 +358,13 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/audience'
     | '/prototype-b/dashboard/finance'
     | '/prototype-b/dashboard/influencers'
+    | '/prototype-b/dashboard/inventory'
     | '/prototype-b/dashboard/live'
     | '/prototype-b/dashboard/marketing'
     | '/prototype-b/dashboard/orders'
     | '/prototype-b/dashboard/products'
     | '/prototype-b/dashboard/ranking'
+    | '/prototype-b/dashboard/seo'
     | '/prototype-b/dashboard/settings'
     | '/prototype-b/dashboard/stores'
     | '/prototype-b/dashboard/suppliers'
@@ -371,11 +392,13 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/audience'
     | '/prototype-b/dashboard/finance'
     | '/prototype-b/dashboard/influencers'
+    | '/prototype-b/dashboard/inventory'
     | '/prototype-b/dashboard/live'
     | '/prototype-b/dashboard/marketing'
     | '/prototype-b/dashboard/orders'
     | '/prototype-b/dashboard/products'
     | '/prototype-b/dashboard/ranking'
+    | '/prototype-b/dashboard/seo'
     | '/prototype-b/dashboard/settings'
     | '/prototype-b/dashboard/stores'
     | '/prototype-b/dashboard/suppliers'
@@ -405,11 +428,13 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/audience'
     | '/prototype-b/dashboard/finance'
     | '/prototype-b/dashboard/influencers'
+    | '/prototype-b/dashboard/inventory'
     | '/prototype-b/dashboard/live'
     | '/prototype-b/dashboard/marketing'
     | '/prototype-b/dashboard/orders'
     | '/prototype-b/dashboard/products'
     | '/prototype-b/dashboard/ranking'
+    | '/prototype-b/dashboard/seo'
     | '/prototype-b/dashboard/settings'
     | '/prototype-b/dashboard/stores'
     | '/prototype-b/dashboard/suppliers'
@@ -570,6 +595,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrototypeBDashboardInfluencersRouteImport
       parentRoute: typeof PrototypeBDashboardRouteRoute
     }
+    '/prototype-b/dashboard/inventory': {
+      id: '/prototype-b/dashboard/inventory'
+      path: '/inventory'
+      fullPath: '/prototype-b/dashboard/inventory'
+      preLoaderRoute: typeof PrototypeBDashboardInventoryRouteImport
+      parentRoute: typeof PrototypeBDashboardRouteRoute
+    }
     '/prototype-b/dashboard/live': {
       id: '/prototype-b/dashboard/live'
       path: '/live'
@@ -603,6 +635,13 @@ declare module '@tanstack/react-router' {
       path: '/ranking'
       fullPath: '/prototype-b/dashboard/ranking'
       preLoaderRoute: typeof PrototypeBDashboardRankingRouteImport
+      parentRoute: typeof PrototypeBDashboardRouteRoute
+    }
+    '/prototype-b/dashboard/seo': {
+      id: '/prototype-b/dashboard/seo'
+      path: '/seo'
+      fullPath: '/prototype-b/dashboard/seo'
+      preLoaderRoute: typeof PrototypeBDashboardSeoRouteImport
       parentRoute: typeof PrototypeBDashboardRouteRoute
     }
     '/prototype-b/dashboard/settings': {
@@ -694,11 +733,13 @@ interface PrototypeBDashboardRouteRouteChildren {
   PrototypeBDashboardAudienceRoute: typeof PrototypeBDashboardAudienceRoute
   PrototypeBDashboardFinanceRoute: typeof PrototypeBDashboardFinanceRoute
   PrototypeBDashboardInfluencersRoute: typeof PrototypeBDashboardInfluencersRoute
+  PrototypeBDashboardInventoryRoute: typeof PrototypeBDashboardInventoryRoute
   PrototypeBDashboardLiveRoute: typeof PrototypeBDashboardLiveRoute
   PrototypeBDashboardMarketingRoute: typeof PrototypeBDashboardMarketingRoute
   PrototypeBDashboardOrdersRoute: typeof PrototypeBDashboardOrdersRoute
   PrototypeBDashboardProductsRoute: typeof PrototypeBDashboardProductsRoute
   PrototypeBDashboardRankingRoute: typeof PrototypeBDashboardRankingRoute
+  PrototypeBDashboardSeoRoute: typeof PrototypeBDashboardSeoRoute
   PrototypeBDashboardSettingsRoute: typeof PrototypeBDashboardSettingsRoute
   PrototypeBDashboardStoresRoute: typeof PrototypeBDashboardStoresRoute
   PrototypeBDashboardSuppliersRoute: typeof PrototypeBDashboardSuppliersRoute
@@ -711,11 +752,13 @@ const PrototypeBDashboardRouteRouteChildren: PrototypeBDashboardRouteRouteChildr
     PrototypeBDashboardAudienceRoute: PrototypeBDashboardAudienceRoute,
     PrototypeBDashboardFinanceRoute: PrototypeBDashboardFinanceRoute,
     PrototypeBDashboardInfluencersRoute: PrototypeBDashboardInfluencersRoute,
+    PrototypeBDashboardInventoryRoute: PrototypeBDashboardInventoryRoute,
     PrototypeBDashboardLiveRoute: PrototypeBDashboardLiveRoute,
     PrototypeBDashboardMarketingRoute: PrototypeBDashboardMarketingRoute,
     PrototypeBDashboardOrdersRoute: PrototypeBDashboardOrdersRoute,
     PrototypeBDashboardProductsRoute: PrototypeBDashboardProductsRoute,
     PrototypeBDashboardRankingRoute: PrototypeBDashboardRankingRoute,
+    PrototypeBDashboardSeoRoute: PrototypeBDashboardSeoRoute,
     PrototypeBDashboardSettingsRoute: PrototypeBDashboardSettingsRoute,
     PrototypeBDashboardStoresRoute: PrototypeBDashboardStoresRoute,
     PrototypeBDashboardSuppliersRoute: PrototypeBDashboardSuppliersRoute,
