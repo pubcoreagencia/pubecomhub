@@ -64,19 +64,15 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
     // 2. Extract ShopID if not provided
     if (!detectedShopId) {
       detectedShopId = await page.evaluate(() => {
-        // Try to find ShopID in scripts/json or specific elements
         const scripts = Array.from(document.querySelectorAll('script'));
         for (const script of scripts) {
           const match = script.innerHTML.match(/shopid["\s:]+(\d+)/);
           if (match && match[1] && match[1] !== '0') return match[1];
         }
-        
-        // Try from the URL
         const urlMatch = window.location.href.match(/\/shop\/(\d+)/);
-        if (urlMatch) return urlMatch[1];
-        
+        if (urlMatch && urlMatch[1]) return urlMatch[1];
         return null;
-      });
+      }) as string | null;
     }
 
     if (!detectedShopId) {
