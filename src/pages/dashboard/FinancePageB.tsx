@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ShellB } from '@/prototype-b/components/ShellB';
+import { Shell } from '@/components/layout/Shell';
 import { CardMetric, HubTable } from '@/components/ui-b';
 import { 
   CircleDollarSign, TrendingUp, ArrowDownToLine, 
@@ -9,7 +9,7 @@ import { mockFinancialSummary } from '@/lib/services/financialService';
 
 export default function FinancePageB() {
   return (
-    <ShellB>
+    <Shell>
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
            <div className="space-y-1">
@@ -114,6 +114,6 @@ export default function FinancePageB() {
            </div>
         </div>
       </div>
-    </ShellB>
+    </Shell>
   );
 }

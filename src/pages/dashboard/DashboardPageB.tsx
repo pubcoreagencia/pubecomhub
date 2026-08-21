@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ShellB } from '@/prototype-b/components/ShellB';
+import { Shell } from '@/components/layout/Shell';
 import { CardMetric, AcquisitionFunnel, HubTable } from '@/components/ui-b';
 import { cn } from '@/lib/utils';
 import { 
@@ -9,7 +9,7 @@ import {
 
 export default function DashboardPageB() {
   return (
-    <ShellB>
+    <Shell>
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Metric Cards */}
         <CardMetric 
@@ -163,6 +163,6 @@ export default function DashboardPageB() {
           </div>
         </div>
       </div>
-    </ShellB>
+    </Shell>
   );
 }
