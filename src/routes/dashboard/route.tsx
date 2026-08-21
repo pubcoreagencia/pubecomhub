@@ -3,8 +3,7 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 
 export const Route = createFileRoute('/dashboard')({
   component: () => (
-    <DashboardLayout>
-      <Outlet />
-    </DashboardLayout>
+    <DashboardLayout />
   ),
 });
+
