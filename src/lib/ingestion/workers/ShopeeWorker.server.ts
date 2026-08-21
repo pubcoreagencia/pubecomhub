@@ -109,14 +109,25 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
           const pageResults: any = await page.evaluate(async ({ shopId, offset }) => {
             try {
               const api = `https://shopee.com.br/api/v4/search/search_items?by=relevancy&limit=30&match_id=${shopId}&newest=${offset}&order=desc&page_type=shop&scenario=PAGE_SHOP&version=2`;
+              
+              // In browser context, we attempt to use the existing session and headers
               const response = await fetch(api, {
                 headers: {
-                  'x-requested-with': 'XMLHttpRequest'
+                  'x-requested-with': 'XMLHttpRequest',
+                  'referer': `https://shopee.com.br/shop/${shopId}`,
+                  'accept': 'application/json, text/plain, */*'
                 }
               });
               
               if (response.status === 403) {
-                return { error: "HTTP 403 Forbidden - O acesso foi bloqueado pela Shopee." };
+                // If 403, we try one more time after a small scroll to simulate activity
+                await new Promise(r => setTimeout(r, 2000));
+                window.scrollTo(0, document.body.scrollHeight / 2);
+                const retryResp = await fetch(api, { headers: { 'x-requested-with': 'XMLHttpRequest' } });
+                if (retryResp.status === 403) return { error: "HTTP 403 Forbidden - O acesso foi bloqueado pela Shopee." };
+                if (!retryResp.ok) return { error: `HTTP ${retryResp.status}` };
+                const retryData = await retryResp.json();
+                return { items: retryData.items || [] };
               }
               
               if (!response.ok) return { error: `HTTP ${response.status}` };
