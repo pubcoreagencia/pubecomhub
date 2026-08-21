@@ -36,20 +36,24 @@ export class MasterProductRepository {
   }
 
   async upsert(product: Partial<MasterProduct>): Promise<MasterProduct> {
+    if (!product.supplierId || !product.sku || !product.name) {
+      throw new Error("Missing required fields for MasterProduct upsert");
+    }
+
     const { data, error } = await supabase
       .from('master_products')
       .upsert({
         supplier_id: product.supplierId,
         sku: product.sku,
         name: product.name,
-        description: product.description,
-        image_url: product.imageUrl,
-        category: product.category,
-        supplier_cost: product.supplierCost,
-        base_price_pub: product.basePricePub,
+        description: product.description || null,
+        image_url: product.imageUrl || null,
+        category: product.category || null,
+        supplier_cost: product.supplierCost || 0,
+        base_price_pub: product.basePricePub || 0,
         status: product.status || 'active',
         is_available: product.isAvailable ?? true,
-        metadata: product.metadata
+        metadata: product.metadata || null
       }, {
         onConflict: 'sku'
       })
@@ -74,8 +78,7 @@ export class MasterProductRepository {
       status: row.status,
       isAvailable: row.is_available,
       metadata: row.metadata,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
+      created_at: row.created_at
     };
   }
 }
