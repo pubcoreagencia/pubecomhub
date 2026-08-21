@@ -6,5 +6,4 @@ compatibility_flags = [ "nodejs_compat" ]
 [browser]
 binding = "BROWSER"
 
-# Secrets (configuradas via wrangler secret put):
-# CATALOG_WORKER_TOKEN
+# No custom build command, let wrangler handle it but we will pass flags via CLI if needed.

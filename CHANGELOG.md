@@ -1,5 +1,13 @@
 # Changelog - PUB ECOM HUB
 
+## [1.6.2] - 2026-08-21
+### Adicionado
+- **Fase 2F.3 - Validação de Build e Bundle**: 
+  - Resolvido problema crítico de bundling do `playwright-core` em Cloudflare Workers configurando pipeline customizado com `esbuild`.
+  - Scripts `build` e `deploy` (dry-run) validados com `wrangler`.
+  - Documentação do blocker de deploy: Requer `wrangler login` ou `CLOUDFLARE_API_TOKEN` no ambiente.
+
+
 ## [1.6.1] - 2026-08-21
 ### Adicionado
 - **Fase 2F.2 - Deploy do Catalog Worker**: Preparação técnica para o deploy na Cloudflare.
