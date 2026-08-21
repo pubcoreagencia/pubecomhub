@@ -10,7 +10,7 @@ export class ShopeeAdapter implements CatalogSourceAdapter {
   constructor() {
     // In production, we use ShopeeExecutionProvider. 
     // We could use an environment variable to toggle this.
-    const isMock = process.env.VITE_INGESTION_MOCK === 'true';
+    const isMock = process.env['VITE_INGESTION_MOCK'] === 'true';
     this.executionProvider = isMock ? new MockExecutionProvider() : new ShopeeExecutionProvider();
   }
 
