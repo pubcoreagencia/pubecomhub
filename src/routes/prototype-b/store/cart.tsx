@@ -79,7 +79,7 @@ function StorefrontCartB() {
                     </div>
 
                     <div className="text-right shrink-0">
-                      <p className="text-xl font-black text-slate-900 tracking-tighter italic">R$ {(item.price * item.quantity).toLocaleString('pt-BR')}</p>
+                      <p className="text-xl font-black text-slate-900 tracking-tighter italic">R$ {((item.price ?? 0) * item.quantity).toLocaleString('pt-BR')}</p>
                       <Button variant="ghost" size="sm" className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl px-4 mt-1 font-black text-[9px] uppercase tracking-widest">
                         Remover <Trash2 className="ml-2 h-3 w-3" />
                       </Button>
