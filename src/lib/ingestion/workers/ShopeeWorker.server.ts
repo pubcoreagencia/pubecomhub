@@ -75,16 +75,24 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
         if (!detectedShopId) {
-          detectedShopId = await page.evaluate(() => {
+          detectedShopId = await page.evaluate((currentUrl) => {
+            // Priority 1: URL format /shop/{id}
+            const urlMatch = currentUrl.match(/\/shop\/(\d+)/);
+            if (urlMatch && urlMatch[1]) return urlMatch[1];
+            
+            // Priority 2: Scripts
             const scripts = Array.from(document.querySelectorAll('script'));
             for (const script of scripts) {
               const match = script.innerHTML.match(/shopid["\s:]+(\d+)/);
               if (match && match[1] && match[1] !== '0') return match[1];
             }
-            const urlMatch = window.location.href.match(/\/shop\/(\d+)/);
-            if (urlMatch && urlMatch[1]) return urlMatch[1];
+            
+            // Priority 3: Product URL format /product/{shopid}/{itemid}
+            const productMatch = currentUrl.match(/\/product\/(\d+)/);
+            if (productMatch && productMatch[1]) return productMatch[1];
+            
             return null;
-          }) as string | null;
+          }, url) as string | null;
         }
 
         if (!detectedShopId) {
