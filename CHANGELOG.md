@@ -1,5 +1,17 @@
 # Changelog - PUB ECOM HUB
 
+## [1.4.0] - 2026-08-21
+### Added
+- **Fase 2C - Execução Real do Shopee Ingestion**: Implementação do motor de descoberta dinâmica.
+- **Worker Server-side**: `ShopeeWorker.server.ts` utilizando automação de browser (Playwright) para extração de dados e interceptação de API.
+- **Arquitetura de Execução**: Introdução de `ExecutionProvider` e `ShopeeExecutionProvider` para separar a lógica de extração da execução técnica.
+- **Deduplicação Real**: Verificação de SKU no catálogo master integrada ao pipeline de importação.
+
+### Changed
+- `ShopeeAdapter.ts`: Refatorado para delegar a execução ao worker server-side.
+- `package.json`: Playwright adicionado como dependência de desenvolvimento.
+- `vite.config.ts`: Configuração de `external` para Playwright para garantir compatibilidade com builds em workers.
+
 ## [1.3.0] - 2026-08-21
 ### Added
 - **Catalog Ingestion Engine**: Novo módulo para importação automática de produtos.
@@ -8,11 +20,6 @@
 - **Pricing Service**: Lógica de cálculo de `basePricePub` (Markup de 30% sobre custo).
 - **Server Functions**: `analyzeCatalogFn` e `importProductsFn` para operações seguras.
 - Repositório `MasterProductRepository` estendido com método `upsert`.
-- **Fase 2C**: Implementação real da execução do Shopee Ingestion.
-- Criada infraestrutura de `ExecutionProviders` e `ShopeeWorker.server.ts` utilizando Playwright.
-- Refatorado `ShopeeAdapter` para delegar execução ao worker server-side.
-- Adicionado sistema de logs e tratamento de erros no pipeline de descoberta.
-- Deduplicação real baseada em SKU no `CatalogIngestionService`.
 
 ## [1.2.0] - 2026-08-21
 ### Added
