@@ -1,4 +1,4 @@
-/* PUB ECOM — PROTOTYPE B (Official Base Visual PUB Ops Hub) */
+/* PUB ECOM — Official Premium Design System (Emerald Dark) */
 
 @import "hub/layout.css";
 @import "hub/components.css";
@@ -24,7 +24,7 @@
   --hub-header-height: 64px;
 }
 
-.prototype-b {
+.pub-ecom-root {
   background-color: var(--hub-bg);
   color: var(--hub-foreground);
   min-height: 100vh;
