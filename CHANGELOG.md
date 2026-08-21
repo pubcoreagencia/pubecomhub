@@ -1,6 +1,12 @@
 # Changelog - PUB ECOM HUB
 
+## [1.6.3] - 2026-08-21
+### Adicionado
+- **Fase 2F.4 - Blocker de Autenticação**: Confirmado que o ambiente não possui credenciais Cloudflare (`CLOUDFLARE_API_TOKEN`) para o deploy real do worker.
+- Interface de status atualizada em `/` com o diagnóstico detalhado.
+
 ## [1.6.2] - 2026-08-21
+
 ### Adicionado
 - **Fase 2F.3 - Validação de Build e Bundle**: 
   - Resolvido problema crítico de bundling do `playwright-core` em Cloudflare Workers configurando pipeline customizado com `esbuild`.
