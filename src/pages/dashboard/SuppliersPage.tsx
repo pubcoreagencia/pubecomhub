@@ -89,7 +89,7 @@ export default function SuppliersPage() {
                   </div>
                   <div>
                     <p className="text-[9px] font-black text-[var(--hub-muted)] uppercase tracking-[0.2em] mb-1 italic opacity-60">Total Pedidos</p>
-                    <p className="text-xs font-black text-white italic">{s.orders.toLocaleString()}</p>
+                    <p className="text-xs font-black text-white italic">{s.orders.toLocaleString('pt-BR')}</p>
                   </div>
                 </div>
 
