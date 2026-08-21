@@ -2,10 +2,11 @@
 
 ## [1.6.2] - 2026-08-21
 ### Adicionado
-- **Fase 2F.3 - Deploy e Prova Real**: 
-  - Resolvido problema de bundling do `playwright-core` no ambiente Cloudflare Workers usando `esbuild` customizado com exclusão de dependências `node:*` e `chromium-bidi`.
-  - Scripts de build e deploy dry-run validados com sucesso.
-  - Preparação para deploy real concluída (aguardando credenciais).
+- **Fase 2F.3 - Validação de Build e Bundle**: 
+  - Resolvido problema crítico de bundling do `playwright-core` em Cloudflare Workers configurando pipeline customizado com `esbuild`.
+  - Scripts `build` e `deploy` (dry-run) validados com `wrangler`.
+  - Documentação do blocker de deploy: Requer `wrangler login` ou `CLOUDFLARE_API_TOKEN` no ambiente.
+
 
 ## [1.6.1] - 2026-08-21
 ### Adicionado
