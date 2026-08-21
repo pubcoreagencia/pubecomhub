@@ -94,7 +94,11 @@ export class OrderRepository implements IOrderRepository {
       shipping: Number(dbOrder.shipping),
       tax: Number(dbOrder.tax),
       discount: Number(dbOrder.discount),
-      status: dbOrder.status,
+      status: dbOrder.status as any,
+      fulfillmentStatus: dbOrder.fulfillment_status ?? undefined,
+      trackingCode: dbOrder.tracking_code ?? undefined,
+      paymentMethod: dbOrder.payment_method ?? undefined,
+      financialMetadata: dbOrder.financial_metadata ?? undefined,
       net_profit: Number(dbOrder.net_profit),
       createdAt: dbOrder.created_at,
     };

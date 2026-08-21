@@ -57,6 +57,12 @@ export class ProductRepository implements IProductRepository {
       storeId: dbProduct.store_id,
       stock: dbProduct.stock,
       image: dbProduct.image_url ?? undefined,
+      masterProductId: dbProduct.master_product_id ?? undefined,
+      customName: dbProduct.custom_name ?? undefined,
+      customDescription: dbProduct.custom_description ?? undefined,
+      customImageUrl: dbProduct.custom_image_url ?? undefined,
+      profitMargin: dbProduct.profit_margin ? Number(dbProduct.profit_margin) : undefined,
+      status: dbProduct.status as 'active' | 'inactive' | undefined,
       created_at: dbProduct.created_at,
     };
   }

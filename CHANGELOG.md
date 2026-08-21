@@ -1,5 +1,13 @@
 # Changelog - PUB ECOM HUB
 
+## [1.2.0] - 2026-08-21
+### Added
+- **Modelo de Domínio FASE 2A**: Introdução de `MasterProduct`, `StoreProduct`, `Wallets` e `OrderTracking`.
+- Novas tabelas no banco: `master_products`, `wallets`, `wallet_transactions`, `order_tracking`, `marketing_events`.
+- Repositório `MasterProductRepository` para gestão do catálogo central.
+- Suporte a estados operacionais de pedido (Timeline).
+- Motor de eventos de marketing conceitual.
+
 ## [1.1.0] - 2026-08-21
 ### Added
 - Configuração do banco de dados Lovable Cloud (Supabase).

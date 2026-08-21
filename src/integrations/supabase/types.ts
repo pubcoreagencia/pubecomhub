@@ -128,6 +128,132 @@ export type Database = {
           },
         ]
       }
+      marketing_events: {
+        Row: {
+          created_at: string | null
+          customer_id: string
+          event_type: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_events_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      master_products: {
+        Row: {
+          base_price_pub: number
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean
+          metadata: Json | null
+          name: string
+          sku: string
+          status: string
+          supplier_cost: number
+          supplier_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_price_pub?: number
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          metadata?: Json | null
+          name: string
+          sku: string
+          status?: string
+          supplier_cost?: number
+          supplier_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_price_pub?: number
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          metadata?: Json | null
+          name?: string
+          sku?: string
+          status?: string
+          supplier_cost?: number
+          supplier_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "master_products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_tracking: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string | null
+          metadata: Json | null
+          order_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          order_id: string
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          order_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_tracking_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           affiliate_id: string | null
@@ -137,13 +263,18 @@ export type Database = {
           customer_id: string
           discount: number
           external_id: string | null
+          financial_metadata: Json | null
+          fulfillment_status: string | null
           id: string
           influencer_id: string | null
+          master_product_id: string | null
           net_profit: number | null
+          payment_method: string | null
           shipping: number
           status: string
           store_id: string
           tax: number
+          tracking_code: string | null
         }
         Insert: {
           affiliate_id?: string | null
@@ -153,13 +284,18 @@ export type Database = {
           customer_id: string
           discount?: number
           external_id?: string | null
+          financial_metadata?: Json | null
+          fulfillment_status?: string | null
           id?: string
           influencer_id?: string | null
+          master_product_id?: string | null
           net_profit?: number | null
+          payment_method?: string | null
           shipping?: number
           status?: string
           store_id: string
           tax?: number
+          tracking_code?: string | null
         }
         Update: {
           affiliate_id?: string | null
@@ -169,13 +305,18 @@ export type Database = {
           customer_id?: string
           discount?: number
           external_id?: string | null
+          financial_metadata?: Json | null
+          fulfillment_status?: string | null
           id?: string
           influencer_id?: string | null
+          master_product_id?: string | null
           net_profit?: number | null
+          payment_method?: string | null
           shipping?: number
           status?: string
           store_id?: string
           tax?: number
+          tracking_code?: string | null
         }
         Relationships: [
           {
@@ -200,6 +341,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "orders_master_product_id_fkey"
+            columns: ["master_product_id"]
+            isOneToOne: false
+            referencedRelation: "master_products"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "orders_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
@@ -212,37 +360,65 @@ export type Database = {
         Row: {
           cost: number
           created_at: string | null
+          custom_description: string | null
+          custom_image_url: string | null
+          custom_name: string | null
           id: string
           image_url: string | null
+          master_product_id: string | null
           name: string
           price: number
+          profit_margin: number | null
+          status: string | null
           stock: number
           store_id: string | null
           supplier_id: string | null
+          updated_at: string | null
         }
         Insert: {
           cost: number
           created_at?: string | null
+          custom_description?: string | null
+          custom_image_url?: string | null
+          custom_name?: string | null
           id?: string
           image_url?: string | null
+          master_product_id?: string | null
           name: string
           price: number
+          profit_margin?: number | null
+          status?: string | null
           stock?: number
           store_id?: string | null
           supplier_id?: string | null
+          updated_at?: string | null
         }
         Update: {
           cost?: number
           created_at?: string | null
+          custom_description?: string | null
+          custom_image_url?: string | null
+          custom_name?: string | null
           id?: string
           image_url?: string | null
+          master_product_id?: string | null
           name?: string
           price?: number
+          profit_margin?: number | null
+          status?: string | null
           stock?: number
           store_id?: string | null
           supplier_id?: string | null
+          updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_master_product_id_fkey"
+            columns: ["master_product_id"]
+            isOneToOne: false
+            referencedRelation: "master_products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_store_id_fkey"
             columns: ["store_id"]
@@ -341,6 +517,79 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          type: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          type: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          type?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          balance: number
+          currency: string
+          id: string
+          profile_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          balance?: number
+          currency?: string
+          id?: string
+          profile_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          balance?: number
+          currency?: string
+          id?: string
+          profile_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallets_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
