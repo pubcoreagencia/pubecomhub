@@ -18,7 +18,7 @@ const products = [
 
 export default function StorePage() {
   return (
-    <div className="pub-ecom min-h-screen flex flex-col selection:bg-[var(--hub-primary)] selection:text-black">
+    <div className="prototype-b min-h-screen flex flex-col selection:bg-[var(--hub-primary)] selection:text-black">
       {/* Premium Hub Store Header */}
       <header className="h-20 hub-glass border-b border-[var(--hub-border)] sticky top-0 z-50 px-6 lg:px-20 flex items-center justify-between">
         <Link to="/store" className="flex items-center gap-3">
@@ -173,7 +173,7 @@ export default function StorePage() {
             </div>
          </div>
          <div className="pt-20 mt-20 border-t border-[var(--hub-border)]/50 flex flex-col md:flex-row items-center justify-between gap-6">
-            <p className="text-[9px] font-black text-[var(--hub-muted)] uppercase tracking-[0.3em]">© 2026 PUB ECOM — PROTOTYPE B. POWERED BY PUB OPS HUB ARCHITECTURE.</p>
+            <p className="text-[9px] font-black text-[var(--hub-muted)] uppercase tracking-[0.3em]">© 2026 PUB ECOM. POWERED BY PUB OPS HUB ARCHITECTURE.</p>
             <div className="flex items-center gap-8">
                <img src="https://img.icons8.com/color/48/visa.png" alt="Visa" className="h-6 opacity-30 grayscale hover:grayscale-0 transition-all" />
                <img src="https://img.icons8.com/color/48/mastercard.png" alt="Mastercard" className="h-6 opacity-30 grayscale hover:grayscale-0 transition-all" />
