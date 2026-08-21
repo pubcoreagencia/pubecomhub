@@ -80,7 +80,7 @@ const navGroups = [
   }
 ];
 
-export function ShellB() {
+export function ShellB({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   return (
@@ -188,7 +188,7 @@ export function ShellB() {
         {/* Content Area */}
         <ScrollArea className="flex-1">
           <div className="p-6 max-w-[1800px] mx-auto animate-in fade-in duration-700">
-            <Outlet />
+            {children}
           </div>
         </ScrollArea>
       </main>
