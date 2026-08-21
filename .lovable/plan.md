@@ -9,30 +9,36 @@ O objetivo é criar um protótipo frontend completo, navegável e visualmente pr
 
 ## Módulos do Protótipo (Prioridade)
 
-### 1. Painel Master e Live Shop
-- Dashboard consolidado com métricas de faturamento, pedidos e visitantes online.
-- **Live Shop:** Visualização em tempo real do funil de vendas (Visitantes -> Carrinhos -> Checkout -> Vendas).
+### 1. Dashboard Master e Live Shop
+- Visão centralizada da PUB ECOM como Operador Central.
+- **Live Shop:** Funil em tempo real (Visitantes -> Carrinhos -> Checkout -> Vendas) com identificação da loja de origem.
 
-### 2. Gestão de Lojas e Pedidos
-- Listagem de lojas ativas e mentoria.
-- Fluxo de pedidos: rastreamento desde a compra na loja até o envio pelo fornecedor (Dropshipping centralizado).
+### 2. Lojas e Pedidos (Dropshipping Centralizado)
+- Fluxo simulado: Compra na Loja -> PUB ECOM compra do Fornecedor -> Fornecedor envia ao Cliente.
+- Listagem e gestão de Lojas/Mentoria.
 
 ### 3. Financeiro e Comissões
-- Cálculo automático de lucro líquido (venda - custos - taxas).
-- Módulo de repasses para Lojistas e Influenciadores (50% do lucro líquido).
+- Cálculo detalhado: Faturamento Bruto, Custos (Produto, Frete, Taxas, Descontos), Lucro Líquido e Margem.
+- **Influenciadores:** Repasse de 50% do lucro líquido.
+- **Afiliados:** Comissões configuráveis.
+- Resultado líquido final da PUB ECOM.
 
 ### 4. Audience Engine e Marketing
-- Simulador de criação de públicos personalizados (Audience Engine).
-- Visualização de campanhas Meta/Google Ads e rastreamento UTM.
+- Públicos por níveis (L1: Page View a L4: Purchase).
+- Janelas temporais (1D a 30D) e exclusão automática de compradores.
+- Rastreamento UTM e dashboards de Ads.
 
-### 5. Storefront e Checkout
-- Template de loja pública moderna com foco em conversão.
-- Checkout transparente simulado.
+### 5. Storefront Pública
+- Experiência completa de compra: Home -> Produto -> Checkout Transparente -> Confirmação.
 
-## Detalhes Técnicos
-- **Frontend:** TanStack Start com roteamento dinâmico.
-- **Dados:** Utilização de dados mockados (fakes) que se comunicam entre as telas para simular uma aplicação real.
-- **Integração:** Preparação da estrutura de tipos e componentes para futura conexão com a API Supabase/PostgREST.
+## Detalhes Técnicos e Qualidade
+- **Mock Data Centralizado:** Uma venda simulada reflete em todos os módulos (Financeiro, Ranking, Live Shop, etc.).
+- **Interatividade:** Menus navegáveis, filtros em tabelas, estados realistas e uso de modais/drawers.
+- **Arquitetura:** Camada frontend sobre a estrutura do repositório oficial, sem alterações no backend ou banco.
+
+## Prioridade de Execução
+MASTER → LIVE SHOP → LOJAS → PEDIDOS → FINANCEIRO → TRACKING/AUDIENCE → ADS → AFILIADOS/INFLUENCERS → STORE → CHECKOUT.
+
 
 ## Próximos Passos
 1. Configuração do layout principal (Dashboard Layout).
