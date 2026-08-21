@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   TrendingUp
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/prototype-b/dashboard/live')({
   component: () => <LiveShopB />,
