@@ -45,26 +45,27 @@ function CheckoutPage() {
                  <div className="h-8 w-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black">1</div>
                  <h2 className="text-2xl font-black tracking-tight text-slate-900">IDENTIFICAÇÃO & ENTREGA</h2>
               </div>
-              <div className="bg-white p-8 lg:p-10 rounded-[2rem] shadow-sm border border-slate-100 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">E-mail para Contato</Label>
-                    <Input placeholder="seu@email.com" className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white" />
+              <div className="bg-white p-10 lg:p-12 rounded-[3rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-100 space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">E-mail para Contato</Label>
+                    <Input placeholder="seu@email.com" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Celular (WhatsApp)</Label>
-                    <Input placeholder="(00) 00000-0000" className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white" />
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Celular (WhatsApp)</Label>
+                    <Input placeholder="(00) 00000-0000" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
                   </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Nome Completo</Label>
-                    <Input placeholder="Como no documento" className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white" />
+                  <div className="md:col-span-2 space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Nome Completo</Label>
+                    <Input placeholder="Como no documento" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
                   </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Endereço de Entrega</Label>
-                    <Input placeholder="Rua, Número, Bairro e Cidade" className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white" />
+                  <div className="md:col-span-2 space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Endereço de Entrega</Label>
+                    <Input placeholder="Rua, Número, Bairro e Cidade" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
                   </div>
                 </div>
               </div>
+
             </div>
 
             <div className="space-y-6">
@@ -72,39 +73,40 @@ function CheckoutPage() {
                  <div className="h-8 w-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black">2</div>
                  <h2 className="text-2xl font-black tracking-tight text-slate-900">FORMA DE PAGAMENTO</h2>
               </div>
-              <div className="bg-white p-8 lg:p-10 rounded-[2rem] shadow-sm border border-slate-100 space-y-8">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                   <div className="p-4 border-2 border-primary bg-primary/5 rounded-2xl cursor-pointer flex flex-col items-center gap-2 group transition-all">
-                      <CreditCard className="h-6 w-6 text-primary" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Cartão</span>
+              <div className="bg-white p-10 lg:p-12 rounded-[3rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-100 space-y-10">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                   <div className="p-6 border-4 border-primary bg-primary/5 rounded-[2rem] cursor-pointer flex flex-col items-center gap-3 group transition-all shadow-lg shadow-primary/5">
+                      <CreditCard className="h-8 w-8 text-primary" />
+                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">Cartão</span>
                    </div>
-                   <div className="p-4 border-2 border-slate-100 rounded-2xl cursor-pointer flex flex-col items-center gap-2 group transition-all hover:border-primary/20">
-                      <Zap className="h-6 w-6 text-slate-300 group-hover:text-primary/40" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Pix</span>
+                   <div className="p-6 border-4 border-slate-50 bg-slate-50/50 rounded-[2rem] cursor-pointer flex flex-col items-center gap-3 group transition-all hover:border-primary/20">
+                      <Zap className="h-8 w-8 text-slate-300 group-hover:text-primary transition-colors" />
+                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-slate-600 transition-colors">Pix</span>
                    </div>
-                   <div className="p-4 border-2 border-slate-100 rounded-2xl cursor-pointer flex flex-col items-center gap-2 group transition-all hover:border-primary/20">
-                      <ShoppingBag className="h-6 w-6 text-slate-300 group-hover:text-primary/40" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Boleto</span>
+                   <div className="p-6 border-4 border-slate-50 bg-slate-50/50 rounded-[2rem] cursor-pointer flex flex-col items-center gap-3 group transition-all hover:border-primary/20">
+                      <ShoppingBag className="h-8 w-8 text-slate-300 group-hover:text-primary transition-colors" />
+                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-slate-600 transition-colors">Boleto</span>
                    </div>
                 </div>
 
-                <div className="space-y-6 pt-4">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Número do Cartão</Label>
-                    <Input placeholder="0000 0000 0000 0000" className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white" />
+                <div className="space-y-8 pt-4">
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Número do Cartão</Label>
+                    <Input placeholder="0000 0000 0000 0000" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
                   </div>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Validade</Label>
-                      <Input placeholder="MM/AA" className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white" />
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Validade</Label>
+                      <Input placeholder="MM/AA" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">CVV</Label>
-                      <Input placeholder="123" className="h-12 rounded-xl bg-slate-50 border-slate-100 focus:bg-white" />
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">CVV</Label>
+                      <Input placeholder="123" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
                     </div>
                   </div>
                 </div>
               </div>
+
             </div>
             
             <div className="pt-4">
