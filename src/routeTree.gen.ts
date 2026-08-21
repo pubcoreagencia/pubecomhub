@@ -32,6 +32,7 @@ import { Route as PrototypeBDashboardMarketingRouteImport } from './routes/proto
 import { Route as PrototypeBDashboardOrdersRouteImport } from './routes/prototype-b/dashboard/orders'
 import { Route as PrototypeBDashboardProductsRouteImport } from './routes/prototype-b/dashboard/products'
 import { Route as PrototypeBDashboardStoresRouteImport } from './routes/prototype-b/dashboard/stores'
+import { Route as PrototypeBDashboardSuppliersRouteImport } from './routes/prototype-b/dashboard/suppliers'
 import { Route as PrototypeBStoreIndexRouteImport } from './routes/prototype-b/store/index'
 
 const IndexRoute = IndexRouteImport.update({
@@ -157,6 +158,12 @@ const PrototypeBDashboardStoresRoute =
     path: '/stores',
     getParentRoute: () => PrototypeBDashboardRouteRoute,
   } as any)
+const PrototypeBDashboardSuppliersRoute =
+  PrototypeBDashboardSuppliersRouteImport.update({
+    id: '/suppliers',
+    path: '/suppliers',
+    getParentRoute: () => PrototypeBDashboardRouteRoute,
+  } as any)
 const PrototypeBStoreIndexRoute = PrototypeBStoreIndexRouteImport.update({
   id: '/prototype-b/store/',
   path: '/prototype-b/store/',
@@ -186,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/prototype-b/dashboard/orders': typeof PrototypeBDashboardOrdersRoute
   '/prototype-b/dashboard/products': typeof PrototypeBDashboardProductsRoute
   '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
+  '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
   '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
   '/prototype-b/store/': typeof PrototypeBStoreIndexRoute
 }
@@ -210,6 +218,7 @@ export interface FileRoutesByTo {
   '/prototype-b/dashboard/orders': typeof PrototypeBDashboardOrdersRoute
   '/prototype-b/dashboard/products': typeof PrototypeBDashboardProductsRoute
   '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
+  '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
   '/prototype-b/dashboard': typeof PrototypeBDashboardIndexRoute
   '/prototype-b/store': typeof PrototypeBStoreIndexRoute
 }
@@ -237,6 +246,7 @@ export interface FileRoutesById {
   '/prototype-b/dashboard/orders': typeof PrototypeBDashboardOrdersRoute
   '/prototype-b/dashboard/products': typeof PrototypeBDashboardProductsRoute
   '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
+  '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
   '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
   '/prototype-b/store/': typeof PrototypeBStoreIndexRoute
 }
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/orders'
     | '/prototype-b/dashboard/products'
     | '/prototype-b/dashboard/stores'
+    | '/prototype-b/dashboard/suppliers'
     | '/prototype-b/dashboard/'
     | '/prototype-b/store/'
   fileRoutesByTo: FileRoutesByTo
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/orders'
     | '/prototype-b/dashboard/products'
     | '/prototype-b/dashboard/stores'
+    | '/prototype-b/dashboard/suppliers'
     | '/prototype-b/dashboard'
     | '/prototype-b/store'
   id:
@@ -315,6 +327,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/orders'
     | '/prototype-b/dashboard/products'
     | '/prototype-b/dashboard/stores'
+    | '/prototype-b/dashboard/suppliers'
     | '/prototype-b/dashboard/'
     | '/prototype-b/store/'
   fileRoutesById: FileRoutesById
@@ -493,6 +506,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrototypeBDashboardStoresRouteImport
       parentRoute: typeof PrototypeBDashboardRouteRoute
     }
+    '/prototype-b/dashboard/suppliers': {
+      id: '/prototype-b/dashboard/suppliers'
+      path: '/suppliers'
+      fullPath: '/prototype-b/dashboard/suppliers'
+      preLoaderRoute: typeof PrototypeBDashboardSuppliersRouteImport
+      parentRoute: typeof PrototypeBDashboardRouteRoute
+    }
     '/prototype-b/store/': {
       id: '/prototype-b/store/'
       path: '/prototype-b/store'
@@ -537,6 +557,7 @@ interface PrototypeBDashboardRouteRouteChildren {
   PrototypeBDashboardOrdersRoute: typeof PrototypeBDashboardOrdersRoute
   PrototypeBDashboardProductsRoute: typeof PrototypeBDashboardProductsRoute
   PrototypeBDashboardStoresRoute: typeof PrototypeBDashboardStoresRoute
+  PrototypeBDashboardSuppliersRoute: typeof PrototypeBDashboardSuppliersRoute
   PrototypeBDashboardIndexRoute: typeof PrototypeBDashboardIndexRoute
 }
 
@@ -549,6 +570,7 @@ const PrototypeBDashboardRouteRouteChildren: PrototypeBDashboardRouteRouteChildr
     PrototypeBDashboardOrdersRoute: PrototypeBDashboardOrdersRoute,
     PrototypeBDashboardProductsRoute: PrototypeBDashboardProductsRoute,
     PrototypeBDashboardStoresRoute: PrototypeBDashboardStoresRoute,
+    PrototypeBDashboardSuppliersRoute: PrototypeBDashboardSuppliersRoute,
     PrototypeBDashboardIndexRoute: PrototypeBDashboardIndexRoute,
   }
 
