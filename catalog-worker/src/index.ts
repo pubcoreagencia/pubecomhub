@@ -64,28 +64,63 @@ export default {
         try {
           // 5. ShopID Resolution Strategy
           const shopNumericMatch = targetUrl.match(/\/shop\/(\d+)/);
+          
           if (shopNumericMatch) {
             resolvedShopId = shopNumericMatch[1];
             method = 'url_pattern';
             console.log(`[Worker] ShopID resolved via URL: ${resolvedShopId}`);
           } else {
-            // Friendly URL resolution
+            // 5.1 Extract Username
+            const cleanUrl = targetUrl.split('#')[0].split('?')[0];
+            const urlParts = cleanUrl.split('/').filter(Boolean);
+            const username = urlParts[urlParts.length - 1];
+            
+            console.log(`[Worker] Resolving username: ${username}`);
+
             await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-            console.log(`[Worker] Page loaded. URL: ${page.url()} Status: 200`);
+            
+            // 5.2 Strategy: API /api/v4/shop/get_shop_base_v2 (Context-based)
+            const apiResult = await page.evaluate(async (uname) => {
+              try {
+                const resp = await fetch('https://shopee.com.br/api/v4/shop/get_shop_base_v2', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    username: uname,
+                    request_source: "mobile_shop_home_page",
+                    livestream_params: {}
+                  })
+                });
+                const json = await resp.json();
+                return { 
+                  status: resp.status, 
+                  shopid: json.data?.shopid || json.shopid || null 
+                };
+              } catch (e) {
+                return { status: 0, error: String(e) };
+              }
+            }, username);
 
-            // Strategy A: window.__PRELOADED_STATE__
-            const preloadedState = await page.evaluate(() => {
-              return (window as any).__PRELOADED_STATE__?.shop?.shopid || 
-                     (window as any).__PRELOADED_STATE__?.common?.shopid;
-            });
-
-            if (preloadedState) {
-              resolvedShopId = preloadedState.toString();
-              method = 'preloaded_state';
+            if (apiResult.shopid) {
+              resolvedShopId = apiResult.shopid.toString();
+              method = 'shop-base-username';
             }
 
-            // Strategy B: JSON-LD or script tags
+            // 5.3 Fallbacks if API fails
             if (!resolvedShopId) {
+              // Strategy A: window.__PRELOADED_STATE__
+              resolvedShopId = await page.evaluate(() => {
+                return (window as any).__PRELOADED_STATE__?.shop?.shopid || 
+                       (window as any).__PRELOADED_STATE__?.common?.shopid;
+              });
+              if (resolvedShopId) {
+                resolvedShopId = resolvedShopId.toString();
+                method = 'preloaded_state';
+              }
+            }
+
+            if (!resolvedShopId) {
+              // Strategy B: JSON-LD
               resolvedShopId = await page.evaluate(() => {
                 const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
                 for (const script of scripts) {
@@ -100,15 +135,6 @@ export default {
               });
               if (resolvedShopId) method = 'json_ld';
             }
-
-            // Strategy C: DOM attributes (data-shop-id)
-            if (!resolvedShopId) {
-              resolvedShopId = await page.evaluate(() => {
-                const el = document.querySelector('[data-shopid]');
-                return el ? el.getAttribute('data-shopid') : null;
-              });
-              if (resolvedShopId) method = 'dom_attribute';
-            }
           }
 
           if (!resolvedShopId) {
@@ -118,21 +144,41 @@ export default {
               source: 'shopee',
               shopId: null,
               items: [],
-              metadata: { provider: 'cloudflare-browser-run', method },
-              errors: ['unable to resolve Shopee ShopID']
+              metadata: { provider: 'cloudflare-browser-run', method, strategy: method },
+              errors: ['resolution-exhausted']
             }), { status: 404, headers: { 'Content-Type': 'application/json' } });
           }
 
           console.log(`[Worker] ShopID ${resolvedShopId} resolved via ${method}. Starting catalog fetch...`);
 
-          // 6. Real Catalog Fetch (Simulated for this stage, but would use search_items)
-          // In a real scenario, we'd now call Shopee's API with the resolvedShopId
-          
+          // 6. Real Catalog Fetch (search_items)
+          let items: any[] = [];
+          const searchResult = await page.evaluate(async (sid) => {
+            try {
+              const resp = await fetch('https://shopee.com.br/api/v4/search/search_items', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  shopid: parseInt(sid),
+                  limit: 1,
+                  offset: 0,
+                  pageSize: 1
+                })
+              });
+              const json = await resp.json();
+              return { status: resp.status, items: json.items || [] };
+            } catch (e) {
+              return { status: 0, error: String(e) };
+            }
+          }, resolvedShopId);
+
+          items = searchResult.items || [];
+
           return new Response(JSON.stringify({
             success: true,
             source: 'shopee',
             shopId: resolvedShopId,
-            items: [], // Would be populated by real search_items call
+            items: items,
             metadata: {
               provider: 'cloudflare-browser-run',
               method,
@@ -140,6 +186,7 @@ export default {
             },
             errors: []
           }), { headers: { 'Content-Type': 'application/json' } });
+
 
         } finally {
           await browser.close();
