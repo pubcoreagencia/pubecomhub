@@ -5,7 +5,7 @@ import { CardMetric, HubTable } from '@/prototype-b/components/ui-b';
 import { Box, Layers, RefreshCcw, Plus, Search, AlertCircle, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/prototype-b/dashboard/inventory')({
+export const Route = createFileRoute('/dashboard/inventory')({
   component: InventoryDashboardB
 });
 

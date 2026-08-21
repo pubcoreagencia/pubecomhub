@@ -6,7 +6,7 @@ import { mockProducts } from '@/data/mock';
 import { useCart } from '@/hooks/useCart';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/store/product')({
+export const Route = createFileRoute('/store_old/product')({
   component: ProductPage,
 });
 

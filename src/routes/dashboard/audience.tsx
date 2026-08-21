@@ -5,7 +5,7 @@ import { CardMetric, HubTable } from '@/prototype-b/components/ui-b';
 import { Target, Users, Zap, RefreshCcw, UserPlus, UserCheck, ShoppingCart, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/prototype-b/dashboard/audience')({
+export const Route = createFileRoute('/dashboard/audience')({
   component: AudienceEngineB
 });
 

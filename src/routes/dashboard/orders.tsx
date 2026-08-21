@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { mockOrders } from '@/prototype-b/data/mock';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/prototype-b/dashboard/orders')({
+export const Route = createFileRoute('/dashboard/orders')({
   component: () => <OrdersDashboardB />
 });
 

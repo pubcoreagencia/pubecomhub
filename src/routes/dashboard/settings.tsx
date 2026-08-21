@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/prototype-b/dashboard/settings')({
+export const Route = createFileRoute('/dashboard/settings')({
   component: () => (
     <ShellB>
       <SettingsDashboardB />

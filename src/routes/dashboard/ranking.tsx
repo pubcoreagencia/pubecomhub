@@ -16,7 +16,7 @@ import { CardMetric } from '@/prototype-b/components/ui-b';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/prototype-b/dashboard/ranking')({
+export const Route = createFileRoute('/dashboard/ranking')({
   component: () => (
     <ShellB>
       <RankingDashboardB />

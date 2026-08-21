@@ -12,7 +12,7 @@ import { CardMetric } from '@/prototype-b/components/ui-b';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/prototype-b/dashboard/tracking')({
+export const Route = createFileRoute('/dashboard/tracking')({
   component: () => (
     <ShellB>
       <TrackingDashboardB />

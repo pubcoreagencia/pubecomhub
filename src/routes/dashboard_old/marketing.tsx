@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Users, Target, BarChart, ExternalLink, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export const Route = createFileRoute('/dashboard/marketing')({
+export const Route = createFileRoute('/dashboard_old/marketing')({
   component: MarketingPage,
 });
 

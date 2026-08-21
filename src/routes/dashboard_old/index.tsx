@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/dashboard/')({
+export const Route = createFileRoute('/dashboard_old/')({
   head: () => ({
     meta: [
       { title: "Dashboard Master | PUB ECOM" },

@@ -4,7 +4,7 @@ import { HubTable } from '@/prototype-b/components/ui-b';
 import { Plus, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export const Route = createFileRoute('/prototype-b/dashboard/stores')({
+export const Route = createFileRoute('/dashboard/stores')({
   component: () => <StoresB />,
 });
 

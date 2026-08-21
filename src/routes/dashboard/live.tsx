@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/prototype-b/dashboard/live')({
+export const Route = createFileRoute('/dashboard/live')({
   component: () => <LiveShopB />,
 });
 

@@ -6,7 +6,7 @@ import { Box, Package, Truck, AlertTriangle, Search, Filter, Plus, Edit2, Trash2
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/prototype-b/dashboard/products')({
+export const Route = createFileRoute('/dashboard/products')({
   component: () => <ProductsB />,
 });
 

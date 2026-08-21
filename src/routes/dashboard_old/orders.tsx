@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/dashboard/orders')({
+export const Route = createFileRoute('/dashboard_old/orders')({
   component: OrdersPage,
 });
 

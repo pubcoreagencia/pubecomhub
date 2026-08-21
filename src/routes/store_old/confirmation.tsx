@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { useEffect } from 'react';
 import { useCart } from '@/hooks/useCart';
 
-export const Route = createFileRoute('/store/confirmation')({
+export const Route = createFileRoute('/store_old/confirmation')({
   component: ConfirmationPage,
 });
 

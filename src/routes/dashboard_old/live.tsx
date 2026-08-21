@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/dashboard/live')({
+export const Route = createFileRoute('/dashboard_old/live')({
   component: LiveShopPage,
 });
 

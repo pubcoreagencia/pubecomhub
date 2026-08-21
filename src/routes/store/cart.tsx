@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { mockProducts } from '../../../prototype-b/data/mock';
 
-export const Route = createFileRoute('/prototype-b/store/cart')({
+export const Route = createFileRoute('/store/cart')({
   component: StorefrontCartB
 });
 

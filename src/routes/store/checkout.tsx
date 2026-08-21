@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { mockProducts } from '../../../prototype-b/data/mock';
 
-export const Route = createFileRoute('/prototype-b/store/checkout')({
+export const Route = createFileRoute('/store/checkout')({
   component: StorefrontCheckoutB
 });
 

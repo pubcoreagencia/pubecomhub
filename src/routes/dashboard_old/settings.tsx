@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export const Route = createFileRoute('/dashboard/settings')({
+export const Route = createFileRoute('/dashboard_old/settings')({
   component: SettingsPage,
 });
 

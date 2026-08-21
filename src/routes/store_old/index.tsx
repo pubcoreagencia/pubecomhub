@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/hooks/useCart';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/store/')({
+export const Route = createFileRoute('/store_old/')({
   head: () => ({
     meta: [
       { title: "Tech Store | PUB ECOM" },

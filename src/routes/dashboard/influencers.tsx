@@ -5,7 +5,7 @@ import { HubTable, CardMetric } from '@/prototype-b/components/ui-b';
 import { Users, TrendingUp, Award, CircleDollarSign, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/prototype-b/dashboard/influencers')({
+export const Route = createFileRoute('/dashboard/influencers')({
   component: () => <InfluencersB />,
 });
 

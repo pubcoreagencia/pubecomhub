@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { ShoppingBag, CreditCard, Lock, Zap, ChevronLeft, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 
-export const Route = createFileRoute('/store/checkout')({
+export const Route = createFileRoute('/store_old/checkout')({
   component: CheckoutPage,
 });
 

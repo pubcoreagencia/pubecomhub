@@ -6,7 +6,7 @@ import { Users, Filter, ArrowRight, UserPlus, ShoppingCart, CreditCard, Shopping
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/dashboard/audience')({
+export const Route = createFileRoute('/dashboard_old/audience')({
   component: AudiencePage,
 });
 
