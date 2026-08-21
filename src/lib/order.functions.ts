@@ -31,10 +31,11 @@ export const createOrderFn = createServerFn({ method: "POST" })
       tax: data.tax,
       discount: data.discount,
       status: 'paid',
-      influencerId: data.influencerId,
-      affiliateId: data.affiliateId,
-      external_id: data.external_id,
+      influencerId: data.influencerId ?? null,
+      affiliateId: data.affiliateId ?? null,
+      external_id: data.external_id ?? null,
     });
+
     
     return order;
   });
