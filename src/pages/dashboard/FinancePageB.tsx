@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { mockFinancialSummary } from '@/lib/services/financialService';
 
-export default function FinancePageB() {
+export default function FinancePage() {
   return (
     <Shell>
       <div className="space-y-8">

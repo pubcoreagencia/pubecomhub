@@ -7,7 +7,7 @@ import {
   Users, Activity, MousePointer2, Zap, LayoutDashboard, Clock
 } from 'lucide-react';
 
-export default function DashboardPageB() {
+export default function DashboardPage() {
   return (
     <Shell>
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
