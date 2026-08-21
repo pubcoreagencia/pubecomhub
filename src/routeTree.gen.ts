@@ -37,6 +37,7 @@ import { Route as PrototypeBDashboardSettingsRouteImport } from './routes/protot
 import { Route as PrototypeBDashboardStoresRouteImport } from './routes/prototype-b/dashboard/stores'
 import { Route as PrototypeBDashboardSuppliersRouteImport } from './routes/prototype-b/dashboard/suppliers'
 import { Route as PrototypeBStoreIndexRouteImport } from './routes/prototype-b/store/index'
+import { Route as PrototypeBStoreCartRouteImport } from './routes/prototype-b/store/cart'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -190,6 +191,11 @@ const PrototypeBStoreIndexRoute = PrototypeBStoreIndexRouteImport.update({
   path: '/prototype-b/store/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrototypeBStoreCartRoute = PrototypeBStoreCartRouteImport.update({
+  id: '/prototype-b/store/cart',
+  path: '/prototype-b/store/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/prototype-b/dashboard/settings': typeof PrototypeBDashboardSettingsRoute
   '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
   '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
+  '/prototype-b/store/cart': typeof PrototypeBStoreCartRoute
   '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
   '/prototype-b/store/': typeof PrototypeBStoreIndexRoute
 }
@@ -246,6 +253,7 @@ export interface FileRoutesByTo {
   '/prototype-b/dashboard/settings': typeof PrototypeBDashboardSettingsRoute
   '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
   '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
+  '/prototype-b/store/cart': typeof PrototypeBStoreCartRoute
   '/prototype-b/dashboard': typeof PrototypeBDashboardIndexRoute
   '/prototype-b/store': typeof PrototypeBStoreIndexRoute
 }
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/prototype-b/dashboard/settings': typeof PrototypeBDashboardSettingsRoute
   '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
   '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
+  '/prototype-b/store/cart': typeof PrototypeBStoreCartRoute
   '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
   '/prototype-b/store/': typeof PrototypeBStoreIndexRoute
 }
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/settings'
     | '/prototype-b/dashboard/stores'
     | '/prototype-b/dashboard/suppliers'
+    | '/prototype-b/store/cart'
     | '/prototype-b/dashboard/'
     | '/prototype-b/store/'
   fileRoutesByTo: FileRoutesByTo
@@ -337,6 +347,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/settings'
     | '/prototype-b/dashboard/stores'
     | '/prototype-b/dashboard/suppliers'
+    | '/prototype-b/store/cart'
     | '/prototype-b/dashboard'
     | '/prototype-b/store'
   id:
@@ -367,6 +378,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/settings'
     | '/prototype-b/dashboard/stores'
     | '/prototype-b/dashboard/suppliers'
+    | '/prototype-b/store/cart'
     | '/prototype-b/dashboard/'
     | '/prototype-b/store/'
   fileRoutesById: FileRoutesById
@@ -379,6 +391,7 @@ export interface RootRouteChildren {
   StoreConfirmationRoute: typeof StoreConfirmationRoute
   StoreProductRoute: typeof StoreProductRoute
   StoreIndexRoute: typeof StoreIndexRoute
+  PrototypeBStoreCartRoute: typeof PrototypeBStoreCartRoute
   PrototypeBStoreIndexRoute: typeof PrototypeBStoreIndexRoute
 }
 
@@ -580,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrototypeBStoreIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prototype-b/store/cart': {
+      id: '/prototype-b/store/cart'
+      path: '/prototype-b/store/cart'
+      fullPath: '/prototype-b/store/cart'
+      preLoaderRoute: typeof PrototypeBStoreCartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -653,6 +673,7 @@ const rootRouteChildren: RootRouteChildren = {
   StoreConfirmationRoute: StoreConfirmationRoute,
   StoreProductRoute: StoreProductRoute,
   StoreIndexRoute: StoreIndexRoute,
+  PrototypeBStoreCartRoute: PrototypeBStoreCartRoute,
   PrototypeBStoreIndexRoute: PrototypeBStoreIndexRoute,
 }
 export const routeTree = rootRouteImport
