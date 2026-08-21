@@ -33,7 +33,7 @@ function StorefrontHomeB() {
 
         <div className="hidden lg:flex items-center gap-12">
           {['Lançamentos', 'Categorias', 'Ofertas', 'Suporte'].map((item) => (
-            <Link key={item} className="text-sm font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-colors">
+            <Link key={item} to="/prototype-b/store" className="text-sm font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-colors">
               {item}
             </Link>
           ))}

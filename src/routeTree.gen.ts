@@ -28,6 +28,7 @@ import { Route as PrototypeBDashboardIndexRouteImport } from './routes/prototype
 import { Route as PrototypeBDashboardAudienceRouteImport } from './routes/prototype-b/dashboard/audience'
 import { Route as PrototypeBDashboardFinanceRouteImport } from './routes/prototype-b/dashboard/finance'
 import { Route as PrototypeBDashboardLiveRouteImport } from './routes/prototype-b/dashboard/live'
+import { Route as PrototypeBStoreIndexRouteImport } from './routes/prototype-b/store/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -128,6 +129,11 @@ const PrototypeBDashboardLiveRoute = PrototypeBDashboardLiveRouteImport.update({
   path: '/live',
   getParentRoute: () => PrototypeBDashboardRouteRoute,
 } as any)
+const PrototypeBStoreIndexRoute = PrototypeBStoreIndexRouteImport.update({
+  id: '/prototype-b/store/',
+  path: '/prototype-b/store/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/prototype-b/dashboard/finance': typeof PrototypeBDashboardFinanceRoute
   '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
   '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
+  '/prototype-b/store/': typeof PrototypeBStoreIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -168,6 +175,7 @@ export interface FileRoutesByTo {
   '/prototype-b/dashboard/finance': typeof PrototypeBDashboardFinanceRoute
   '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
   '/prototype-b/dashboard': typeof PrototypeBDashboardIndexRoute
+  '/prototype-b/store': typeof PrototypeBStoreIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   '/prototype-b/dashboard/finance': typeof PrototypeBDashboardFinanceRoute
   '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
   '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
+  '/prototype-b/store/': typeof PrototypeBStoreIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -213,6 +222,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/finance'
     | '/prototype-b/dashboard/live'
     | '/prototype-b/dashboard/'
+    | '/prototype-b/store/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/finance'
     | '/prototype-b/dashboard/live'
     | '/prototype-b/dashboard'
+    | '/prototype-b/store'
   id:
     | '__root__'
     | '/'
@@ -253,6 +264,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/finance'
     | '/prototype-b/dashboard/live'
     | '/prototype-b/dashboard/'
+    | '/prototype-b/store/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -263,6 +275,7 @@ export interface RootRouteChildren {
   StoreConfirmationRoute: typeof StoreConfirmationRoute
   StoreProductRoute: typeof StoreProductRoute
   StoreIndexRoute: typeof StoreIndexRoute
+  PrototypeBStoreIndexRoute: typeof PrototypeBStoreIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -400,6 +413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrototypeBDashboardLiveRouteImport
       parentRoute: typeof PrototypeBDashboardRouteRoute
     }
+    '/prototype-b/store/': {
+      id: '/prototype-b/store/'
+      path: '/prototype-b/store'
+      fullPath: '/prototype-b/store/'
+      preLoaderRoute: typeof PrototypeBStoreIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -457,6 +477,7 @@ const rootRouteChildren: RootRouteChildren = {
   StoreConfirmationRoute: StoreConfirmationRoute,
   StoreProductRoute: StoreProductRoute,
   StoreIndexRoute: StoreIndexRoute,
+  PrototypeBStoreIndexRoute: PrototypeBStoreIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
