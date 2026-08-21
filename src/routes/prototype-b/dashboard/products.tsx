@@ -58,7 +58,7 @@ function ProductsDashboardB() {
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
               <div className="absolute top-4 right-4">
-                <Button variant="white" size="icon" className="h-8 w-8 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full shadow-lg bg-white opacity-0 group-hover:opacity-100 transition-opacity border-none">
                   <MoreVertical className="h-4 w-4 text-slate-900" />
                 </Button>
               </div>
