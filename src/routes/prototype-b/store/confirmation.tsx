@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { mockProducts } from '../../../prototype-b/data/mock';
+import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/prototype-b/store/confirmation')({
   component: StorefrontConfirmationB
