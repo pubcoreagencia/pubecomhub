@@ -35,7 +35,7 @@ export const CatalogIngestion = () => {
 
     setStatus('analyzing');
     try {
-      const result = await analyzeFn({ url });
+      const result = await analyzeFn({ data: { url } });
       setPreview(result);
       setSelectedItems(new Set(result.items.map(item => item.externalId)));
       setStatus('preview');
@@ -69,8 +69,10 @@ export const CatalogIngestion = () => {
     setStatus('importing');
     try {
       await importFn({ 
-        items: itemsToImport, 
-        supplierId: 'default-supplier-id' // Em produção, viria da seleção do fornecedor
+        data: {
+          items: itemsToImport, 
+          supplierId: 'default-supplier-id' // Em produção, viria da seleção do fornecedor
+        }
       });
       setStatus('completed');
       toast.success(`${itemsToImport.length} produtos importados com sucesso!`);
