@@ -16,7 +16,7 @@ function Index() {
         <div className="space-y-4 border-b border-emerald-500/20 pb-8">
           <div className="flex items-center justify-between">
             <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">
-              FASE 2F.7 — GARANTIR QUE A INSTRUMENTAÇÃO EXISTE NO CÓDIGO EXECUTADO
+              FASE 2F.8 — RESOLUÇÃO DE SHOPID POR LINKS DE PRODUTO
             </h1>
             <Badge variant="outline" className="border-emerald-500/50 text-emerald-400 bg-emerald-500/5 px-3 py-1 text-sm font-medium">
               OPERACIONAL
@@ -42,47 +42,47 @@ function Index() {
             </div>
             <div>
               <CardTitle className="text-emerald-400">Status da Fase</CardTitle>
-              <CardDescription className="text-emerald-500/60">Diagnóstico técnico e instrumentação de API</CardDescription>
+              <CardDescription className="text-emerald-500/60">Extração de ShopID via Product Link Regex</CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 rounded-xl bg-[#0a0f1d] border border-emerald-500/10 space-y-2">
                 <div className="flex items-center gap-2 text-emerald-400 text-sm font-semibold mb-3 uppercase tracking-wider">
-                  <Terminal className="w-4 h-4" /> Endpoint POST v2
+                  <Terminal className="w-4 h-4" /> Product Link Regex
                 </div>
                 <ul className="space-y-2 text-sm text-emerald-50/60">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                    Captura shopBaseStatus
+                    Regex /i.(\d+).(\d+)
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                    Captura shopBaseResponseSize
+                    Extração do DOM Links
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                    Captura shopBaseHasShopId
+                    Frequência de ShopID
                   </li>
                 </ul>
               </div>
 
               <div className="p-4 rounded-xl bg-[#0a0f1d] border border-emerald-500/10 space-y-2">
                 <div className="flex items-center gap-2 text-emerald-400 text-sm font-semibold mb-3 uppercase tracking-wider">
-                  <Terminal className="w-4 h-4" /> Endpoint GET Fallback
+                  <Terminal className="w-4 h-4" /> Diagnóstico Avançado
                 </div>
                 <ul className="space-y-2 text-sm text-emerald-50/60">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                    Captura fallbackGetStatus
+                    Captura productLinkCount
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                    Captura fallbackGetResponseSize
+                    Captura productLinkShopIds
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                    Captura fallbackGetHasShopId
+                    Fallback API v4 instrumentado
                   </li>
                 </ul>
               </div>
@@ -93,7 +93,7 @@ function Index() {
               <div className="text-sm">
                 <p className="text-amber-200 font-semibold mb-1">Importante</p>
                 <p className="text-amber-200/70">
-                  O objetivo desta fase é expor o diagnóstico real das APIs da Shopee para entender por que URLs como <code className="bg-amber-500/10 px-1 rounded text-amber-300">/9r18ht6m88</code> retornam <code className="bg-amber-500/10 px-1 rounded text-amber-300">resolution-exhausted</code>.
+                  O objetivo desta fase é implementar a resolução de ShopID através de links de produtos (<code className="bg-amber-500/10 px-1 rounded text-amber-300">/i.SHOPID.ITEMID</code>), garantindo que lojas amigáveis como a Zentta Babuche sejam resolvidas com sucesso.
                 </p>
               </div>
             </div>
@@ -108,7 +108,9 @@ function Index() {
           </div>
           <pre className="bg-[#0a0f1d] border border-emerald-500/20 p-6 rounded-xl overflow-x-auto text-xs text-emerald-400/80 leading-relaxed shadow-inner">
 {`{
-  "shopIdStrategy": "shop-base-username",
+  "shopIdStrategy": "product-link",
+  "productLinkCount": 42,
+  "productLinkShopIds": ["1729928484"],
   "shopBaseStatus": 200,
   "shopBaseContentType": "application/json",
   "shopBaseResponseSize": 1234,
@@ -144,7 +146,7 @@ function Index() {
         </div>
 
         <p className="text-center text-xs text-emerald-500/40 uppercase tracking-[0.2em]">
-          debug: materialize shopee shop resolution diagnostics
+          debug: fix: resolve shopee shop id from product links
         </p>
       </div>
     </div>
