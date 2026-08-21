@@ -17,8 +17,8 @@ export const mockSuppliers: Supplier[] = [
 ];
 
 export const mockProducts: Product[] = [
-  { id: 'p1', name: 'Premium Wireless Headphones', price: 899.90, cost: 450.00, supplierId: 'sup2', stock: 150, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800' },
-  { id: 'p2', name: 'Smart Fitness Watch', price: 459.00, cost: 210.00, supplierId: 'sup2', stock: 85, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800' },
+  { id: 'p1', name: 'Premium Wireless Headphones', price: 899.90, cost: 450.00, supplierId: 'sup2', storeId: 's1', stock: 150, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800' },
+  { id: 'p2', name: 'Smart Fitness Watch', price: 459.00, cost: 210.00, supplierId: 'sup2', storeId: 's1', stock: 85, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800' },
 ];
 
 export const mockOrders: Order[] = [
