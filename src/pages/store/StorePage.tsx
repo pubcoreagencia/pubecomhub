@@ -18,7 +18,7 @@ const products = [
 
 export default function StorePage() {
   return (
-    <div className="min-h-screen flex flex-col selection:bg-[var(--hub-primary)] selection:text-black bg-[var(--hub-bg)]">
+    <div className="pub-ecom-root min-h-screen flex flex-col selection:bg-[var(--hub-primary)] selection:text-black bg-[var(--hub-bg)] text-[var(--hub-foreground)]">
       {/* Premium Hub Store Header */}
       <header className="h-20 hub-glass border-b border-[var(--hub-border)] sticky top-0 z-50 px-6 lg:px-20 flex items-center justify-between">
         <Link to="/store" className="flex items-center gap-3">
