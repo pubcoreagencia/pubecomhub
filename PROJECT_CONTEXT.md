@@ -59,7 +59,12 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - **Independência**: Produto independente PUB ECOM HUB (pubcoreagencia/pubecomhub).
 - **Ingestion Engine**: Arquitetura baseada em Adapters e Services para expansão multi-fonte.
 - **Fase 2E - Worker Externo**: Implementação de ponte para Cloudflare Browser Run para superar bloqueios de scraping (403) no ambiente local.
+- **Fase 2F - PUB ECOM Catalog Worker**: Criação do projeto independente `catalog-worker/` com suporte nativo a Browser Run.
+- **Integração Planejada**: 
+  - **URL**: `https://pub-ecom-catalog-worker.<your-subdomain>.workers.dev`
+  - **Auth**: Bearer Token seguro (Server-side only).
 - **Prova Operacional (Fase 2D)**:
   - **URL Testada**: `https://shopee.com.br/shop/286044738`
   - **ShopID Detectado**: `286044738`
-  - **Status**: Operacional via Worker Externo validado em arquitetura.
+  - **Status**: Arquitetura de infraestrutura externa concluída.
+
