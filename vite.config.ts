@@ -12,4 +12,14 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    ssr: {
+      external: ["playwright", "playwright-core"],
+    },
+    build: {
+      rolldownOptions: {
+        external: ["playwright", "playwright-core"],
+      },
+    },
+  },
 });
