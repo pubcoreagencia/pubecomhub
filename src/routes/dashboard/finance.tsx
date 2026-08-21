@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -71,7 +72,7 @@ function FinancePage() {
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
                 <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{m.label}</CardTitle>
                 <div className={cn("p-1.5 rounded-lg", m.bg)}>
-                  <m.icon className={cn("h-3.5 w-3.5", m.color)} />
+                  {React.createElement(m.icon, { className: cn("h-3.5 w-3.5", m.color) })}
                 </div>
               </CardHeader>
               <CardContent className="px-4 pb-4">

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +29,7 @@ function AudiencePage() {
           <Card key={l.level}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <Badge className={l.color}>{l.level}</Badge>
-              <l.icon className="h-4 w-4 text-muted-foreground" />
+              {React.createElement(l.icon, { className: "h-4 w-4 text-muted-foreground" })}
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{l.count}</div>
