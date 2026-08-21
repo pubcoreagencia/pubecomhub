@@ -47,6 +47,7 @@ export interface Customer {
 export interface Order {
   id: string;
   external_id?: string;
+
   storeId: string;
   productId?: string; // Legacy compatibility
   supplierId?: string;
