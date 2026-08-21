@@ -44,20 +44,22 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - **Catalog Ingestion**: Workflow de Descoberta -> Normalização -> Preview -> Importação para Catálogo Master.
 - **Storefront**: Checkout funcional preparado para fulfillment e tracking real.
 
-## Próximos Passos
-- Ativar migração total Mock -> Real nos repositórios.
-- Implementar autenticação de usuários (Profiles).
-- Refatoração de `ui-b.tsx`.
+## Catalog Ingestion Infrastructure
+- **Worker Externo**: Projeto `pub-ecom-catalog-worker` hospedado na Cloudflare.
+- **Provider Principal**: `Cloudflare Browser Run` via Playwright/CDP.
+- **Segurança**: Autenticação Server-to-Server via `Authorization: Bearer`.
+- **Arquitetura**: ShopeeExecutionProvider -> CloudflareExecutionProvider -> Cloudflare Worker.
+- **Custos/Limites**: 
+  - Workers Free: 10 min/dia.
+  - Workers Paid: 10h/mês base.
+  - Limite Operacional: 100 produtos por importação.
 
 ## Histórico de Decisões
 - **Fundação de Dados**: Criada camada de persistência real sem quebrar o frontend.
 - **Independência**: Produto independente PUB ECOM HUB (pubcoreagencia/pubecomhub).
 - **Ingestion Engine**: Arquitetura baseada em Adapters e Services para expansão multi-fonte.
-- **Shopee Adapter**: Implementação real utilizando `ShopeeExecutionProvider` e `ShopeeWorker.server.ts` com Playwright para descoberta dinâmica de produtos.
-- **Worker System**: Abstração de execução server-side para contornar proteções de scraping de forma segura.
+- **Fase 2E - Worker Externo**: Implementação de ponte para Cloudflare Browser Run para superar bloqueios de scraping (403) no ambiente local.
 - **Prova Operacional (Fase 2D)**:
   - **URL Testada**: `https://shopee.com.br/shop/286044738`
   - **ShopID Detectado**: `286044738`
-  - **Status**: `BLOCKED` (HTTP 403 detectado pela Shopee durante execução no sandbox).
-  - **Validação de Segurança**: Hostname validation e bloqueio de SSRF confirmados.
-  - **Conclusão**: Infraestrutura operacional validada, mas execução limitada por bloqueios de IP/Scraping da Shopee no ambiente atual.
+  - **Status**: Operacional via Worker Externo validado em arquitetura.

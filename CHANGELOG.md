@@ -1,8 +1,16 @@
 # Changelog - PUB ECOM HUB
 
+## [1.6.0] - 2026-08-21
+### Adicionado
+- **Fase 2E - Infraestrutura de Worker Externo**: Integração com Cloudflare Browser Run.
+- **CloudflareExecutionProvider**: Novo provider para execução de browser automation em ambiente externo especializado.
+- **ShopeeExecutionProvider Híbrido**: Capacidade de alternar dinamicamente entre execução local (Node) e externa (Cloudflare) via variáveis de ambiente.
+- **Segurança Server-to-Server**: Implementação de autenticação via Bearer Token para comunicação com o worker externo.
+
 ## [1.5.1] - 2026-08-21
 ### Adicionado
 - **Catalog Ingestion Interface**: Refatoração completa da UI operacional para o Ingestion Engine.
+
 - **Progress Tracker**: Feedback visual do pipeline de análise (URL -> Fonte -> Loja -> Produtos -> Preview).
 - **Tratamento de Erros Detalhado**: Exibição clara de falhas como HTTP 403, timeout e fontes não suportadas.
 - **Fluxo de Importação**: Implementação real da seleção de produtos e persistência no Master Catalog via interface.
