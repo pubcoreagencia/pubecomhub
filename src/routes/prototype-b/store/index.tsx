@@ -1,228 +1,169 @@
-import * as React from 'react';
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { 
-  ShoppingBag, 
-  ArrowRight, 
-  Star, 
-  Zap, 
-  ShieldCheck, 
-  Truck,
-  Search,
-  ShoppingCart
-} from 'lucide-react';
+import { createFileRoute } from '@tanstack/react-router';
+import { ShellB } from '@/prototype-b/components/ShellB';
+import { ShoppingBag, ChevronRight, Star, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { mockProducts } from '../../../prototype-b/data/mock';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/prototype-b/store/')({
-  component: StorefrontHomeB
+  component: () => <StorefrontB />,
 });
 
-function StorefrontHomeB() {
+function StorefrontB() {
+  const products = [
+    { id: 'p1', name: 'Premium Wireless Headphones', price: 'R$ 899,90', oldPrice: 'R$ 1.299,00', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800', tag: 'MAIS VENDIDO' },
+    { id: 'p2', name: 'Smart Fitness Watch Pro', price: 'R$ 459,00', oldPrice: 'R$ 699,00', img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800', tag: 'LANÇAMENTO' },
+    { id: 'p3', name: 'Ultra HD Camera System', price: 'R$ 2.400,00', oldPrice: 'R$ 3.100,00', img: 'https://images.unsplash.com/photo-1526170315876-db60ad51f67e?w=800' },
+    { id: 'p4', name: 'Minimalist Mechanical Keyboard', price: 'R$ 650,00', oldPrice: 'R$ 850,00', img: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=800' }
+  ];
+
   return (
-    <div className="min-h-screen bg-white font-sans selection:bg-primary/10 selection:text-primary">
-      {/* Premium Navbar */}
-      <nav className="h-24 border-b border-slate-50 flex items-center justify-between px-8 lg:px-16 sticky top-0 bg-white/80 backdrop-blur-xl z-50">
-        <Link to="/prototype-b/store" className="flex items-center gap-3 group">
-          <div className="h-10 w-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform duration-300">
-            <ShoppingBag className="h-6 w-6 text-white" />
-          </div>
-          <span className="text-2xl font-black tracking-tighter text-slate-900 uppercase">PUB ECOM</span>
-        </Link>
+    <div className="prototype-b min-h-screen">
+      {/* Dark Navbar */}
+      <nav className="h-20 border-b border-[var(--hub-border)] bg-black/40 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between px-10">
+         <div className="flex items-center gap-3">
+            <div className="h-8 w-8 hub-bg-primary rounded flex items-center justify-center">
+               <ShoppingBag className="h-5 w-5 text-black" />
+            </div>
+            <span className="text-xl font-black tracking-tighter text-white">PUB STORE</span>
+         </div>
+         
+         <div className="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-[var(--hub-muted)]">
+            <a href="#" className="hover:text-white transition-colors">Novidades</a>
+            <a href="#" className="hover:text-white transition-colors">Categorias</a>
+            <a href="#" className="hover:text-white transition-colors">Ofertas</a>
+            <a href="#" className="hover:text-white transition-colors text-[var(--hub-primary)]">Live Shop</a>
+         </div>
 
-        <div className="hidden lg:flex items-center gap-12">
-          {['Lançamentos', 'Categorias', 'Ofertas', 'Suporte'].map((item) => (
-            <Link key={item} to="/prototype-b/store" className="text-sm font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-colors">
-              {item}
-            </Link>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="rounded-2xl hover:bg-slate-50">
-            <Search className="h-5 w-5 text-slate-900" />
-          </Button>
-          <Button variant="ghost" size="icon" className="rounded-2xl hover:bg-slate-50 relative">
-            <ShoppingCart className="h-5 w-5 text-slate-900" />
-            <span className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm">2</span>
-          </Button>
-          <div className="h-6 w-[1px] bg-slate-100 mx-2" />
-          <Button className="rounded-2xl font-black text-xs uppercase tracking-widest px-8 h-12 shadow-xl shadow-primary/20">
-            Minha Conta
-          </Button>
-        </div>
+         <div className="flex items-center gap-6">
+            <Button variant="ghost" className="text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-widest px-4">
+               Minha Conta
+            </Button>
+            <Button className="hub-bg-primary text-black hover:bg-[var(--hub-primary)]/90 rounded-none h-10 px-8 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--hub-primary)]/20">
+               Carrinho (0)
+            </Button>
+         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-32 lg:pt-32 lg:pb-48 bg-slate-50">
-        <div className="container px-8 mx-auto max-w-[1400px] flex flex-col lg:flex-row items-center gap-20">
-          <div className="flex-1 text-center lg:text-left space-y-12 animate-in fade-in slide-in-from-left-8 duration-700">
-            <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-white shadow-xl shadow-slate-200/50 border border-slate-100">
-               <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
-               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Coleção 2026 Titanium</span>
+      <section className="relative h-[80vh] flex items-center px-10 border-b border-[var(--hub-border)] overflow-hidden">
+         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-10" />
+         <img 
+            src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1600" 
+            className="absolute inset-0 w-full h-full object-cover grayscale opacity-50"
+         />
+         
+         <div className="relative z-20 max-w-2xl space-y-8 animate-in slide-in-from-left duration-1000">
+            <div className="flex items-center gap-2">
+               <div className="h-[1px] w-8 hub-bg-primary" />
+               <span className="text-[10px] font-black hub-text-primary uppercase tracking-[0.3em]">Coleção 2026 Titanium</span>
             </div>
-            <h1 className="text-7xl md:text-8xl lg:text-[110px] font-black tracking-tighter text-slate-900 leading-[0.85] uppercase">
-              EXPERIENCE <br/> 
-              <span className="text-primary italic">FUTURE.</span>
+            <h1 className="text-8xl font-black text-white tracking-tighter leading-[0.85]">
+               SOUND<br/>OF THE<br/><span className="hub-text-primary">FUTURE.</span>
             </h1>
-            <p className="text-xl font-bold text-slate-500 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Performance inigualável, design minimalista e tecnologia de ponta para quem não aceita nada menos que o melhor.
+            <p className="text-lg text-[var(--hub-muted)] font-medium max-w-lg leading-relaxed">
+               Performance inigualável e design minimalista. A tecnologia que você precisa, com a estética que você deseja.
             </p>
-            <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
-              <Button className="w-full sm:w-auto rounded-2xl font-black text-sm uppercase tracking-widest px-12 h-16 shadow-2xl shadow-primary/30 text-lg">
-                Comprar Agora
-              </Button>
-              <Button variant="outline" className="w-full sm:w-auto rounded-2xl font-black text-sm uppercase tracking-widest px-12 h-16 border-slate-200 text-slate-900 text-lg hover:bg-white hover:shadow-lg transition-all">
-                Ver Detalhes
-              </Button>
+            <div className="flex items-center gap-4">
+               <Button className="hub-bg-primary text-black rounded-none h-14 px-10 text-xs font-black uppercase tracking-widest group">
+                  Comprar Agora <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+               </Button>
+               <Button variant="outline" className="border-white/20 text-white hover:bg-white/5 rounded-none h-14 px-10 text-xs font-black uppercase tracking-widest">
+                  Ver Detalhes
+               </Button>
             </div>
-          </div>
-          <div className="flex-1 relative animate-in fade-in slide-in-from-right-8 duration-1000">
-            <div className="relative z-10 rounded-[60px] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] transform lg:rotate-6 transition-transform hover:rotate-0 duration-700">
-              <img 
-                src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200" 
-                alt="Product" 
-                className="w-full h-full object-cover aspect-[4/5]"
-              />
-            </div>
-            {/* Abstract elements */}
-            <div className="absolute -top-10 -right-10 w-64 h-64 bg-primary/10 rounded-full blur-[100px] -z-10" />
-            <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] -z-10" />
-          </div>
-        </div>
+         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="py-32 px-8 lg:px-16 container mx-auto max-w-[1400px]">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-8">
-          <div className="space-y-4">
-            <h2 className="text-5xl font-black tracking-tighter text-slate-900 uppercase">Destaques</h2>
-            <div className="h-1.5 w-24 bg-primary rounded-full" />
-          </div>
-          <Button variant="ghost" className="rounded-2xl font-black text-xs uppercase tracking-widest text-primary hover:bg-primary/5 p-6 text-lg group">
-            Ver Coleção Completa <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-2 transition-transform" />
-          </Button>
-        </div>
+      {/* Featured Grid */}
+      <section className="py-24 px-10 bg-black/20">
+         <div className="flex items-center justify-between mb-16">
+            <div className="space-y-1">
+               <h2 className="text-4xl font-black text-white tracking-tight uppercase">Destaques</h2>
+               <div className="h-1 w-20 hub-bg-primary" />
+            </div>
+            <Button variant="link" className="hub-text-primary text-[10px] font-black uppercase tracking-widest group">
+               Ver Coleção Completa <ChevronRight className="ml-1 h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+            </Button>
+         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-12">
-          {mockProducts.map((product, i) => (
-            <div key={product.id} className="group relative">
-              <div className="relative rounded-[40px] overflow-hidden bg-slate-100 aspect-[16/10] transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-2">
-                <img 
-                  src={product.image} 
-                  alt={product.name} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
-                <div className="absolute top-6 left-6">
-                  <Badge className="bg-white text-slate-900 hover:bg-white rounded-full font-black px-4 py-2 uppercase tracking-widest text-[10px] shadow-lg">
-                    Premium
-                  </Badge>
-                </div>
-
-                <div className="absolute bottom-8 left-8 right-8 flex items-center justify-between transform translate-y-10 group-hover:translate-y-0 transition-transform duration-500 opacity-0 group-hover:opacity-100">
-                  <Button className="rounded-2xl font-black text-[10px] uppercase tracking-widest px-8 h-12 bg-white text-slate-900 hover:bg-slate-50 shadow-2xl">
-                    Adicionar ao Carrinho
-                  </Button>
-                  <div className="flex items-center gap-1 text-white">
-                    <Star className="h-4 w-4 fill-current text-yellow-400" />
-                    <span className="text-sm font-black italic">4.9</span>
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {products.map((product) => (
+               <div key={product.id} className="group cursor-pointer">
+                  <div className="relative aspect-[4/5] bg-black border border-[var(--hub-border)] overflow-hidden">
+                     {product.tag && (
+                        <div className="absolute top-4 left-4 z-20 bg-white text-black text-[8px] font-black px-2 py-1 tracking-widest">
+                           {product.tag}
+                        </div>
+                     )}
+                     <img 
+                        src={product.img} 
+                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 opacity-60 group-hover:opacity-100"
+                     />
+                     <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60" />
+                     <div className="absolute bottom-0 inset-x-0 p-6 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                        <Button className="w-full hub-bg-primary text-black rounded-none h-12 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                           Adicionar ao Carrinho
+                        </Button>
+                     </div>
                   </div>
-                </div>
-              </div>
-              <div className="mt-8 flex justify-between items-start">
-                <div>
-                  <h3 className="text-2xl font-black tracking-tighter text-slate-900 uppercase group-hover:text-primary transition-colors cursor-pointer">{product.name}</h3>
-                  <p className="text-sm font-bold text-slate-400 mt-2 uppercase tracking-widest">Tecnologia Avançada</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-black text-slate-900 tracking-tighter italic">R$ {product.price.toLocaleString('pt-BR')}</p>
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-1">12x Sem Juros</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section className="bg-slate-900 py-32">
-        <div className="container px-8 mx-auto max-w-[1400px]">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-            {[
-              { icon: Zap, title: "Entrega Express", desc: "Receba seus produtos em tempo recorde com nossa logística exclusiva." },
-              { icon: ShieldCheck, title: "Garantia Vitalícia", desc: "Qualidade garantida ou seu dinheiro de volta. Sem perguntas." },
-              { icon: Truck, title: "Frete Inteligente", desc: "Rastreamento em tempo real com notificações diretas no seu WhatsApp." }
-            ].map((feature, i) => (
-              <div key={i} className="space-y-6 text-center md:text-left group">
-                <div className="h-16 w-16 bg-white/5 rounded-[24px] flex items-center justify-center group-hover:bg-primary transition-colors duration-500 mx-auto md:mx-0">
-                  <feature.icon className="h-8 w-8 text-primary group-hover:text-white transition-colors" />
-                </div>
-                <h4 className="text-2xl font-black tracking-tighter text-white uppercase">{feature.title}</h4>
-                <p className="text-slate-400 font-bold leading-relaxed">{feature.desc}</p>
-              </div>
+                  <div className="mt-6 space-y-2">
+                     <div className="flex items-center gap-1 text-[8px] hub-text-primary">
+                        <Star className="h-2 w-2 fill-current" />
+                        <Star className="h-2 w-2 fill-current" />
+                        <Star className="h-2 w-2 fill-current" />
+                        <Star className="h-2 w-2 fill-current" />
+                        <Star className="h-2 w-2 fill-current" />
+                     </div>
+                     <h3 className="text-sm font-black text-white uppercase tracking-tight">{product.name}</h3>
+                     <div className="flex items-center gap-3">
+                        <span className="text-sm font-black text-[var(--hub-primary)]">{product.price}</span>
+                        <span className="text-xs text-[var(--hub-muted)] line-through decoration-[var(--hub-border)]">{product.oldPrice}</span>
+                     </div>
+                  </div>
+               </div>
             ))}
-          </div>
-        </div>
+         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-white pt-32 pb-16 border-t border-slate-50">
-        <div className="container px-8 mx-auto max-w-[1400px]">
-          <div className="flex flex-col lg:flex-row justify-between gap-20 mb-24">
-            <div className="max-w-sm space-y-8">
-              <Link to="/prototype-b/store" className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-                  <ShoppingBag className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-2xl font-black tracking-tighter text-slate-900 uppercase">PUB ECOM</span>
-              </Link>
-              <p className="text-slate-500 font-bold leading-relaxed">
-                Elevando o padrão do e-commerce brasileiro com tecnologia de ponta e experiência premium.
-              </p>
+      <footer className="py-20 px-10 border-t border-[var(--hub-border)] bg-black/40">
+         <div className="grid grid-cols-4 gap-16">
+            <div className="col-span-1 space-y-6">
+               <div className="flex items-center gap-3">
+                  <div className="h-6 w-6 hub-bg-primary rounded flex items-center justify-center">
+                     <ShoppingBag className="h-4 w-4 text-black" />
+                  </div>
+                  <span className="text-lg font-black tracking-tighter text-white">PUB STORE</span>
+               </div>
+               <p className="text-[11px] text-[var(--hub-muted)] leading-relaxed font-medium uppercase tracking-wider">
+                  A plataforma definitiva para lojistas e influencers. O futuro do e-commerce é agora.
+               </p>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-16 lg:gap-32">
-              <div className="space-y-6">
-                <h5 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Loja</h5>
-                <ul className="space-y-4 text-sm font-bold text-slate-500">
-                  {['Produtos', 'Categorias', 'Ofertas', 'Gift Cards'].map(link => (
-                    <li key={link} className="hover:text-primary transition-colors cursor-pointer">{link}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="space-y-6">
-                <h5 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Empresa</h5>
-                <ul className="space-y-4 text-sm font-bold text-slate-500">
-                  {['Sobre', 'Carreiras', 'Blog', 'Contato'].map(link => (
-                    <li key={link} className="hover:text-primary transition-colors cursor-pointer">{link}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="space-y-6 hidden md:block">
-                <h5 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Social</h5>
-                <ul className="space-y-4 text-sm font-bold text-slate-500">
-                  {['Instagram', 'Twitter', 'LinkedIn', 'Facebook'].map(link => (
-                    <li key={link} className="hover:text-primary transition-colors cursor-pointer">{link}</li>
-                  ))}
-                </ul>
-              </div>
+            {[
+               { title: 'Shop', links: ['Lançamentos', 'Best Sellers', 'Categorias', 'Ofertas'] },
+               { title: 'Empresa', links: ['Sobre nós', 'Termos de uso', 'Privacidade', 'Contato'] },
+               { title: 'Social', links: ['Instagram', 'TikTok', 'Twitter', 'YouTube'] }
+            ].map(col => (
+               <div key={col.title} className="col-span-1 space-y-6">
+                  <h4 className="text-[10px] font-black text-white uppercase tracking-[0.3em]">{col.title}</h4>
+                  <ul className="space-y-3">
+                     {col.links.map(link => (
+                        <li key={link}>
+                           <a href="#" className="text-[10px] font-bold text-[var(--hub-muted)] hover:text-white transition-colors uppercase tracking-widest">{link}</a>
+                        </li>
+                     ))}
+                  </ul>
+               </div>
+            ))}
+         </div>
+         <div className="mt-20 pt-10 border-t border-[var(--hub-border)] flex items-center justify-between text-[8px] font-black text-[var(--hub-muted)] uppercase tracking-[0.4em]">
+            <span>© 2026 PUB ECOM GROUP — ALL RIGHTS RESERVED</span>
+            <div className="flex gap-10">
+               <span>PAGAMENTOS SEGUROS</span>
+               <span>RASTREAMENTO GLOBAL</span>
             </div>
-          </div>
-          
-          <div className="pt-16 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-8">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-              © 2026 PUB ECOM Prototype B. Todos os direitos reservados.
-            </p>
-            <div className="flex items-center gap-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-              <span className="cursor-pointer hover:text-primary transition-colors">Privacidade</span>
-              <span className="cursor-pointer hover:text-primary transition-colors">Termos</span>
-              <span className="cursor-pointer hover:text-primary transition-colors">Cookies</span>
-            </div>
-          </div>
-        </div>
+         </div>
       </footer>
     </div>
   );
