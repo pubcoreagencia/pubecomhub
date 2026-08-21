@@ -174,6 +174,11 @@ export default {
 
           items = searchResult.items || [];
 
+          return new Response(JSON.stringify({
+            success: true,
+            source: 'shopee',
+            shopId: resolvedShopId,
+            items: items,
             metadata: {
               provider: 'cloudflare-browser-run',
               method,
@@ -181,6 +186,7 @@ export default {
             },
             errors: []
           }), { headers: { 'Content-Type': 'application/json' } });
+
 
         } finally {
           await browser.close();
