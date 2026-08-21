@@ -36,7 +36,7 @@ export interface MasterProduct {
   basePricePub: number;
   status: 'active' | 'inactive';
   isAvailable: boolean;
-  metadata?: Record<string, any>;
+  metadata: Record<string, any> | null;
   created_at?: string;
 }
 
