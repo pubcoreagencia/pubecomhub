@@ -8,3 +8,10 @@ binding = "BROWSER"
 
 # Secrets (configuradas via wrangler secret put):
 # CATALOG_WORKER_TOKEN
+
+[build]
+command = "npm run build"
+
+[vars]
+# Variáveis de ambiente
+
