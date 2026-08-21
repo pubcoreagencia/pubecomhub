@@ -25,6 +25,7 @@ import { Route as StoreCheckoutRouteImport } from './routes/store/checkout'
 import { Route as StoreConfirmationRouteImport } from './routes/store/confirmation'
 import { Route as StoreProductRouteImport } from './routes/store/product'
 import { Route as PrototypeBDashboardIndexRouteImport } from './routes/prototype-b/dashboard/index'
+import { Route as PrototypeBDashboardLiveRouteImport } from './routes/prototype-b/dashboard/live'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -108,6 +109,11 @@ const PrototypeBDashboardIndexRoute =
     path: '/',
     getParentRoute: () => PrototypeBDashboardRouteRoute,
   } as any)
+const PrototypeBDashboardLiveRoute = PrototypeBDashboardLiveRouteImport.update({
+  id: '/live',
+  path: '/live',
+  getParentRoute: () => PrototypeBDashboardRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/store/product': typeof StoreProductRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
+  '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
   '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/store/product': typeof StoreProductRoute
   '/dashboard': typeof DashboardIndexRoute
   '/store': typeof StoreIndexRoute
+  '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
   '/prototype-b/dashboard': typeof PrototypeBDashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/store/product': typeof StoreProductRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
+  '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
   '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/store/product'
     | '/dashboard/'
     | '/store/'
+    | '/prototype-b/dashboard/live'
     | '/prototype-b/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/store/product'
     | '/dashboard'
     | '/store'
+    | '/prototype-b/dashboard/live'
     | '/prototype-b/dashboard'
   id:
     | '__root__'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/store/product'
     | '/dashboard/'
     | '/store/'
+    | '/prototype-b/dashboard/live'
     | '/prototype-b/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -341,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrototypeBDashboardIndexRouteImport
       parentRoute: typeof PrototypeBDashboardRouteRoute
     }
+    '/prototype-b/dashboard/live': {
+      id: '/prototype-b/dashboard/live'
+      path: '/live'
+      fullPath: '/prototype-b/dashboard/live'
+      preLoaderRoute: typeof PrototypeBDashboardLiveRouteImport
+      parentRoute: typeof PrototypeBDashboardRouteRoute
+    }
   }
 }
 
@@ -371,11 +390,13 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 )
 
 interface PrototypeBDashboardRouteRouteChildren {
+  PrototypeBDashboardLiveRoute: typeof PrototypeBDashboardLiveRoute
   PrototypeBDashboardIndexRoute: typeof PrototypeBDashboardIndexRoute
 }
 
 const PrototypeBDashboardRouteRouteChildren: PrototypeBDashboardRouteRouteChildren =
   {
+    PrototypeBDashboardLiveRoute: PrototypeBDashboardLiveRoute,
     PrototypeBDashboardIndexRoute: PrototypeBDashboardIndexRoute,
   }
 
