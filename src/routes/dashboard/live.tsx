@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +56,7 @@ function LiveShopPage() {
           <Card key={i} className="shadow-sm border-slate-100 overflow-hidden relative">
             <CardHeader className="pb-2 pt-4 px-4">
                <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center mb-2", step.color)}>
-                  <step.icon className="h-4 w-4" />
+                  {React.createElement(step.icon, { className: "h-4 w-4" })}
                </div>
                <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                  {loading ? <Skeleton className="h-3 w-16" /> : step.label}
@@ -97,7 +98,7 @@ function LiveShopPage() {
                 events.map((event, i) => (
                   <div key={i} className="flex items-center gap-4 py-4 border-b last:border-0 border-slate-50 group hover:bg-slate-50/50 px-2 rounded-xl transition-colors">
                     <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", event.bg, event.color)}>
-                      <event.icon className="h-5 w-5" />
+                      {React.createElement(event.icon, { className: "h-5 w-5" })}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
