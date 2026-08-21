@@ -32,6 +32,7 @@ import { Route as StoreIndexRouteImport } from './routes/store/index'
 import { Route as StoreCartRouteImport } from './routes/store/cart'
 import { Route as StoreCheckoutRouteImport } from './routes/store/checkout'
 import { Route as StoreConfirmationRouteImport } from './routes/store/confirmation'
+import { Route as DashboardSuppliersIngestionRouteImport } from './routes/dashboard/suppliers/ingestion'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -148,6 +149,12 @@ const StoreConfirmationRoute = StoreConfirmationRouteImport.update({
   path: '/store/confirmation',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSuppliersIngestionRoute =
+  DashboardSuppliersIngestionRouteImport.update({
+    id: '/ingestion',
+    path: '/ingestion',
+    getParentRoute: () => DashboardSuppliersRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -166,13 +173,14 @@ export interface FileRoutesByFullPath {
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/stores': typeof DashboardStoresRoute
-  '/dashboard/suppliers': typeof DashboardSuppliersRoute
+  '/dashboard/suppliers': typeof DashboardSuppliersRouteWithChildren
   '/dashboard/tracking': typeof DashboardTrackingRoute
   '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
   '/store/confirmation': typeof StoreConfirmationRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
+  '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -190,13 +198,14 @@ export interface FileRoutesByTo {
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/stores': typeof DashboardStoresRoute
-  '/dashboard/suppliers': typeof DashboardSuppliersRoute
+  '/dashboard/suppliers': typeof DashboardSuppliersRouteWithChildren
   '/dashboard/tracking': typeof DashboardTrackingRoute
   '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
   '/store/confirmation': typeof StoreConfirmationRoute
   '/dashboard': typeof DashboardIndexRoute
   '/store': typeof StoreIndexRoute
+  '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -216,13 +225,14 @@ export interface FileRoutesById {
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/stores': typeof DashboardStoresRoute
-  '/dashboard/suppliers': typeof DashboardSuppliersRoute
+  '/dashboard/suppliers': typeof DashboardSuppliersRouteWithChildren
   '/dashboard/tracking': typeof DashboardTrackingRoute
   '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
   '/store/confirmation': typeof StoreConfirmationRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
+  '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/store/confirmation'
     | '/dashboard/'
     | '/store/'
+    | '/dashboard/suppliers/ingestion'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/store/confirmation'
     | '/dashboard'
     | '/store'
+    | '/dashboard/suppliers/ingestion'
   id:
     | '__root__'
     | '/'
@@ -299,6 +311,7 @@ export interface FileRouteTypes {
     | '/store/confirmation'
     | '/dashboard/'
     | '/store/'
+    | '/dashboard/suppliers/ingestion'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -473,8 +486,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreConfirmationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/suppliers/ingestion': {
+      id: '/dashboard/suppliers/ingestion'
+      path: '/ingestion'
+      fullPath: '/dashboard/suppliers/ingestion'
+      preLoaderRoute: typeof DashboardSuppliersIngestionRouteImport
+      parentRoute: typeof DashboardSuppliersRoute
+    }
   }
 }
+
+interface DashboardSuppliersRouteChildren {
+  DashboardSuppliersIngestionRoute: typeof DashboardSuppliersIngestionRoute
+}
+
+const DashboardSuppliersRouteChildren: DashboardSuppliersRouteChildren = {
+  DashboardSuppliersIngestionRoute: DashboardSuppliersIngestionRoute,
+}
+
+const DashboardSuppliersRouteWithChildren =
+  DashboardSuppliersRoute._addFileChildren(DashboardSuppliersRouteChildren)
 
 interface DashboardRouteRouteChildren {
   DashboardAffiliatesRoute: typeof DashboardAffiliatesRoute
@@ -491,7 +522,7 @@ interface DashboardRouteRouteChildren {
   DashboardSeoRoute: typeof DashboardSeoRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardStoresRoute: typeof DashboardStoresRoute
-  DashboardSuppliersRoute: typeof DashboardSuppliersRoute
+  DashboardSuppliersRoute: typeof DashboardSuppliersRouteWithChildren
   DashboardTrackingRoute: typeof DashboardTrackingRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
@@ -511,7 +542,7 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardSeoRoute: DashboardSeoRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardStoresRoute: DashboardStoresRoute,
-  DashboardSuppliersRoute: DashboardSuppliersRoute,
+  DashboardSuppliersRoute: DashboardSuppliersRouteWithChildren,
   DashboardTrackingRoute: DashboardTrackingRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
