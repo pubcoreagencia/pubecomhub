@@ -25,6 +25,7 @@ import { Route as StoreCheckoutRouteImport } from './routes/store/checkout'
 import { Route as StoreConfirmationRouteImport } from './routes/store/confirmation'
 import { Route as StoreProductRouteImport } from './routes/store/product'
 import { Route as PrototypeBDashboardIndexRouteImport } from './routes/prototype-b/dashboard/index'
+import { Route as PrototypeBDashboardAudienceRouteImport } from './routes/prototype-b/dashboard/audience'
 import { Route as PrototypeBDashboardLiveRouteImport } from './routes/prototype-b/dashboard/live'
 
 const IndexRoute = IndexRouteImport.update({
@@ -109,6 +110,12 @@ const PrototypeBDashboardIndexRoute =
     path: '/',
     getParentRoute: () => PrototypeBDashboardRouteRoute,
   } as any)
+const PrototypeBDashboardAudienceRoute =
+  PrototypeBDashboardAudienceRouteImport.update({
+    id: '/audience',
+    path: '/audience',
+    getParentRoute: () => PrototypeBDashboardRouteRoute,
+  } as any)
 const PrototypeBDashboardLiveRoute = PrototypeBDashboardLiveRouteImport.update({
   id: '/live',
   path: '/live',
@@ -131,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/store/product': typeof StoreProductRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
+  '/prototype-b/dashboard/audience': typeof PrototypeBDashboardAudienceRoute
   '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
   '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
 }
@@ -148,6 +156,7 @@ export interface FileRoutesByTo {
   '/store/product': typeof StoreProductRoute
   '/dashboard': typeof DashboardIndexRoute
   '/store': typeof StoreIndexRoute
+  '/prototype-b/dashboard/audience': typeof PrototypeBDashboardAudienceRoute
   '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
   '/prototype-b/dashboard': typeof PrototypeBDashboardIndexRoute
 }
@@ -168,6 +177,7 @@ export interface FileRoutesById {
   '/store/product': typeof StoreProductRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
+  '/prototype-b/dashboard/audience': typeof PrototypeBDashboardAudienceRoute
   '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
   '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
 }
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/store/product'
     | '/dashboard/'
     | '/store/'
+    | '/prototype-b/dashboard/audience'
     | '/prototype-b/dashboard/live'
     | '/prototype-b/dashboard/'
   fileRoutesByTo: FileRoutesByTo
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/store/product'
     | '/dashboard'
     | '/store'
+    | '/prototype-b/dashboard/audience'
     | '/prototype-b/dashboard/live'
     | '/prototype-b/dashboard'
   id:
@@ -225,6 +237,7 @@ export interface FileRouteTypes {
     | '/store/product'
     | '/dashboard/'
     | '/store/'
+    | '/prototype-b/dashboard/audience'
     | '/prototype-b/dashboard/live'
     | '/prototype-b/dashboard/'
   fileRoutesById: FileRoutesById
@@ -353,6 +366,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrototypeBDashboardIndexRouteImport
       parentRoute: typeof PrototypeBDashboardRouteRoute
     }
+    '/prototype-b/dashboard/audience': {
+      id: '/prototype-b/dashboard/audience'
+      path: '/audience'
+      fullPath: '/prototype-b/dashboard/audience'
+      preLoaderRoute: typeof PrototypeBDashboardAudienceRouteImport
+      parentRoute: typeof PrototypeBDashboardRouteRoute
+    }
     '/prototype-b/dashboard/live': {
       id: '/prototype-b/dashboard/live'
       path: '/live'
@@ -390,12 +410,14 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 )
 
 interface PrototypeBDashboardRouteRouteChildren {
+  PrototypeBDashboardAudienceRoute: typeof PrototypeBDashboardAudienceRoute
   PrototypeBDashboardLiveRoute: typeof PrototypeBDashboardLiveRoute
   PrototypeBDashboardIndexRoute: typeof PrototypeBDashboardIndexRoute
 }
 
 const PrototypeBDashboardRouteRouteChildren: PrototypeBDashboardRouteRouteChildren =
   {
+    PrototypeBDashboardAudienceRoute: PrototypeBDashboardAudienceRoute,
     PrototypeBDashboardLiveRoute: PrototypeBDashboardLiveRoute,
     PrototypeBDashboardIndexRoute: PrototypeBDashboardIndexRoute,
   }
