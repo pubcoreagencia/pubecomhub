@@ -3,6 +3,7 @@ import { ShoppingCart, Search, Menu, Star, ChevronRight, Zap, ArrowRight, Shield
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { mockProducts } from '@/data/mock';
+import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/hooks/useCart';
 import { cn } from '@/lib/utils';
 
