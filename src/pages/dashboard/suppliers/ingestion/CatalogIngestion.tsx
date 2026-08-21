@@ -105,7 +105,7 @@ export const CatalogIngestion = () => {
   const handleImport = async () => {
     if (!preview) return;
     
-    const itemsToImport = preview.items.filter(item => selectedItems.has(item.externalId));
+    const itemsToImport = preview?.items?.filter(item => selectedItems.has(item.externalId)) || [];
     if (itemsToImport.length === 0) {
       toast.error('Selecione ao menos um produto para importar');
       return;
