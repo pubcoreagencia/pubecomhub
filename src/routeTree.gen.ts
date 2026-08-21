@@ -19,6 +19,7 @@ import { Route as DashboardMarketingRouteImport } from './routes/dashboard/marke
 import { Route as DashboardOrdersRouteImport } from './routes/dashboard/orders'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
 import { Route as DashboardStoresRouteImport } from './routes/dashboard/stores'
+import { Route as PrototypeBDashboardRouteRouteImport } from './routes/prototype-b/dashboard/route'
 import { Route as StoreIndexRouteImport } from './routes/store/index'
 import { Route as StoreCheckoutRouteImport } from './routes/store/checkout'
 import { Route as StoreConfirmationRouteImport } from './routes/store/confirmation'
@@ -74,6 +75,12 @@ const DashboardStoresRoute = DashboardStoresRouteImport.update({
   path: '/stores',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const PrototypeBDashboardRouteRoute =
+  PrototypeBDashboardRouteRouteImport.update({
+    id: '/prototype-b/dashboard',
+    path: '/prototype-b/dashboard',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const StoreIndexRoute = StoreIndexRouteImport.update({
   id: '/store/',
   path: '/store/',
@@ -98,6 +105,7 @@ const StoreProductRoute = StoreProductRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/prototype-b/dashboard': typeof PrototypeBDashboardRouteRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
   '/dashboard/live': typeof DashboardLiveRoute
@@ -113,6 +121,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/prototype-b/dashboard': typeof PrototypeBDashboardRouteRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
   '/dashboard/live': typeof DashboardLiveRoute
@@ -130,6 +139,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/prototype-b/dashboard': typeof PrototypeBDashboardRouteRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
   '/dashboard/live': typeof DashboardLiveRoute
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/prototype-b/dashboard'
     | '/dashboard/audience'
     | '/dashboard/finance'
     | '/dashboard/live'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/prototype-b/dashboard'
     | '/dashboard/audience'
     | '/dashboard/finance'
     | '/dashboard/live'
@@ -179,6 +191,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/prototype-b/dashboard'
     | '/dashboard/audience'
     | '/dashboard/finance'
     | '/dashboard/live'
@@ -196,6 +209,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
+  PrototypeBDashboardRouteRoute: typeof PrototypeBDashboardRouteRoute
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreConfirmationRoute: typeof StoreConfirmationRoute
   StoreProductRoute: typeof StoreProductRoute
@@ -274,6 +288,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStoresRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/prototype-b/dashboard': {
+      id: '/prototype-b/dashboard'
+      path: '/prototype-b/dashboard'
+      fullPath: '/prototype-b/dashboard'
+      preLoaderRoute: typeof PrototypeBDashboardRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/store/': {
       id: '/store/'
       path: '/store'
@@ -334,6 +355,7 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
+  PrototypeBDashboardRouteRoute: PrototypeBDashboardRouteRoute,
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreConfirmationRoute: StoreConfirmationRoute,
   StoreProductRoute: StoreProductRoute,
