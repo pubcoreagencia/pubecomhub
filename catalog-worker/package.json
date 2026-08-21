@@ -2,7 +2,8 @@
   "name": "pub-ecom-catalog-worker",
   "version": "1.0.0",
   "scripts": {
-    "deploy": "wrangler deploy",
+    "build": "esbuild src/index.ts --bundle --outfile=dist/index.js --platform=browser --format=esm --external:chromium-bidi --external:playwright-core --external:node:* --external:cloudflare:* --target=esnext --minify",
+    "deploy": "npm run build && wrangler deploy dist/index.js --no-bundle",
     "dev": "wrangler dev",
     "typecheck": "tsc --noEmit"
   },
