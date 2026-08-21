@@ -1,138 +1,129 @@
-import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
+import { ShellB } from '@/prototype-b/components/ShellB';
+import { CardMetric, AcquisitionFunnel, HubTable } from '@/prototype-b/components/ui-b';
 import { 
-  Activity, 
   Users, 
   ShoppingCart, 
   CreditCard, 
-  TrendingUp, 
-  Eye, 
-  MousePointerClick,
-  ArrowRight,
-  Zap
+  CheckCircle2,
+  TrendingUp
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/prototype-b/dashboard/live')({
-  component: LiveShopB
+  component: () => <LiveShopB />,
 });
 
 function LiveShopB() {
-  const stats = [
-    { label: "Visitantes", value: "1,284", icon: Eye, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Carrinhos", value: "156", icon: ShoppingCart, color: "text-orange-600", bg: "bg-orange-50" },
-    { label: "Checkouts", value: "42", icon: CreditCard, color: "text-indigo-600", bg: "bg-indigo-50" },
-    { label: "Vendas", value: "18", icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" }
-  ];
-
-  const funnelSteps = [
-    { label: "Page View", count: 1284, percentage: 100, color: "bg-blue-500" },
-    { label: "Add to Cart", count: 156, percentage: 12.1, color: "bg-orange-500" },
-    { label: "Add Payment Info", count: 42, percentage: 3.2, color: "bg-indigo-500" },
-    { label: "Purchase", count: 18, percentage: 1.4, color: "bg-emerald-500" }
-  ];
-
   return (
-    <div className="space-y-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <h1 className="text-4xl font-black tracking-tighter text-slate-900">Live Shop</h1>
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-100 animate-pulse">
-              <span className="h-2 w-2 rounded-full bg-rose-500" />
-              <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Ao Vivo</span>
-            </div>
+    <ShellB>
+      <div className="space-y-6">
+        {/* Real-time Header Metrics */}
+        <div className="grid grid-cols-4 gap-6">
+          <div className="hub-card p-5 bg-black/40 border-[var(--hub-primary)]/30">
+             <div className="flex items-center gap-3 mb-2">
+                <Users className="h-4 w-4 text-[var(--hub-primary)]" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white">Visitantes Online</span>
+             </div>
+             <div className="text-3xl font-black text-white">1.284</div>
+             <div className="text-[9px] text-[var(--hub-primary)] font-bold mt-1">+12% vs última hora</div>
           </div>
-          <p className="text-slate-500 font-bold">Monitoramento de eventos em tempo real.</p>
+          <div className="hub-card p-5">
+             <div className="flex items-center gap-3 mb-2">
+                <ShoppingCart className="h-4 w-4 text-orange-500" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white">Carrinhos Abertos</span>
+             </div>
+             <div className="text-3xl font-black text-white">187</div>
+          </div>
+          <div className="hub-card p-5">
+             <div className="flex items-center gap-3 mb-2">
+                <CreditCard className="h-4 w-4 text-blue-500" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white">Checkouts Ativos</span>
+             </div>
+             <div className="text-3xl font-black text-white">42</div>
+          </div>
+          <div className="hub-card p-5">
+             <div className="flex items-center gap-3 mb-2">
+                <CheckCircle2 className="h-4 w-4 text-[var(--hub-primary)]" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white">Vendas (5 min)</span>
+             </div>
+             <div className="text-3xl font-black text-white">13</div>
+          </div>
         </div>
-        <Button className="rounded-2xl font-black text-xs uppercase tracking-widest px-8 h-12 shadow-xl shadow-primary/20">
-          Configurar Campanha <Zap className="ml-2 h-4 w-4 fill-current" />
-        </Button>
-      </div>
 
-      {/* Real-time Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((s, i) => (
-          <Card key={i} className="group shadow-sm border-none ring-1 ring-slate-100 transition-all hover:shadow-xl hover:-translate-y-1 bg-white rounded-3xl overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-6 px-6">
-              <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{s.label}</CardTitle>
-              <div className={cn("p-2 rounded-xl transition-all duration-300 group-hover:scale-110", s.bg)}>
-                {React.createElement(s.icon, { className: cn("h-4 w-4", s.color) })}
-              </div>
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-3xl font-black text-slate-900 tracking-tighter">{s.value}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Sales Funnel */}
-        <Card className="lg:col-span-2 rounded-3xl border-none ring-1 ring-slate-100 shadow-sm overflow-hidden bg-white p-8">
-          <div className="flex items-center justify-between mb-10">
-            <h3 className="text-xl font-black tracking-tighter text-slate-900">Funil de Conversão</h3>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Taxa de Conversão</p>
-                <p className="text-xl font-black text-emerald-600">1.4%</p>
-              </div>
+        <div className="grid grid-cols-3 gap-6">
+          {/* Main Visual Funnel */}
+          <div className="col-span-2">
+            <div className="hub-card p-6 h-[500px] flex flex-col">
+               <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-white">Monitor de Funil ao Vivo</h3>
+                  <div className="flex gap-4">
+                     <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-[var(--hub-primary)]" />
+                        <span className="text-[9px] font-bold text-white uppercase">Checkout</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-slate-600" />
+                        <span className="text-[9px] font-bold text-white uppercase">Navegação</span>
+                     </div>
+                  </div>
+               </div>
+               
+               <div className="flex-1 flex items-center justify-center relative">
+                  {/* Visual Funnel Representation */}
+                  <div className="w-full max-w-lg space-y-4">
+                     {[
+                       { label: 'Page View', val: '184.2k', w: '100%' },
+                       { label: 'Add to Cart', val: '33.9k', w: '65%' },
+                       { label: 'Initiate Checkout', val: '15.1k', w: '40%' },
+                       { label: 'Purchase', val: '7.0k', w: '25%' }
+                     ].map((step, i) => (
+                       <div key={i} className="relative h-16 flex items-center justify-center">
+                          <div 
+                            className="absolute inset-y-0 bg-[var(--hub-primary)]/10 border border-[var(--hub-primary)]/20 rounded flex items-center px-6"
+                            style={{ width: step.w }}
+                          >
+                             <span className="text-[10px] font-black text-white uppercase tracking-widest">{step.label}</span>
+                          </div>
+                          <span className="relative z-10 text-[11px] font-black text-[var(--hub-primary)]">{step.val}</span>
+                       </div>
+                     ))}
+                  </div>
+               </div>
             </div>
           </div>
 
-          <div className="space-y-8">
-            {funnelSteps.map((step, i) => (
-              <div key={i} className="space-y-2">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <span className="text-xs font-black text-slate-900 uppercase tracking-widest">{step.label}</span>
-                    <span className="text-[10px] font-bold text-slate-400 ml-2 italic">({step.count} eventos)</span>
-                  </div>
-                  <span className="text-sm font-black text-slate-900">{step.percentage}%</span>
+          {/* Real-time Event Log */}
+          <div className="col-span-1">
+             <div className="hub-card p-6 h-[500px] flex flex-col">
+                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-white mb-6">Fluxo de Eventos</h3>
+                <div className="flex-1 space-y-4 overflow-y-auto pr-2 no-scrollbar">
+                   {[
+                     { type: 'SALE', msg: 'Pedido #10942 aprovado', time: 'há 2s', meta: 'Elite Dropshipping · Influencer @carlos_tech' },
+                     { type: 'CHECKOUT', msg: 'Cliente iniciou checkout', time: 'há 14s', meta: 'Glow Up Store · Smartwatch Pro X' },
+                     { type: 'CART', msg: 'Adicionado ao carrinho', time: 'há 26s', meta: 'Alpha Tech Hub · Fone Noise Cancelling' },
+                     { type: 'PAYMENT', msg: 'PIX gerado', time: 'há 45s', meta: 'Urban Fit · Kit Musculação' },
+                     { type: 'SALE', msg: 'Pedido #10941 aprovado', time: 'há 1m', meta: 'Casa Prime · Air Fryer Gold' }
+                   ].map((evt, i) => (
+                     <div key={i} className="p-4 rounded bg-black/20 border border-[var(--hub-border)] hover:border-[var(--hub-primary)]/40 transition-colors">
+                        <div className="flex items-center justify-between mb-1">
+                           <span className={cn(
+                             "text-[8px] font-black px-1.5 py-0.5 rounded",
+                             evt.type === 'SALE' ? "bg-[var(--hub-primary)] text-black" : "bg-white/10 text-white"
+                           )}>
+                             {evt.type}
+                           </span>
+                           <span className="text-[9px] text-[var(--hub-muted)]">{evt.time}</span>
+                        </div>
+                        <p className="text-[11px] font-bold text-white leading-tight">{evt.msg}</p>
+                        <p className="text-[9px] text-[var(--hub-muted)] mt-1">{evt.meta}</p>
+                     </div>
+                   ))}
                 </div>
-                <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div 
-                    className={cn("h-full rounded-full transition-all duration-1000", step.color)} 
-                    style={{ width: `${step.percentage}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+             </div>
           </div>
-        </Card>
-
-        {/* Real-time Events Log */}
-        <Card className="rounded-3xl border-none ring-1 ring-slate-100 shadow-sm overflow-hidden bg-white">
-          <CardHeader className="px-8 py-6 border-b border-slate-50">
-            <CardTitle className="text-lg font-black tracking-tighter text-slate-900">Eventos em Tempo Real</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-slate-50">
-              {[1, 2, 3, 4, 5].map((item) => (
-                <div key={item} className="px-8 py-5 flex items-start gap-4 hover:bg-slate-50 transition-colors">
-                  <div className="h-10 w-10 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
-                    <ShoppingCart className="h-5 w-5 text-emerald-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-black text-slate-900 truncate">Nova Venda!</p>
-                    <p className="text-xs font-bold text-slate-500">Smartphone Pro • Loja Tech</p>
-                    <p className="text-[10px] font-bold text-slate-400 mt-1">há 2 minutos</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-black text-slate-900">R$ 2.999</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Button variant="ghost" className="w-full h-14 rounded-none border-t border-slate-50 font-black text-[10px] uppercase tracking-widest text-primary hover:bg-primary/5">
-              Ver Log Completo <ArrowRight className="ml-2 h-3 w-3" />
-            </Button>
-          </CardContent>
-        </Card>
+        </div>
       </div>
-    </div>
+    </ShellB>
   );
 }

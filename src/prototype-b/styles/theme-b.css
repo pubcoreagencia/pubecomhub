@@ -1,0 +1,52 @@
+/* PUB ECOM — PROTOTYPE B (Base Visual PUB Ops Hub) */
+
+:root {
+  /* OKLCH Base from Audit */
+  --hub-bg: oklch(0.145 0.004 285.8);
+  --hub-card: oklch(0.18 0.005 285.8);
+  --hub-card-hover: oklch(0.20 0.006 285.8);
+  --hub-primary: oklch(69.6% .17 162.5); /* Emerald Green */
+  --hub-primary-foreground: oklch(0.145 0.004 285.8);
+  --hub-foreground: oklch(0.95 0.01 285.8);
+  --hub-muted: oklch(0.60 0.02 285.8);
+  --hub-border: oklch(0.25 0.01 285.8);
+  --hub-accent: oklch(0.25 0.02 162.5 / 0.1);
+}
+
+.prototype-b {
+  background-color: var(--hub-bg);
+  color: var(--hub-foreground);
+  min-height: 100vh;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+.prototype-b .hub-card {
+  background-color: var(--hub-card);
+  border: 1px solid var(--hub-border);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.prototype-b .hub-card:hover {
+  background-color: var(--hub-card-hover);
+  border-color: var(--hub-primary);
+}
+
+.prototype-b .hub-text-primary {
+  color: var(--hub-primary);
+}
+
+.prototype-b .hub-bg-primary {
+  background-color: var(--hub-primary);
+}
+
+.prototype-b .hub-sidebar {
+  background-color: oklch(0.12 0.004 285.8);
+  border-right: 1px solid var(--hub-border);
+}
+
+.prototype-b .hub-sidebar-item-active {
+  background-color: oklch(0.25 0.02 162.5 / 0.1);
+  color: var(--hub-primary);
+  border-left: 2px solid var(--hub-primary);
+}
