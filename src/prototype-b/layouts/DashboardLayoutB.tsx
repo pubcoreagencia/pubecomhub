@@ -48,17 +48,19 @@ const navGroups = [
     label: "Financeiro & Performance",
     items: [
       { label: "Financeiro", icon: BarChart3, href: "/prototype-b/dashboard/finance" },
-      { label: "Ads & UTM", icon: TrendingUp, href: "/prototype-b/dashboard/ads" },
+      { label: "Tracking & Pixels", icon: Activity, href: "/prototype-b/dashboard/tracking" },
       { label: "Marketing", icon: Megaphone, href: "/prototype-b/dashboard/marketing" },
+      { label: "SEO & Orgânico", icon: Globe, href: "/prototype-b/dashboard/seo" },
     ]
   },
   {
     label: "Crescimento",
     items: [
       { label: "Audience Engine", icon: Target, href: "/prototype-b/dashboard/audience" },
-      { label: "Afiliados", icon: Share2, href: "/prototype-b/dashboard/afiliados" },
+      { label: "Afiliados", icon: Share2, href: "/prototype-b/dashboard/affiliates" },
       { label: "Influencers", icon: Users, href: "/prototype-b/dashboard/influencers" },
-      { label: "Ranking & Prêmios", icon: Award, href: "/prototype-b/dashboard/ranking" },
+      { label: "Ranking Global", icon: Award, href: "/prototype-b/dashboard/ranking" },
+      { label: "Bonificações", icon: Gift, href: "/prototype-b/dashboard/bonifications" },
     ]
   },
   {
