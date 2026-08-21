@@ -21,6 +21,8 @@ interface DiagnosticResult {
   fallbackGetKeys: string[];
   fallbackGetHasData: boolean;
   fallbackGetHasShopId: boolean;
+  productLinkCount: number;
+  productLinkShopIds: string[];
 }
 
 async function resolveShopIdWithDiagnostics(page: any, targetUrl: string): Promise<DiagnosticResult> {
@@ -45,52 +47,83 @@ async function resolveShopIdWithDiagnostics(page: any, targetUrl: string): Promi
       fallbackGetKeys: [] as string[],
       fallbackGetHasData: false,
       fallbackGetHasShopId: false,
+      productLinkCount: 0,
+      productLinkShopIds: [] as string[],
     };
 
     try {
-      // POST /api/v4/shop/get_shop_base_v2
-      const postResp = await fetch('https://shopee.com.br/api/v4/shop/get_shop_base_v2', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          request_source: "mobile_shop_home_page",
-          livestream_params: {},
-          username: uname
-        })
-      });
+      // Strategy: Product Link Extraction
+      const links = Array.from(document.querySelectorAll('a[href]'));
+      const productRegex = /i\.(\d{4,})\.(\d{4,})(?:[/?#]|$)/i;
+      const shopIdMap: Record<string, number> = {};
       
-      results.shopBaseStatus = postResp.status;
-      results.shopBaseContentType = postResp.headers.get('content-type');
-      const postText = await postResp.text();
-      results.shopBaseResponseSize = postText.length;
-      
-      try {
-        const postJson = JSON.parse(postText);
-        results.shopBaseKeys = Object.keys(postJson);
-        results.shopBaseHasData = !!postJson.data;
-        const sid = postJson.data?.shopid || postJson.shopid;
-        if (sid) {
-          results.shopBaseHasShopId = true;
-          results.shopId = sid.toString();
+      links.forEach(link => {
+        const href = (link as HTMLAnchorElement).href;
+        const match = href.match(productRegex);
+        if (match && match[1]) {
+          const sid = match[1];
+          shopIdMap[sid] = (shopIdMap[sid] || 0) + 1;
         }
-      } catch {}
+      });
+
+      const uniqueShopIds = Object.keys(shopIdMap);
+      results.productLinkCount = links.length;
+      results.productLinkShopIds = uniqueShopIds;
+
+      if (uniqueShopIds.length > 0) {
+        // Sort by frequency
+        uniqueShopIds.sort((a, b) => shopIdMap[b] - shopIdMap[a]);
+        results.shopId = uniqueShopIds[0];
+        // If we found a consistent shopId via product links, we can stop here or mark it
+      }
+
+      // POST /api/v4/shop/get_shop_base_v2 (only if not found or for diagnostics)
+      if (!results.shopId) {
+        const postResp = await fetch('https://shopee.com.br/api/v4/shop/get_shop_base_v2', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            request_source: "mobile_shop_home_page",
+            livestream_params: {},
+            username: uname
+          })
+        });
+        
+        results.shopBaseStatus = postResp.status;
+        results.shopBaseContentType = postResp.headers.get('content-type');
+        const postText = await postResp.text();
+        results.shopBaseResponseSize = postText.length;
+        
+        try {
+          const postJson = JSON.parse(postText);
+          results.shopBaseKeys = Object.keys(postJson);
+          results.shopBaseHasData = !!postJson.data;
+          const sid = postJson.data?.shopid || postJson.shopid;
+          if (sid) {
+            results.shopBaseHasShopId = true;
+            results.shopId = sid.toString();
+          }
+        } catch {}
+      }
 
       // GET /api/v4/shop/get_shop_base?username=<username>
-      const getResp = await fetch(`https://shopee.com.br/api/v4/shop/get_shop_base?username=${uname}`);
-      results.fallbackGetStatus = getResp.status;
-      const getText = await getResp.text();
-      results.fallbackGetResponseSize = getText.length;
-      
-      try {
-        const getJson = JSON.parse(getText);
-        results.fallbackGetKeys = Object.keys(getJson);
-        results.fallbackGetHasData = !!getJson.data;
-        const sid = getJson.data?.shopid || getJson.shopid;
-        if (sid) {
-          results.fallbackGetHasShopId = true;
-          if (!results.shopId) results.shopId = sid.toString();
-        }
-      } catch {}
+      if (!results.shopId) {
+        const getResp = await fetch(`https://shopee.com.br/api/v4/shop/get_shop_base?username=${uname}`);
+        results.fallbackGetStatus = getResp.status;
+        const getText = await getResp.text();
+        results.fallbackGetResponseSize = getText.length;
+        
+        try {
+          const getJson = JSON.parse(getText);
+          results.fallbackGetKeys = Object.keys(getJson);
+          results.fallbackGetHasData = !!getJson.data;
+          const sid = getJson.data?.shopid || getJson.shopid;
+          if (sid) {
+            results.fallbackGetHasShopId = true;
+            results.shopId = sid.toString();
+          }
+        } catch {}
+      }
     } catch (e) {
       console.error("Diagnostic error:", e);
     }
@@ -100,7 +133,7 @@ async function resolveShopIdWithDiagnostics(page: any, targetUrl: string): Promi
 
   return {
     ...diag,
-    strategy: diag.shopId ? 'shop-base-diagnostic' : 'none',
+    strategy: diag.shopId ? (diag.productLinkShopIds.length > 0 && diag.shopId === diag.productLinkShopIds[0] ? 'product-link' : 'shop-base-diagnostic') : 'none',
     username,
     finalPageUrl
   };
@@ -178,6 +211,8 @@ export default {
             shopIdStrategy: method,
             username: diag.username,
             finalPageUrl: diag.finalPageUrl,
+            productLinkCount: diag.productLinkCount,
+            productLinkShopIds: diag.productLinkShopIds,
             shopBaseStatus: diag.shopBaseStatus,
             shopBaseContentType: diag.shopBaseContentType,
             shopBaseResponseSize: diag.shopBaseResponseSize,
