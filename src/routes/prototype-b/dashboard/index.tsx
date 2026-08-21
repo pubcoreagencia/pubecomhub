@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ShellB } from '../../components/ShellB';
-import { CardMetric, AcquisitionFunnel, HubTable } from '../../components/ui-b';
+import { ShellB } from '@/prototype-b/components/ShellB';
+import { CardMetric, AcquisitionFunnel, HubTable } from '@/prototype-b/components/ui-b';
 
 export const Route = createFileRoute('/prototype-b/dashboard/')({
   component: Dashboard,
