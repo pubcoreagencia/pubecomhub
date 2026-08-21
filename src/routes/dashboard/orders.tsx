@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { mockOrders } from '@/data/mock';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, Truck, CheckCircle2, Package, Activity as ActivityIcon, Search, Filter, Eye } from 'lucide-react';
+import { ShoppingBag, Truck, CheckCircle2, Package, Activity as ActivityIcon, Search, Filter, Eye, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -38,7 +38,7 @@ function OrdersPage() {
       case 'shipped': return <Truck className="h-3.5 w-3.5 text-blue-500" />;
       case 'purchased_from_supplier': return <Package className="h-3.5 w-3.5 text-purple-500" />;
       case 'paid': return <ShoppingBag className="h-3.5 w-3.5 text-amber-500" />;
-      default: return <ActivityIcon className="h-3.5 w-3.5 text-slate-300" />;
+      default: return <Clock className="h-3.5 w-3.5 text-slate-300" />;
     }
   };
 

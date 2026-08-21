@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { mockOrders } from '@/data/mock';
-import { Activity, ShoppingCart, UserCheck, CreditCard, CheckCircle2, Zap, ArrowRight } from 'lucide-react';
+import { Activity, ShoppingCart, UserCheck, CreditCard, CheckCircle2, Zap, ArrowRight, MousePointer2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -22,16 +22,16 @@ function LiveShopPage() {
 
   const funnelSteps = [
     { label: 'Sessões', value: 12450, icon: UserCheck, color: 'bg-slate-50 text-slate-600' },
-    { label: 'Carrinhos', value: 2840, icon: ShoppingCart, color: 'bg-amber-50 text-amber-600' },
+    { label: 'Carrinhos', value: 2840, icon: MousePointer2, color: 'bg-amber-50 text-amber-600' },
     { label: 'Checkouts', value: 950, icon: CreditCard, color: 'bg-blue-50 text-blue-600' },
-    { label: 'Vendas', value: 480, icon: CheckCircle2, color: 'bg-emerald-50 text-emerald-600' },
-    { label: 'Conversão', value: '3.8%', icon: Zap, color: 'bg-indigo-50 text-indigo-600' },
+    { label: 'Vendas', value: 480, icon: ShoppingCart, color: 'bg-emerald-50 text-emerald-600' },
+    { label: 'Conversão', value: '3.8%', icon: Activity, color: 'bg-indigo-50 text-indigo-600' },
   ];
 
   const events = [
-    { type: 'sale', label: 'Venda Confirmada', store: 'Loja Tech', time: 'Agora mesmo', amount: 'R$ 2.999,00', icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+    { type: 'sale', label: 'Venda Confirmada', store: 'Loja Tech', time: 'Agora mesmo', amount: 'R$ 2.999,00', icon: ShoppingCart, color: 'text-emerald-500', bg: 'bg-emerald-50' },
     { type: 'checkout', label: 'Iniciou Checkout', store: 'Moda Fashion', time: '2 min atrás', amount: 'R$ 499,00', icon: CreditCard, color: 'text-blue-500', bg: 'bg-blue-50' },
-    { type: 'cart', label: 'Adicionou ao Carrinho', store: 'Loja Tech', time: '5 min atrás', amount: 'R$ 2.999,00', icon: ShoppingCart, color: 'text-amber-500', bg: 'bg-amber-50' },
+    { type: 'cart', label: 'Adicionou ao Carrinho', store: 'Loja Tech', time: '5 min atrás', amount: 'R$ 2.999,00', icon: MousePointer2, color: 'text-amber-500', bg: 'bg-amber-50' },
     { type: 'visitor', label: 'Nova Sessão', store: 'Moda Fashion', time: '8 min atrás', amount: null, icon: UserCheck, color: 'text-slate-500', bg: 'bg-slate-100' },
   ];
 

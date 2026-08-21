@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, Filter, ArrowRight, UserPlus, ShoppingCart, CreditCard, ShoppingBag } from 'lucide-react';
+import { Users, Filter, ArrowRight, UserPlus, ShoppingCart, CreditCard, ShoppingBag, MousePointer2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute('/dashboard/audience')({
@@ -11,7 +11,7 @@ export const Route = createFileRoute('/dashboard/audience')({
 function AudiencePage() {
   const levels = [
     { level: 'L1', name: 'Page View', icon: Users, count: '12,450', color: 'bg-slate-100 text-slate-700' },
-    { level: 'L2', name: 'Add to Cart', icon: ShoppingCart, count: '2,840', color: 'bg-orange-50 text-orange-700' },
+    { level: 'L2', name: 'Add to Cart', icon: MousePointer2, count: '2,840', color: 'bg-orange-50 text-orange-700' },
     { level: 'L3', name: 'Add Payment Info', icon: CreditCard, count: '950', color: 'bg-blue-50 text-blue-700' },
     { level: 'L4', name: 'Purchase', icon: ShoppingBag, count: '480', color: 'bg-green-50 text-green-700' },
   ];
