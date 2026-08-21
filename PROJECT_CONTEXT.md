@@ -33,6 +33,7 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - **Audience Engine**: Gestão de clientes e leads.
 - **Financeiro**: Controle de vendas, lucros e repasses.
 - **Operação**: Gestão de pedidos, estoque, produtos e fornecedores.
+- **Ingestion Engine**: Motor de importação automática de catálogos via adapters (Shopee/Mock).
 - **Crescimento**: Marketing, SEO, Afiliados e Influenciadores.
 
 ## Regras de Negócio e Domínio
@@ -40,6 +41,7 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - **Pricing em Camadas**: Custo Fornecedor -> Preço Base PUB -> Preço de Venda Lojista.
 - **Influenciadores**: Recebem 50% do lucro líquido das vendas (Venda - Custo - Frete - Taxas - Descontos).
 - **Event Engine**: Captura de eventos de marketing (PAGE_VIEW, etc.) para CRM e Audience.
+- **Catalog Ingestion**: Workflow de Descoberta -> Normalização -> Preview -> Importação para Catálogo Master.
 - **Storefront**: Checkout funcional preparado para fulfillment e tracking real.
 
 ## Próximos Passos
@@ -50,3 +52,4 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 ## Histórico de Decisões
 - **Fundação de Dados**: Criada camada de persistência real sem quebrar o frontend.
 - **Independência**: Produto independente PUB ECOM HUB (pubcoreagencia/pubecomhub).
+- **Ingestion Engine**: Arquitetura baseada em Adapters e Services para expansão multi-fonte.

@@ -26,6 +26,7 @@ const navGroups = [
     items: [
       { label: "Produtos", icon: Box, href: "/dashboard/products" },
       { label: "Fornecedores", icon: Truck, href: "/dashboard/suppliers" },
+      { label: "Ingestion Engine", icon: Search, href: "/dashboard/suppliers/ingestion" },
       { label: "Estoque", icon: Layers, href: "/dashboard/inventory" },
     ]
   },

@@ -29,14 +29,14 @@ export interface MasterProduct {
   supplierId: string;
   sku: string;
   name: string;
-  description?: string;
-  imageUrl?: string;
-  category?: string;
+  description: string | null;
+  imageUrl: string | null;
+  category: string | null;
   supplierCost: number;
   basePricePub: number;
   status: 'active' | 'inactive';
   isAvailable: boolean;
-  metadata?: Record<string, any>;
+  metadata: Record<string, any> | null;
   created_at?: string;
 }
 
