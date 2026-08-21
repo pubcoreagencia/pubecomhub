@@ -1,9 +1,110 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { mockOrders } from '@/data/mock';
+import { Activity, ShoppingCart, UserCheck, CreditCard, CheckCircle2 } from 'lucide-react';
 
 export const Route = createFileRoute('/dashboard/live')({
-  component: RouteComponent,
-})
+  component: LiveShopPage,
+});
 
-function RouteComponent() {
-  return <div>Hello "/dashboard/live"!</div>
+function LiveShopPage() {
+  // Simulando eventos em tempo real baseados nos pedidos
+  const events = [
+    { type: 'sale', label: 'Venda Realizada', store: 'Loja Tech', time: 'Agora mesmo', icon: CheckCircle2, color: 'text-green-500' },
+    { type: 'checkout', label: 'Checkout Ativo', store: 'Moda Fashion', time: '2 min atrás', icon: CreditCard, color: 'text-blue-500' },
+    { type: 'cart', label: 'Carrinho Aberto', store: 'Loja Tech', time: '5 min atrás', icon: ShoppingCart, color: 'text-orange-500' },
+    { type: 'visitor', label: 'Novo Visitante', store: 'Moda Fashion', time: '8 min atrás', icon: UserCheck, color: 'text-slate-500' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Live Shop</h2>
+          <p className="text-muted-foreground">Monitoramento em tempo real do funil de vendas.</p>
+        </div>
+        <Badge variant="outline" className="animate-pulse bg-red-50 text-red-700 border-red-200">
+          <Activity className="mr-1 h-3 w-3" /> Ao Vivo
+        </Badge>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium uppercase text-muted-foreground">Visitantes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">128</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium uppercase text-muted-foreground">Carrinhos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">24</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium uppercase text-muted-foreground">Checkouts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium uppercase text-muted-foreground">Pagamentos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">8</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium uppercase text-muted-foreground">Vendas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">5</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Eventos Recentes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-8">
+            {events.map((event, i) => (
+              <div key={i} className="flex items-center">
+                <div className={i !== events.length - 1 ? "relative pb-8" : ""}>
+                   {i !== events.length - 1 && <span className="absolute left-4 top-8 -ml-px h-full w-0.5 bg-slate-200" aria-hidden="true" />}
+                   <div className="relative flex items-center space-x-3">
+                      <div className={cn("h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center", event.color)}>
+                        <event.icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div>
+                          <div className="text-sm">
+                            <span className="font-bold text-slate-900">{event.label}</span> na <span className="font-semibold text-primary">{event.store}</span>
+                          </div>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{event.time}</p>
+                        </div>
+                      </div>
+                   </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function cn(...inputs: any[]) {
+  return inputs.filter(Boolean).join(' ');
 }
