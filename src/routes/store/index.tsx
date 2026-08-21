@@ -8,6 +8,16 @@ import { useCart } from '@/hooks/useCart';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/store/')({
+  head: () => ({
+    meta: [
+      { title: "Tech Store | PUB ECOM" },
+      { name: "description", content: "A melhor curadoria de tecnologia do Brasil." },
+      { property: "og:title", content: "Tech Store | PUB ECOM" },
+      { property: "og:description", content: "A melhor curadoria de tecnologia do Brasil." },
+      { property: "og:image", content: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1200" },
+      { name: "twitter:image", content: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1200" },
+    ],
+  }),
   component: StoreHome,
 });
 
@@ -75,7 +85,7 @@ function StoreHome() {
                <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Novo Smartphone Pro Disponível</span>
             </div>
-            <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-slate-900 leading-[0.9]">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-slate-900 leading-[0.9]">
               TECNOLOGIA <br/> 
               <span className="text-primary">SEM LIMITES.</span>
             </h1>
