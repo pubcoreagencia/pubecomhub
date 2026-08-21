@@ -1,32 +1,19 @@
-# Plano de Implementação: Fase 2F - PUB ECOM CATALOG WORKER
+# Plano de Implementação: Fase 2F - PUB ECOM CATALOG WORKER (Estrutura e Contrato)
 
-Criação da estrutura base para o worker independente que utilizará Cloudflare Browser Run.
+Este plano foca na preparação da estrutura do Worker independente e na atualização da documentação de integração no PUB ECOM HUB, sem alterar o código funcional do sistema principal nesta etapa.
 
-## Ações Imediatas
-- Criar diretório `external-worker/` (simulação de repositório independente).
-- Configurar `wrangler.toml` base para Cloudflare Workers com browser binding.
-- Implementar `src/index.ts` no worker com suporte a Playwright Cloudflare.
+## Ações
+1. **Scaffolding do Worker**: Criar diretório `catalog-worker/` com a estrutura base de um Cloudflare Worker.
+2. **Contrato de API**: Definir `catalog-worker/src/index.ts` com o esqueleto do endpoint `/ingestion/shopee` e validação de token.
+3. **Configuração Wrangler**: Criar `catalog-worker/wrangler.toml` com as configurações de browser binding e compatibilidade necessárias.
+4. **Documentação de Integração**: Atualizar `PROJECT_CONTEXT.md` com a URL planejada do worker e o contrato da API.
 
 ## Detalhes Técnicos
-
-### 1. Configuração do Worker
-- **Runtime**: Cloudflare Workers com `nodejs_compat`.
-- **Binding**: `browser` para acesso ao Chromium.
-- **Dependencies**: `@cloudflare/playwright`.
-
-### 2. Endpoints do Worker
-- `POST /ingestion/shopee`: Recebe URL, valida domínio e executa o browser.
-- **Auth**: Bearer Token validation.
-
-### 3. Lógica de Extração
-- Uso de `page.goto` e `page.evaluate` para captura de `shopid` e itens.
-- Retorno de `RawProduct[]` estruturado.
-
-### 4. Segurança e Observabilidade
-- Validação de hostname (SSRF protection).
-- Logs de execução (Time, Pages, Items).
+- **Worker Environment**: Configuração para `nodejs_compat` e `browser` binding.
+- **Segurança**: Lógica de validação de hostname para Shopee BR.
+- **Observabilidade**: Estrutura de resposta JSON padronizada com metadados de execução.
 
 ## Próximos Passos
-1. Setup do boilerplate do worker.
-2. Implementação do handler `/ingestion/shopee`.
-3. Documentação e README do worker.
+1. Gerar os arquivos do boilerplate do worker.
+2. Validar o contrato de API via documentação.
+3. Preparar o README do worker com instruções de deploy.
