@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
-import { Route as Dashboard_oldRouteRouteImport } from './routes/dashboard_old/route'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardAffiliatesRouteImport } from './routes/dashboard/affiliates'
 import { Route as DashboardAudienceRouteImport } from './routes/dashboard/audience'
@@ -29,23 +28,11 @@ import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settin
 import { Route as DashboardStoresRouteImport } from './routes/dashboard/stores'
 import { Route as DashboardSuppliersRouteImport } from './routes/dashboard/suppliers'
 import { Route as DashboardTrackingRouteImport } from './routes/dashboard/tracking'
-import { Route as Dashboard_oldIndexRouteImport } from './routes/dashboard_old/index'
-import { Route as Dashboard_oldAudienceRouteImport } from './routes/dashboard_old/audience'
-import { Route as Dashboard_oldFinanceRouteImport } from './routes/dashboard_old/finance'
-import { Route as Dashboard_oldLiveRouteImport } from './routes/dashboard_old/live'
-import { Route as Dashboard_oldMarketingRouteImport } from './routes/dashboard_old/marketing'
-import { Route as Dashboard_oldOrdersRouteImport } from './routes/dashboard_old/orders'
-import { Route as Dashboard_oldSettingsRouteImport } from './routes/dashboard_old/settings'
-import { Route as Dashboard_oldStoresRouteImport } from './routes/dashboard_old/stores'
 import { Route as PrototypeBDashboardRouteRouteImport } from './routes/prototype-b/dashboard/route'
 import { Route as StoreIndexRouteImport } from './routes/store/index'
 import { Route as StoreCartRouteImport } from './routes/store/cart'
 import { Route as StoreCheckoutRouteImport } from './routes/store/checkout'
 import { Route as StoreConfirmationRouteImport } from './routes/store/confirmation'
-import { Route as Store_oldIndexRouteImport } from './routes/store_old/index'
-import { Route as Store_oldCheckoutRouteImport } from './routes/store_old/checkout'
-import { Route as Store_oldConfirmationRouteImport } from './routes/store_old/confirmation'
-import { Route as Store_oldProductRouteImport } from './routes/store_old/product'
 import { Route as PrototypeBDashboardIndexRouteImport } from './routes/prototype-b/dashboard/index'
 import { Route as PrototypeBDashboardAffiliatesRouteImport } from './routes/prototype-b/dashboard/affiliates'
 import { Route as PrototypeBDashboardAudienceRouteImport } from './routes/prototype-b/dashboard/audience'
@@ -76,11 +63,6 @@ const IndexRoute = IndexRouteImport.update({
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Dashboard_oldRouteRoute = Dashboard_oldRouteRouteImport.update({
-  id: '/dashboard_old',
-  path: '/dashboard_old',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -168,46 +150,6 @@ const DashboardTrackingRoute = DashboardTrackingRouteImport.update({
   path: '/tracking',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
-const Dashboard_oldIndexRoute = Dashboard_oldIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => Dashboard_oldRouteRoute,
-} as any)
-const Dashboard_oldAudienceRoute = Dashboard_oldAudienceRouteImport.update({
-  id: '/audience',
-  path: '/audience',
-  getParentRoute: () => Dashboard_oldRouteRoute,
-} as any)
-const Dashboard_oldFinanceRoute = Dashboard_oldFinanceRouteImport.update({
-  id: '/finance',
-  path: '/finance',
-  getParentRoute: () => Dashboard_oldRouteRoute,
-} as any)
-const Dashboard_oldLiveRoute = Dashboard_oldLiveRouteImport.update({
-  id: '/live',
-  path: '/live',
-  getParentRoute: () => Dashboard_oldRouteRoute,
-} as any)
-const Dashboard_oldMarketingRoute = Dashboard_oldMarketingRouteImport.update({
-  id: '/marketing',
-  path: '/marketing',
-  getParentRoute: () => Dashboard_oldRouteRoute,
-} as any)
-const Dashboard_oldOrdersRoute = Dashboard_oldOrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => Dashboard_oldRouteRoute,
-} as any)
-const Dashboard_oldSettingsRoute = Dashboard_oldSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => Dashboard_oldRouteRoute,
-} as any)
-const Dashboard_oldStoresRoute = Dashboard_oldStoresRouteImport.update({
-  id: '/stores',
-  path: '/stores',
-  getParentRoute: () => Dashboard_oldRouteRoute,
-} as any)
 const PrototypeBDashboardRouteRoute =
   PrototypeBDashboardRouteRouteImport.update({
     id: '/prototype-b/dashboard',
@@ -232,26 +174,6 @@ const StoreCheckoutRoute = StoreCheckoutRouteImport.update({
 const StoreConfirmationRoute = StoreConfirmationRouteImport.update({
   id: '/store/confirmation',
   path: '/store/confirmation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Store_oldIndexRoute = Store_oldIndexRouteImport.update({
-  id: '/store_old/',
-  path: '/store_old/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Store_oldCheckoutRoute = Store_oldCheckoutRouteImport.update({
-  id: '/store_old/checkout',
-  path: '/store_old/checkout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Store_oldConfirmationRoute = Store_oldConfirmationRouteImport.update({
-  id: '/store_old/confirmation',
-  path: '/store_old/confirmation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Store_oldProductRoute = Store_oldProductRouteImport.update({
-  id: '/store_old/product',
-  path: '/store_old/product',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrototypeBDashboardIndexRoute =
@@ -379,7 +301,6 @@ const PrototypeBStoreConfirmationRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
-  '/dashboard_old': typeof Dashboard_oldRouteRouteWithChildren
   '/prototype-b/dashboard': typeof PrototypeBDashboardRouteRouteWithChildren
   '/dashboard/affiliates': typeof DashboardAffiliatesRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
@@ -397,23 +318,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/stores': typeof DashboardStoresRoute
   '/dashboard/suppliers': typeof DashboardSuppliersRoute
   '/dashboard/tracking': typeof DashboardTrackingRoute
-  '/dashboard_old/audience': typeof Dashboard_oldAudienceRoute
-  '/dashboard_old/finance': typeof Dashboard_oldFinanceRoute
-  '/dashboard_old/live': typeof Dashboard_oldLiveRoute
-  '/dashboard_old/marketing': typeof Dashboard_oldMarketingRoute
-  '/dashboard_old/orders': typeof Dashboard_oldOrdersRoute
-  '/dashboard_old/settings': typeof Dashboard_oldSettingsRoute
-  '/dashboard_old/stores': typeof Dashboard_oldStoresRoute
   '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
   '/store/confirmation': typeof StoreConfirmationRoute
-  '/store_old/checkout': typeof Store_oldCheckoutRoute
-  '/store_old/confirmation': typeof Store_oldConfirmationRoute
-  '/store_old/product': typeof Store_oldProductRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/dashboard_old/': typeof Dashboard_oldIndexRoute
   '/store/': typeof StoreIndexRoute
-  '/store_old/': typeof Store_oldIndexRoute
   '/prototype-b/dashboard/affiliates': typeof PrototypeBDashboardAffiliatesRoute
   '/prototype-b/dashboard/audience': typeof PrototypeBDashboardAudienceRoute
   '/prototype-b/dashboard/bonifications': typeof PrototypeBDashboardBonificationsRoute
@@ -454,23 +363,11 @@ export interface FileRoutesByTo {
   '/dashboard/stores': typeof DashboardStoresRoute
   '/dashboard/suppliers': typeof DashboardSuppliersRoute
   '/dashboard/tracking': typeof DashboardTrackingRoute
-  '/dashboard_old/audience': typeof Dashboard_oldAudienceRoute
-  '/dashboard_old/finance': typeof Dashboard_oldFinanceRoute
-  '/dashboard_old/live': typeof Dashboard_oldLiveRoute
-  '/dashboard_old/marketing': typeof Dashboard_oldMarketingRoute
-  '/dashboard_old/orders': typeof Dashboard_oldOrdersRoute
-  '/dashboard_old/settings': typeof Dashboard_oldSettingsRoute
-  '/dashboard_old/stores': typeof Dashboard_oldStoresRoute
   '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
   '/store/confirmation': typeof StoreConfirmationRoute
-  '/store_old/checkout': typeof Store_oldCheckoutRoute
-  '/store_old/confirmation': typeof Store_oldConfirmationRoute
-  '/store_old/product': typeof Store_oldProductRoute
   '/dashboard': typeof DashboardIndexRoute
-  '/dashboard_old': typeof Dashboard_oldIndexRoute
   '/store': typeof StoreIndexRoute
-  '/store_old': typeof Store_oldIndexRoute
   '/prototype-b/dashboard/affiliates': typeof PrototypeBDashboardAffiliatesRoute
   '/prototype-b/dashboard/audience': typeof PrototypeBDashboardAudienceRoute
   '/prototype-b/dashboard/bonifications': typeof PrototypeBDashboardBonificationsRoute
@@ -497,7 +394,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
-  '/dashboard_old': typeof Dashboard_oldRouteRouteWithChildren
   '/prototype-b/dashboard': typeof PrototypeBDashboardRouteRouteWithChildren
   '/dashboard/affiliates': typeof DashboardAffiliatesRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
@@ -515,23 +411,11 @@ export interface FileRoutesById {
   '/dashboard/stores': typeof DashboardStoresRoute
   '/dashboard/suppliers': typeof DashboardSuppliersRoute
   '/dashboard/tracking': typeof DashboardTrackingRoute
-  '/dashboard_old/audience': typeof Dashboard_oldAudienceRoute
-  '/dashboard_old/finance': typeof Dashboard_oldFinanceRoute
-  '/dashboard_old/live': typeof Dashboard_oldLiveRoute
-  '/dashboard_old/marketing': typeof Dashboard_oldMarketingRoute
-  '/dashboard_old/orders': typeof Dashboard_oldOrdersRoute
-  '/dashboard_old/settings': typeof Dashboard_oldSettingsRoute
-  '/dashboard_old/stores': typeof Dashboard_oldStoresRoute
   '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
   '/store/confirmation': typeof StoreConfirmationRoute
-  '/store_old/checkout': typeof Store_oldCheckoutRoute
-  '/store_old/confirmation': typeof Store_oldConfirmationRoute
-  '/store_old/product': typeof Store_oldProductRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/dashboard_old/': typeof Dashboard_oldIndexRoute
   '/store/': typeof StoreIndexRoute
-  '/store_old/': typeof Store_oldIndexRoute
   '/prototype-b/dashboard/affiliates': typeof PrototypeBDashboardAffiliatesRoute
   '/prototype-b/dashboard/audience': typeof PrototypeBDashboardAudienceRoute
   '/prototype-b/dashboard/bonifications': typeof PrototypeBDashboardBonificationsRoute
@@ -559,7 +443,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
-    | '/dashboard_old'
     | '/prototype-b/dashboard'
     | '/dashboard/affiliates'
     | '/dashboard/audience'
@@ -577,23 +460,11 @@ export interface FileRouteTypes {
     | '/dashboard/stores'
     | '/dashboard/suppliers'
     | '/dashboard/tracking'
-    | '/dashboard_old/audience'
-    | '/dashboard_old/finance'
-    | '/dashboard_old/live'
-    | '/dashboard_old/marketing'
-    | '/dashboard_old/orders'
-    | '/dashboard_old/settings'
-    | '/dashboard_old/stores'
     | '/store/cart'
     | '/store/checkout'
     | '/store/confirmation'
-    | '/store_old/checkout'
-    | '/store_old/confirmation'
-    | '/store_old/product'
     | '/dashboard/'
-    | '/dashboard_old/'
     | '/store/'
-    | '/store_old/'
     | '/prototype-b/dashboard/affiliates'
     | '/prototype-b/dashboard/audience'
     | '/prototype-b/dashboard/bonifications'
@@ -634,23 +505,11 @@ export interface FileRouteTypes {
     | '/dashboard/stores'
     | '/dashboard/suppliers'
     | '/dashboard/tracking'
-    | '/dashboard_old/audience'
-    | '/dashboard_old/finance'
-    | '/dashboard_old/live'
-    | '/dashboard_old/marketing'
-    | '/dashboard_old/orders'
-    | '/dashboard_old/settings'
-    | '/dashboard_old/stores'
     | '/store/cart'
     | '/store/checkout'
     | '/store/confirmation'
-    | '/store_old/checkout'
-    | '/store_old/confirmation'
-    | '/store_old/product'
     | '/dashboard'
-    | '/dashboard_old'
     | '/store'
-    | '/store_old'
     | '/prototype-b/dashboard/affiliates'
     | '/prototype-b/dashboard/audience'
     | '/prototype-b/dashboard/bonifications'
@@ -676,7 +535,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
-    | '/dashboard_old'
     | '/prototype-b/dashboard'
     | '/dashboard/affiliates'
     | '/dashboard/audience'
@@ -694,23 +552,11 @@ export interface FileRouteTypes {
     | '/dashboard/stores'
     | '/dashboard/suppliers'
     | '/dashboard/tracking'
-    | '/dashboard_old/audience'
-    | '/dashboard_old/finance'
-    | '/dashboard_old/live'
-    | '/dashboard_old/marketing'
-    | '/dashboard_old/orders'
-    | '/dashboard_old/settings'
-    | '/dashboard_old/stores'
     | '/store/cart'
     | '/store/checkout'
     | '/store/confirmation'
-    | '/store_old/checkout'
-    | '/store_old/confirmation'
-    | '/store_old/product'
     | '/dashboard/'
-    | '/dashboard_old/'
     | '/store/'
-    | '/store_old/'
     | '/prototype-b/dashboard/affiliates'
     | '/prototype-b/dashboard/audience'
     | '/prototype-b/dashboard/bonifications'
@@ -737,16 +583,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
-  Dashboard_oldRouteRoute: typeof Dashboard_oldRouteRouteWithChildren
   PrototypeBDashboardRouteRoute: typeof PrototypeBDashboardRouteRouteWithChildren
   StoreCartRoute: typeof StoreCartRoute
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreConfirmationRoute: typeof StoreConfirmationRoute
-  Store_oldCheckoutRoute: typeof Store_oldCheckoutRoute
-  Store_oldConfirmationRoute: typeof Store_oldConfirmationRoute
-  Store_oldProductRoute: typeof Store_oldProductRoute
   StoreIndexRoute: typeof StoreIndexRoute
-  Store_oldIndexRoute: typeof Store_oldIndexRoute
   PrototypeBStoreCartRoute: typeof PrototypeBStoreCartRoute
   PrototypeBStoreCheckoutRoute: typeof PrototypeBStoreCheckoutRoute
   PrototypeBStoreConfirmationRoute: typeof PrototypeBStoreConfirmationRoute
@@ -767,13 +608,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard_old': {
-      id: '/dashboard_old'
-      path: '/dashboard_old'
-      fullPath: '/dashboard_old'
-      preLoaderRoute: typeof Dashboard_oldRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -895,62 +729,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardTrackingRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/dashboard_old/': {
-      id: '/dashboard_old/'
-      path: '/'
-      fullPath: '/dashboard_old/'
-      preLoaderRoute: typeof Dashboard_oldIndexRouteImport
-      parentRoute: typeof Dashboard_oldRouteRoute
-    }
-    '/dashboard_old/audience': {
-      id: '/dashboard_old/audience'
-      path: '/audience'
-      fullPath: '/dashboard_old/audience'
-      preLoaderRoute: typeof Dashboard_oldAudienceRouteImport
-      parentRoute: typeof Dashboard_oldRouteRoute
-    }
-    '/dashboard_old/finance': {
-      id: '/dashboard_old/finance'
-      path: '/finance'
-      fullPath: '/dashboard_old/finance'
-      preLoaderRoute: typeof Dashboard_oldFinanceRouteImport
-      parentRoute: typeof Dashboard_oldRouteRoute
-    }
-    '/dashboard_old/live': {
-      id: '/dashboard_old/live'
-      path: '/live'
-      fullPath: '/dashboard_old/live'
-      preLoaderRoute: typeof Dashboard_oldLiveRouteImport
-      parentRoute: typeof Dashboard_oldRouteRoute
-    }
-    '/dashboard_old/marketing': {
-      id: '/dashboard_old/marketing'
-      path: '/marketing'
-      fullPath: '/dashboard_old/marketing'
-      preLoaderRoute: typeof Dashboard_oldMarketingRouteImport
-      parentRoute: typeof Dashboard_oldRouteRoute
-    }
-    '/dashboard_old/orders': {
-      id: '/dashboard_old/orders'
-      path: '/orders'
-      fullPath: '/dashboard_old/orders'
-      preLoaderRoute: typeof Dashboard_oldOrdersRouteImport
-      parentRoute: typeof Dashboard_oldRouteRoute
-    }
-    '/dashboard_old/settings': {
-      id: '/dashboard_old/settings'
-      path: '/settings'
-      fullPath: '/dashboard_old/settings'
-      preLoaderRoute: typeof Dashboard_oldSettingsRouteImport
-      parentRoute: typeof Dashboard_oldRouteRoute
-    }
-    '/dashboard_old/stores': {
-      id: '/dashboard_old/stores'
-      path: '/stores'
-      fullPath: '/dashboard_old/stores'
-      preLoaderRoute: typeof Dashboard_oldStoresRouteImport
-      parentRoute: typeof Dashboard_oldRouteRoute
-    }
     '/prototype-b/dashboard': {
       id: '/prototype-b/dashboard'
       path: '/prototype-b/dashboard'
@@ -984,34 +762,6 @@ declare module '@tanstack/react-router' {
       path: '/store/confirmation'
       fullPath: '/store/confirmation'
       preLoaderRoute: typeof StoreConfirmationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/store_old/': {
-      id: '/store_old/'
-      path: '/store_old'
-      fullPath: '/store_old/'
-      preLoaderRoute: typeof Store_oldIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/store_old/checkout': {
-      id: '/store_old/checkout'
-      path: '/store_old/checkout'
-      fullPath: '/store_old/checkout'
-      preLoaderRoute: typeof Store_oldCheckoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/store_old/confirmation': {
-      id: '/store_old/confirmation'
-      path: '/store_old/confirmation'
-      fullPath: '/store_old/confirmation'
-      preLoaderRoute: typeof Store_oldConfirmationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/store_old/product': {
-      id: '/store_old/product'
-      path: '/store_old/product'
-      fullPath: '/store_old/product'
-      preLoaderRoute: typeof Store_oldProductRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prototype-b/dashboard/': {
@@ -1208,31 +958,6 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
   DashboardRouteRouteChildren,
 )
 
-interface Dashboard_oldRouteRouteChildren {
-  Dashboard_oldAudienceRoute: typeof Dashboard_oldAudienceRoute
-  Dashboard_oldFinanceRoute: typeof Dashboard_oldFinanceRoute
-  Dashboard_oldLiveRoute: typeof Dashboard_oldLiveRoute
-  Dashboard_oldMarketingRoute: typeof Dashboard_oldMarketingRoute
-  Dashboard_oldOrdersRoute: typeof Dashboard_oldOrdersRoute
-  Dashboard_oldSettingsRoute: typeof Dashboard_oldSettingsRoute
-  Dashboard_oldStoresRoute: typeof Dashboard_oldStoresRoute
-  Dashboard_oldIndexRoute: typeof Dashboard_oldIndexRoute
-}
-
-const Dashboard_oldRouteRouteChildren: Dashboard_oldRouteRouteChildren = {
-  Dashboard_oldAudienceRoute: Dashboard_oldAudienceRoute,
-  Dashboard_oldFinanceRoute: Dashboard_oldFinanceRoute,
-  Dashboard_oldLiveRoute: Dashboard_oldLiveRoute,
-  Dashboard_oldMarketingRoute: Dashboard_oldMarketingRoute,
-  Dashboard_oldOrdersRoute: Dashboard_oldOrdersRoute,
-  Dashboard_oldSettingsRoute: Dashboard_oldSettingsRoute,
-  Dashboard_oldStoresRoute: Dashboard_oldStoresRoute,
-  Dashboard_oldIndexRoute: Dashboard_oldIndexRoute,
-}
-
-const Dashboard_oldRouteRouteWithChildren =
-  Dashboard_oldRouteRoute._addFileChildren(Dashboard_oldRouteRouteChildren)
-
 interface PrototypeBDashboardRouteRouteChildren {
   PrototypeBDashboardAffiliatesRoute: typeof PrototypeBDashboardAffiliatesRoute
   PrototypeBDashboardAudienceRoute: typeof PrototypeBDashboardAudienceRoute
@@ -1283,16 +1008,11 @@ const PrototypeBDashboardRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
-  Dashboard_oldRouteRoute: Dashboard_oldRouteRouteWithChildren,
   PrototypeBDashboardRouteRoute: PrototypeBDashboardRouteRouteWithChildren,
   StoreCartRoute: StoreCartRoute,
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreConfirmationRoute: StoreConfirmationRoute,
-  Store_oldCheckoutRoute: Store_oldCheckoutRoute,
-  Store_oldConfirmationRoute: Store_oldConfirmationRoute,
-  Store_oldProductRoute: Store_oldProductRoute,
   StoreIndexRoute: StoreIndexRoute,
-  Store_oldIndexRoute: Store_oldIndexRoute,
   PrototypeBStoreCartRoute: PrototypeBStoreCartRoute,
   PrototypeBStoreCheckoutRoute: PrototypeBStoreCheckoutRoute,
   PrototypeBStoreConfirmationRoute: PrototypeBStoreConfirmationRoute,

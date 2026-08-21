@@ -1,5 +1,5 @@
-import { Order, FinancialSummary } from '../types';
-import { mockOrders } from '../data/mock';
+import { Order } from '@/types/hub-types';
+import { mockOrders } from '@/data/mock';
 
 export class OrderRepository {
   async getAll(): Promise<Order[]> {
@@ -7,11 +7,11 @@ export class OrderRepository {
   }
 
   async getByStore(storeId: string): Promise<Order[]> {
-    return mockOrders.filter(o => o.storeId === storeId);
+    return mockOrders.filter((o: Order) => o.storeId === storeId);
   }
 
   async getByInfluencer(influencerId: string): Promise<Order[]> {
-    return mockOrders.filter(o => o.influencerId === influencerId);
+    return mockOrders.filter((o: Order) => o.influencerId === influencerId);
   }
 }
 
