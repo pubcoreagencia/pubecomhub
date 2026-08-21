@@ -3,52 +3,58 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/")({
   component: () => (
     <div className="p-8 font-mono text-sm whitespace-pre-wrap bg-background text-foreground">
-      {`FASE 2F.3 — DEPLOY E PROVA REAL DO PUB ECOM CATALOG WORKER
+      {`FASE 2F.4 — AUTENTICAÇÃO CLOUDFLARE E DEPLOY REAL
 
 REPOSITÓRIO:
+
 https://github.com/pubcoreagencia/pub-ecom-catalog-worker
 
-NÃO alterar o pubecomhub nesta etapa.
+OBJETIVO
 
-NÃO criar novas funcionalidades.
-NÃO refatorar a arquitetura.
-NÃO implementar novos adapters.
+Desbloquear o deploy real do Catalog Worker na Cloudflare.
 
-OBJETIVO:
+NÃO alterar:
 
-Publicar o Catalog Worker na Cloudflare e provar que ele está operacional.
+* lógica de scraping;
+* endpoint \`/ingestion/shopee\`;
+* contratos;
+* Browser Run;
+* arquitetura;
+* \`pubecomhub\`.
 
-## 1. DEPLOY REAL (BLOQUEADO)
+Nesta etapa, apenas autenticar o Wrangler e realizar o deploy.
 
-Build e Bundle validados com sucesso!
-Erro no Deploy Real: Não autenticado no Wrangler (Requer wrangler login ou CLOUDFLARE_API_TOKEN).
+## 1. DETECTAR MÉTODO DE AUTENTICAÇÃO
 
-## 2. HEALTH CHECK (PENDENTE)
+Verificar primeiro se o ambiente possui autenticação Cloudflare disponível.
 
-Garantir que exista: GET /health (Implementado no código).
+Executar:
 
-## 3. AUTENTICAÇÃO (IMPLEMENTADO)
+\`\`\`bash
+npx wrangler whoami
+\`\`\`
 
-Implementado via Bearer Token.
+Status Atual: You are not authenticated.
 
-## 4. SEGURANÇA (IMPLEMENTADO)
+## 2. FALLBACK NÃO INTERATIVO
 
-Proteção SSRF e Hostname Shopee implementada.
+Se login interativo não funcionar, preparar o ambiente para autenticação por token.
 
-## 5. TESTE REAL DA SHOPEE (PENDENTE)
+BLOCKER:
+Cloudflare authentication credentials (CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID) are not configured in this environment.
 
-Aguardando deploy do worker.
+## 3. VALIDAR PROJETO (SUCESSO)
 
-## 6. PROVA OPERACIONAL (PENDENTE)
-
-Aguardando execução.
-
-## 8. BUILD E TYPECHECK (SUCESSO)
-
-npm run build: SUCESSO (esbuild + wrangler bundle)
+npm run build: SUCESSO (esbuild + custom bundle)
 npm run typecheck: SUCESSO
+npx wrangler deploy --dry-run: SUCESSO
 
-## 9. DOCUMENTAÇÃO (ATUALIZADO)
+## 4. DEPLOY REAL (BLOQUEADO)
+
+STATUS: BLOCKED
+Cloudflare authentication credentials are not configured in this environment.
+
+## 5. DOCUMENTAÇÃO
 
 README.md, PROJECT_CONTEXT.md e CHANGELOG.md atualizados.
 `}
