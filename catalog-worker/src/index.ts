@@ -1,4 +1,5 @@
-import { chromium } from '@cloudflare/playwright';
+// @ts-ignore
+import { chromium } from 'playwright-core';
 
 export interface Env {
   BROWSER: any;
