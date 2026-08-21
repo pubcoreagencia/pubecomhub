@@ -64,15 +64,15 @@ const navGroups = [
   }
 ];
 
-export function ShellB({ children }: { children: React.ReactNode }) {
+export function Shell({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   return (
-    <div className="prototype-b flex h-screen overflow-hidden selection:bg-[var(--hub-primary)] selection:text-[var(--hub-primary-foreground)]">
+    <div className="pub-ecom flex h-screen overflow-hidden selection:bg-[var(--hub-primary)] selection:text-[var(--hub-primary-foreground)]">
       {/* Official Hub Sidebar */}
       <aside className="hub-sidebar w-[var(--hub-sidebar-width)] flex flex-col z-50 shrink-0">
         <div className="p-8 border-b border-[var(--hub-border)]/50">
-          <Link to="/prototype-b/dashboard" className="flex items-center gap-4 group">
+          <Link to="/dashboard" className="flex items-center gap-4 group">
             <div className="h-10 w-10 hub-bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-[var(--hub-primary)]/20 transition-transform group-hover:scale-105">
               <CircleDollarSign className="h-6 w-6 text-black" />
             </div>
@@ -82,6 +82,7 @@ export function ShellB({ children }: { children: React.ReactNode }) {
             </div>
           </Link>
         </div>
+
 
         <ScrollArea className="flex-1 px-4 py-6">
           <nav className="space-y-8">
