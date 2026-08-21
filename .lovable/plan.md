@@ -1,31 +1,36 @@
-# Plano de Reconstrução do Prototype B — Base Real PUB Ops Hub
+# Plan: Prototype B Hub Design Sync
 
-Reconstrução total do **Prototype B** para ser uma aplicação independente do Prototype A, utilizando a arquitetura e estética do repositório **PUB Ops Hub** (dark theme, bento grids, layout premium).
+Align the Dashboard, Live Shop, Inventory, and Audience Engine with the Emerald Dark (OKLCH) design system from pub-ops-hub.
 
-## Etapa 1: Base de Design e Estrutura
-- [ ] Refinar `theme-b.css` com as cores exatas do Hub (OKLCH).
-- [ ] Atualizar `ShellB.tsx` para ser o layout principal de todas as rotas `/prototype-b/dashboard/*`.
-- [ ] Criar componentes de UI padronizados em `ui-b.tsx` baseados no Hub (Cards, Tabelas, Funis).
+## User Review Required
 
-## Etapa 2: Módulos Operacionais e Lógica de Negócio
-- [ ] **Dashboard Master**: Bento Grid com métricas reais do mock (Faturamento, Pedidos, Lucro).
-- [ ] **Live Shop**: Monitor de eventos em tempo real e funil visual (L1 -> L4).
-- [ ] **Financeiro**: Cálculos de margem, repasse de 50% para influencers e ranking de lojas.
-- [ ] **Audience Engine**: Gestão de públicos personalizados (Page View, Add to Cart, etc.).
-- [ ] **Logística**: Reconstruir Pedidos, Fornecedores e Estoque com o novo visual.
+> [!IMPORTANT]
+> This will update the "estoque" and "audience engine" modules which were still using the light theme layout, bringing them into the Dark Hub aesthetic.
 
-## Etapa 3: Storefront B
-- [ ] Criar uma Storefront completamente nova em `/prototype-b/store/`.
-- [ ] Estética dark premium (Apple/Shopify style).
-- [ ] Fluxo completo: Home -> Produto -> Carrinho -> Checkout -> Confirmação.
-- [ ] Persistência do carrinho em `localStorage` específica para o B.
+- Do you want any specific metrics for the "visitor by hour" or "orders by hour" charts?
 
-## Etapa 4: Integração e Validação
-- [ ] Garantir isolamento total das rotas do Prototype A.
-- [ ] Validar build, TypeScript e navegação responsiva.
-- [ ] Redirecionar preview para `/prototype-b/dashboard`.
+## Proposed Changes
 
-## Detalhes Técnicos
-- Utilizar `src/prototype-b/` para toda a lógica e componentes do B.
-- Manter `src/prototype-b/data/mock.ts` como fonte única de verdade para os dados simulados.
-- Arquitetura segregada: `UI -> Services -> Repositories -> Mock`.
+### UI & Aesthetics
+- Apply `hub-card`, `hub-glass`, and `ShellB` layout to all missing modules.
+- Convert all text labels to the high-fidelity `font-black uppercase tracking-widest` style.
+- Use Emerald Green `oklch(69.6% .17 162.5)` for primary highlights.
+
+### Dashboard Master
+- Add "Sales by Store" ranking (already partially present, will enhance).
+- Add "Sales by Channel" widget.
+- Implement "Real-time Events" stream (Sales, Cart, Checkout).
+- Add "Visitors by Hour" and "Orders by Hour" simulated charts.
+
+### Live Shop
+- Implement the "Real-time Event Feed" identical to the reference project.
+- Enhance the "Visual Funnel Monitor" with live-simulated counters.
+
+### Inventory (Estoque) & Audience Engine
+- Reconstruct from the ground up using the Dark Hub layout.
+- Replace light-theme cards with Dark Hub metrics and tables.
+
+## Technical Details
+- CSS: Reuse `src/prototype-b/styles/theme-b.css` and its sub-imports.
+- Components: Use `CardMetric` and `HubTable` from `ui-b.tsx`.
+- Data: All metrics will be simulated/mocked in `src/prototype-b/data/mock.ts` or directly in components for the prototype experience.
