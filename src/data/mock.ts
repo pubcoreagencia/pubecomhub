@@ -1,92 +1,54 @@
-import { Store, Product, Supplier, Order, FinancialMetric } from '../types';
+import { User, Store, Supplier, Product, Order } from '@/types';
 
-export const mockStores: Store[] = [
-  { id: 's1', name: 'Loja Tech', subdomain: 'tech', ownerId: 'u1', createdAt: '2026-01-01T12:00:00.000Z', status: 'active' },
-  { id: 's2', name: 'Moda Fashion', subdomain: 'moda', ownerId: 'u2', createdAt: '2026-01-02T12:00:00.000Z', status: 'active' },
+export const mockUsers: User[] = [
+  { id: 'u1', name: 'Admin Master', role: 'MASTER', email: 'master@pubecom.com' },
+  { id: 'u2', name: 'Lojista VIP', role: 'LOJISTA', email: 'lojista@loja.com' },
+  { id: 'u3', name: 'Influencer Prime', role: 'INFLUENCER', email: 'influencer@social.com' },
 ];
 
-export const mockProducts: Product[] = [
-  { id: 'p1', name: 'Smartphone Pro', price: 2999, cost: 1500, supplierId: 'sup1', image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400' },
-  { id: 'p2', name: 'Tênis Ultra', price: 499, cost: 200, supplierId: 'sup2', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400' },
+export const mockStores: Store[] = [
+  { id: 's1', name: 'Trend Store', ownerId: 'u2', subdomain: 'trend', status: 'active' },
+  { id: 's2', name: 'Electro Hub', ownerId: 'u2', subdomain: 'electro', status: 'active' },
 ];
 
 export const mockSuppliers: Supplier[] = [
-  { id: 'sup1', name: 'Global Tech Distribution' },
-  { id: 'sup2', name: 'Premium Footwear Inc' },
+  { id: 'sup1', name: 'FastShip Logistics', category: 'General' },
+  { id: 'sup2', name: 'Tech Source Pro', category: 'Electronics' },
+];
+
+export const mockProducts: Product[] = [
+  { id: 'p1', name: 'Premium Wireless Headphones', price: 899.90, cost: 450.00, supplierId: 'sup2', stock: 150, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800' },
+  { id: 'p2', name: 'Smart Fitness Watch', price: 459.00, cost: 210.00, supplierId: 'sup2', stock: 85, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800' },
 ];
 
 export const mockOrders: Order[] = [
   {
-    id: '1245',
+    id: 'B1001',
     storeId: 's1',
     productId: 'p1',
-    customerId: 'cust1',
-    amount: 2999,
-    cost: 1500,
-    shipping: 50,
-    tax: 150,
-    discount: 100,
-    status: 'delivered',
-    createdAt: '2026-08-20T14:30:00.000Z',
-    influencerId: 'inf1'
-  },
-  {
-    id: '1246',
-    storeId: 's2',
-    productId: 'p2',
-    customerId: 'cust2',
-    amount: 499,
-    cost: 200,
-    shipping: 20,
-    tax: 25,
+    supplierId: 'sup2',
+    customerId: 'c1',
+    influencerId: 'u3',
+    amount: 899.90,
+    cost: 450.00,
+    shipping: 25.00,
+    tax: 45.00,
     discount: 0,
-    status: 'shipped',
-    createdAt: '2026-08-20T16:45:00.000Z',
+    status: 'delivered',
+    createdAt: '2026-08-20T10:00:00Z'
   },
   {
-    id: '1247',
+    id: 'B1002',
     storeId: 's1',
-    productId: 'p1',
-    customerId: 'cust3',
-    amount: 2999,
-    cost: 1500,
-    shipping: 50,
-    tax: 150,
-    discount: 300,
+    productId: 'p2',
+    supplierId: 'sup2',
+    customerId: 'c2',
+    amount: 459.00,
+    cost: 210.00,
+    shipping: 15.00,
+    tax: 22.95,
+    discount: 10.00,
     status: 'paid',
-    createdAt: '2026-08-21T09:15:00.000Z',
-    influencerId: 'inf2'
-  },
+    createdAt: '2026-08-21T09:30:00Z'
+  }
 ];
-
-export const calculateFinance = (orders: Order[]): FinancialMetric => {
-  const gross = orders.reduce((sum, o) => sum + o.amount, 0);
-  const costs = orders.reduce((sum, o) => sum + o.cost, 0);
-  const ship = orders.reduce((sum, o) => sum + o.shipping, 0);
-  const fees = orders.reduce((sum, o) => sum + (o.amount * 0.05), 0); // 5% flat fee
-  const discounts = orders.reduce((sum, o) => sum + o.discount, 0);
-  
-  const netProfit = gross - costs - ship - fees - discounts;
-  
-  const infPayout = orders.filter(o => o.influencerId).reduce((sum, o) => {
-    const saleNet = o.amount - o.cost - o.shipping - (o.amount * 0.05) - o.discount;
-    return sum + (saleNet * 0.5);
-  }, 0);
-  
-  const affComm = orders.filter(o => o.affiliateId).reduce((sum, o) => sum + (o.amount * 0.1), 0); // 10%
-  
-  const pubEcomNet = netProfit - infPayout - affComm;
-
-  return {
-    grossRevenue: gross,
-    productCost: costs,
-    shipping: ship,
-    paymentFees: fees,
-    discounts: discounts,
-    netProfit: netProfit,
-    margin: gross > 0 ? (netProfit / gross) * 100 : 0,
-    affiliateCommission: affComm,
-    influencerPayout: infPayout,
-    pubEcomNetResult: pubEcomNet
-  };
-};

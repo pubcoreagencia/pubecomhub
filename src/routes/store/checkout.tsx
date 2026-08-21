@@ -1,177 +1,182 @@
+import * as React from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { 
+  ShoppingBag, 
+  ShieldCheck, 
+  CreditCard, 
+  Truck, 
+  Lock,
+  ArrowLeft,
+  Zap,
+  CheckCircle2
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ShoppingBag, CreditCard, Lock, Zap, ChevronLeft, ShieldCheck, ArrowRight } from 'lucide-react';
-import { useCart } from '@/hooks/useCart';
+import { Card, CardContent } from '@/components/ui/card';
+import { mockProducts } from '@/data/mock';
 
 export const Route = createFileRoute('/store/checkout')({
-  component: CheckoutPage,
+  component: StorefrontCheckoutB
 });
 
-function CheckoutPage() {
-  const { items, totalPrice, isHydrated, clearCart } = useCart();
+function StorefrontCheckoutB() {
+  const cartItems = [
+    { ...mockProducts[0], quantity: 1 },
+    { ...mockProducts[1], quantity: 2 }
+  ];
+
+  const subtotal = cartItems.reduce((acc, item) => acc + ((item.price ?? 0) * item.quantity), 0);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-primary selection:text-white">
-      {/* Mini Header */}
-      <header className="bg-white border-b sticky top-0 z-50">
-         <div className="container px-6 mx-auto h-20 flex items-center justify-between max-w-[1200px]">
-            <Link to="/store" className="flex items-center gap-2">
-               <div className="h-8 w-8 rounded-lg bg-slate-900 flex items-center justify-center text-white">
-                  <Zap className="h-5 w-5 fill-primary text-primary" />
-               </div>
-               <span className="text-xl font-black tracking-tighter text-slate-900 uppercase">Tech Store</span>
-            </Link>
-            <div className="flex items-center gap-2 text-slate-400">
-               <ShieldCheck className="h-4 w-4 text-emerald-500" />
-               <span className="text-[10px] font-bold uppercase tracking-widest">Pagamento 100% Seguro</span>
-            </div>
-         </div>
-      </header>
-
-      <div className="container px-6 mx-auto max-w-[1200px] py-12 lg:py-20">
-        <Link to="/store" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-colors mb-12">
-           <ChevronLeft className="h-4 w-4" />
-           Voltar para a Loja
+    <div className="min-h-screen bg-slate-50 font-sans selection:bg-primary/10 selection:text-primary">
+      {/* Checkout Header */}
+      <nav className="h-20 border-b border-slate-100 flex items-center justify-between px-8 lg:px-16 bg-white sticky top-0 z-50">
+        <Link to="/pub-ecom/store" className="flex items-center gap-2 group">
+          <div className="h-8 w-8 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+            <ShoppingBag className="h-5 w-5 text-white" />
+          </div>
+          <span className="text-xl font-black tracking-tighter text-slate-900 uppercase">PUB ECOM</span>
         </Link>
+        <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <Lock className="h-3 w-3" /> Conexão Segura
+        </div>
+      </nav>
 
-        <div className="flex flex-col lg:flex-row gap-16 lg:items-start">
-          {/* Checkout Steps */}
-          <div className="flex-[1.5] space-y-8">
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                 <div className="h-8 w-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black">1</div>
-                 <h2 className="text-2xl font-black tracking-tight text-slate-900">IDENTIFICAÇÃO & ENTREGA</h2>
+      <main className="container px-8 mx-auto max-w-[1200px] py-16">
+        <div className="flex flex-col lg:flex-row gap-16">
+          {/* Checkout Form */}
+          <div className="flex-1 space-y-12">
+            <section className="space-y-6">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-10 w-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black italic">01</div>
+                <h2 className="text-3xl font-black tracking-tighter text-slate-900 uppercase">Informações Pessoais</h2>
               </div>
-              <div className="bg-white p-10 lg:p-12 rounded-[3rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-100 space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">E-mail para Contato</Label>
-                    <Input placeholder="seu@email.com" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
-                  </div>
-                  <div className="space-y-3">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Celular (WhatsApp)</Label>
-                    <Input placeholder="(00) 00000-0000" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
-                  </div>
-                  <div className="md:col-span-2 space-y-3">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Nome Completo</Label>
-                    <Input placeholder="Como no documento" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
-                  </div>
-                  <div className="md:col-span-2 space-y-3">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Endereço de Entrega</Label>
-                    <Input placeholder="Rua, Número, Bairro e Cidade" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">E-mail</label>
+                  <Input placeholder="seu@email.com" className="h-14 rounded-2xl border-slate-200 font-bold focus:ring-primary" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">CPF / CNPJ</label>
+                  <Input placeholder="000.000.000-00" className="h-14 rounded-2xl border-slate-200 font-bold focus:ring-primary" />
                 </div>
               </div>
+            </section>
 
-            </div>
-
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                 <div className="h-8 w-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black">2</div>
-                 <h2 className="text-2xl font-black tracking-tight text-slate-900">FORMA DE PAGAMENTO</h2>
+            <section className="space-y-6">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-10 w-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black italic">02</div>
+                <h2 className="text-3xl font-black tracking-tighter text-slate-900 uppercase">Entrega</h2>
               </div>
-              <div className="bg-white p-10 lg:p-12 rounded-[3rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-100 space-y-10">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                   <div className="p-6 border-4 border-primary bg-primary/5 rounded-[2rem] cursor-pointer flex flex-col items-center gap-3 group transition-all shadow-lg shadow-primary/5">
-                      <CreditCard className="h-8 w-8 text-primary" />
-                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">Cartão</span>
-                   </div>
-                   <div className="p-6 border-4 border-slate-50 bg-slate-50/50 rounded-[2rem] cursor-pointer flex flex-col items-center gap-3 group transition-all hover:border-primary/20">
-                      <Zap className="h-8 w-8 text-slate-300 group-hover:text-primary transition-colors" />
-                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-slate-600 transition-colors">Pix</span>
-                   </div>
-                   <div className="p-6 border-4 border-slate-50 bg-slate-50/50 rounded-[2rem] cursor-pointer flex flex-col items-center gap-3 group transition-all hover:border-primary/20">
-                      <ShoppingBag className="h-8 w-8 text-slate-300 group-hover:text-primary transition-colors" />
-                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-slate-600 transition-colors">Boleto</span>
-                   </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Endereço Completo</label>
+                  <Input placeholder="Rua, número, complemento..." className="h-14 rounded-2xl border-slate-200 font-bold focus:ring-primary" />
                 </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cidade</label>
+                  <Input placeholder="São Paulo" className="h-14 rounded-2xl border-slate-200 font-bold focus:ring-primary" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">CEP</label>
+                  <Input placeholder="00000-000" className="h-14 rounded-2xl border-slate-200 font-bold focus:ring-primary" />
+                </div>
+              </div>
+            </section>
 
-                <div className="space-y-8 pt-4">
-                  <div className="space-y-3">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Número do Cartão</Label>
-                    <Input placeholder="0000 0000 0000 0000" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-8">
-                    <div className="space-y-3">
-                      <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Validade</Label>
-                      <Input placeholder="MM/AA" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
+            <section className="space-y-6">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-10 w-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black italic">03</div>
+                <h2 className="text-3xl font-black tracking-tighter text-slate-900 uppercase">Pagamento</h2>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <button className="flex items-center justify-between p-6 rounded-3xl bg-white border-2 border-primary shadow-xl shadow-primary/5 transition-all group">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                      <CreditCard className="h-6 w-6 text-primary" />
                     </div>
-                    <div className="space-y-3">
-                      <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">CVV</Label>
-                      <Input placeholder="123" className="h-14 rounded-2xl bg-slate-50 border-none focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all font-bold" />
+                    <div className="text-left">
+                      <p className="text-sm font-black text-slate-900 uppercase tracking-tighter">Cartão de Crédito</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Em até 12x sem juros</p>
                     </div>
                   </div>
-                </div>
+                  <CheckCircle2 className="h-6 w-6 text-primary" />
+                </button>
+                <button className="flex items-center justify-between p-6 rounded-3xl bg-white border-2 border-slate-100 hover:border-slate-200 transition-all group">
+                  <div className="flex items-center gap-4 text-slate-400">
+                    <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center">
+                      <Zap className="h-6 w-6" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-black uppercase tracking-tighter">Pix Inteligente</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest">Aprovação instantânea</p>
+                    </div>
+                  </div>
+                </button>
               </div>
-
-            </div>
-            
-            <div className="pt-4">
-              <Link to="/store/confirmation" onClick={() => clearCart()}>
-                <Button className="w-full h-24 text-xl font-black uppercase tracking-[0.3em] rounded-full shadow-[0_20px_50px_rgba(var(--primary),0.2)] hover:scale-[1.01] hover:shadow-[0_25px_60px_rgba(var(--primary),0.3)] transition-all gap-4 group">
-                  Finalizar Pagamento <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-2" />
-                </Button>
-              </Link>
-
-              <div className="mt-8 flex items-center justify-center gap-6">
-                 <div className="h-10 w-16 bg-white border border-slate-100 rounded-lg flex items-center justify-center text-[8px] font-black grayscale opacity-50 uppercase tracking-tighter">Visa</div>
-                 <div className="h-10 w-16 bg-white border border-slate-100 rounded-lg flex items-center justify-center text-[8px] font-black grayscale opacity-50 uppercase tracking-tighter">Master</div>
-                 <div className="h-10 w-16 bg-white border border-slate-100 rounded-lg flex items-center justify-center text-[8px] font-black grayscale opacity-50 uppercase tracking-tighter">Pix</div>
-              </div>
-            </div>
+            </section>
           </div>
 
-          {/* Sidebar Summary */}
-          <div className="flex-1 lg:sticky lg:top-32">
-            <div className="bg-white p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 space-y-10">
-              <h2 className="text-xl font-black uppercase tracking-[0.2em] flex items-center gap-4 text-slate-900">
-                <div className="p-2 bg-primary/10 rounded-xl">
-                  <ShoppingBag className="h-6 w-6 text-primary" />
-                </div>
-                Resumo
-              </h2>
-              <div className="space-y-6 max-h-[450px] overflow-y-auto pr-2 scrollbar-hide">
-                {isHydrated && items.length > 0 ? (
-                  items.map((item) => (
-                    <div key={item.id} className="flex gap-5 group">
-                      <div className="h-24 w-24 rounded-[2rem] bg-slate-50 border border-slate-100 overflow-hidden shrink-0 shadow-sm">
-                        <img src={item.image} className="object-cover h-full w-full group-hover:scale-110 transition-transform duration-500" alt={item.name} />
-                      </div>
-                      <div className="flex-1 space-y-1 py-1">
-                        <p className="text-base font-black text-slate-900 line-clamp-1 leading-tight tracking-tight">{item.name}</p>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Qtd: {item.quantity}</p>
-                        <p className="text-lg font-black text-slate-900 mt-2 tracking-tighter">R$ {item.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm font-bold text-slate-400 text-center py-10 uppercase tracking-widest">Seu carrinho está vazio.</p>
-                )}
+          {/* Order Summary Checkout */}
+          <div className="w-full lg:w-[400px] shrink-0">
+            <Card className="rounded-[40px] border-none ring-1 ring-slate-200/50 shadow-2xl bg-white overflow-hidden sticky top-32">
+              <div className="p-8 border-b border-slate-50 bg-slate-50/50">
+                <h3 className="text-lg font-black tracking-tighter text-slate-900 uppercase italic">Resumo do Pedido</h3>
               </div>
-              <div className="border-t border-slate-100 pt-10 space-y-5">
-                <div className="flex justify-between text-[11px] font-black uppercase tracking-[0.2em]">
-                  <span className="text-slate-400">Subtotal</span>
-                  <span className="text-slate-900">R$ {isHydrated ? totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}</span>
+              <div className="p-8 space-y-6">
+                <div className="space-y-4">
+                  {cartItems.map((item) => (
+                    <div key={item.id} className="flex justify-between items-start gap-4">
+                      <div className="flex gap-3">
+                        <div className="h-12 w-12 rounded-lg overflow-hidden shrink-0 border border-slate-100">
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-900 uppercase tracking-tighter leading-tight line-clamp-1">{item.name}</p>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{item.quantity}x Unidade</p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-black text-slate-900 italic">R$ {((item.price ?? 0) * item.quantity).toLocaleString('pt-BR')}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex justify-between text-[11px] font-black uppercase tracking-[0.2em]">
-                  <span className="text-slate-400">Frete</span>
-                  <span className="text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full">Grátis</span>
+
+                <div className="space-y-3 pt-6 border-t border-slate-100">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-bold text-slate-400 uppercase tracking-widest">Subtotal</span>
+                    <span className="font-black text-slate-900">R$ {subtotal.toLocaleString('pt-BR')}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-bold text-slate-400 uppercase tracking-widest">Frete</span>
+                    <span className="font-black text-emerald-500 uppercase">Grátis</span>
+                  </div>
+                  <div className="flex justify-between items-end pt-4 border-t border-slate-100">
+                    <span className="text-sm font-black text-slate-900 uppercase tracking-widest">Total</span>
+                    <p className="text-3xl font-black text-slate-900 tracking-tighter italic leading-none">R$ {subtotal.toLocaleString('pt-BR')}</p>
+                  </div>
                 </div>
-                <div className="flex justify-between items-end pt-6 border-t border-slate-100">
-                  <div className="flex flex-col">
-                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Total Final</span>
-                     <span className="text-4xl font-black text-slate-900 tracking-tighter leading-none">R$ {isHydrated ? totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}</span>
+
+                <Link to="/pub-ecom/store/confirmation">
+                  <Button className="w-full rounded-[20px] font-black text-sm uppercase tracking-widest h-14 shadow-xl shadow-primary/20 mt-4 group">
+                    Pagar Agora <CheckCircle2 className="ml-2 h-4 w-4 fill-current group-hover:scale-110 transition-transform" />
+                  </Button>
+                </Link>
+
+                <div className="flex flex-col items-center gap-4 pt-6">
+                  <div className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                    <ShieldCheck className="h-3 w-3 text-emerald-500" /> Site Seguro & Criptografado
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-6 w-10 bg-slate-50 rounded border border-slate-100" />
+                    <div className="h-6 w-10 bg-slate-50 rounded border border-slate-100" />
+                    <div className="h-6 w-10 bg-slate-50 rounded border border-slate-100" />
                   </div>
                 </div>
               </div>
-            </div>
-
+            </Card>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

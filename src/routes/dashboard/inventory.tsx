@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { ShellB } from '@/prototype-b/components/ShellB';
-import { CardMetric, HubTable } from '@/prototype-b/components/ui-b';
+import { Shell } from '@/components/layout/Shell';
+import { CardMetric, HubTable } from '@/components/ui-b';
 import { Box, Layers, RefreshCcw, Plus, Search, AlertCircle, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/prototype-b/dashboard/inventory')({
+export const Route = createFileRoute('/dashboard/inventory')({
   component: InventoryDashboardB
 });
 
@@ -17,7 +17,7 @@ function InventoryDashboardB() {
   ];
 
   return (
-    <ShellB>
+    <Shell>
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex flex-col gap-2">
@@ -66,6 +66,6 @@ function InventoryDashboardB() {
           </HubTable>
         </div>
       </div>
-    </ShellB>
+    </Shell>
   );
 }

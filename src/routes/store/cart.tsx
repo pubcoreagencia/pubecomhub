@@ -13,9 +13,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { mockProducts } from '../../../prototype-b/data/mock';
+import { mockProducts } from '@/data/mock';
 
-export const Route = createFileRoute('/prototype-b/store/cart')({
+export const Route = createFileRoute('/store/cart')({
   component: StorefrontCartB
 });
 
@@ -31,7 +31,7 @@ function StorefrontCartB() {
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-primary/10 selection:text-primary">
       {/* Premium Navbar */}
       <nav className="h-24 border-b border-slate-100 flex items-center justify-between px-8 lg:px-16 sticky top-0 bg-white/80 backdrop-blur-xl z-50">
-        <Link to="/prototype-b/store" className="flex items-center gap-3 group">
+        <Link to="/pub-ecom/store" className="flex items-center gap-3 group">
           <div className="h-10 w-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform duration-300">
             <ShoppingBag className="h-6 w-6 text-white" />
           </div>
@@ -115,7 +115,7 @@ function StorefrontCartB() {
                   </div>
                 </div>
 
-                <Link to="/prototype-b/store/checkout">
+                <Link to="/pub-ecom/store/checkout">
                   <Button className="w-full rounded-[24px] font-black text-sm uppercase tracking-widest h-16 shadow-2xl shadow-primary/30 group">
                     Finalizar Compra <Zap className="ml-3 h-5 w-5 fill-current group-hover:scale-125 transition-transform" />
                   </Button>
@@ -133,7 +133,7 @@ function StorefrontCartB() {
                 </div>
               </Card>
 
-              <Link to="/prototype-b/store" className="flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-colors">
+              <Link to="/pub-ecom/store" className="flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-colors">
                 <ArrowLeft className="h-3 w-3" /> Continuar Escolhendo
               </Link>
             </div>

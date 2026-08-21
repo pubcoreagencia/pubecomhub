@@ -16,12 +16,12 @@ const products = [
   { id: 4, name: "Minimalist Leather Backpack", price: "R$ 320,00", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&auto=format&fit=crop&q=60", category: "Acessórios", rating: 4.6 },
 ];
 
-export default function StorePageB() {
+export default function StorePage() {
   return (
-    <div className="prototype-b min-h-screen flex flex-col selection:bg-[var(--hub-primary)] selection:text-black">
+    <div className="pub-ecom min-h-screen flex flex-col selection:bg-[var(--hub-primary)] selection:text-black">
       {/* Premium Hub Store Header */}
       <header className="h-20 hub-glass border-b border-[var(--hub-border)] sticky top-0 z-50 px-6 lg:px-20 flex items-center justify-between">
-        <Link to="/prototype-b/store" className="flex items-center gap-3">
+        <Link to="/store" className="flex items-center gap-3">
            <div className="h-10 w-10 hub-bg-primary rounded-xl flex items-center justify-center rotate-3 shadow-lg shadow-[var(--hub-primary)]/20">
               <ShoppingBag className="h-6 w-6 text-black" />
            </div>
@@ -138,7 +138,7 @@ export default function StorePageB() {
       <footer className="bg-black/40 border-t border-[var(--hub-border)] py-20 px-6 lg:px-20 mt-20">
          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             <div className="space-y-6 col-span-1 md:col-span-2">
-               <Link to="/prototype-b/store" className="flex items-center gap-3">
+               <Link to="/store" className="flex items-center gap-3">
                   <div className="h-8 w-8 hub-bg-primary rounded-lg flex items-center justify-center rotate-3">
                      <ShoppingBag className="h-4 w-4 text-black" />
                   </div>

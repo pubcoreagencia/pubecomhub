@@ -1,128 +1,138 @@
 import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { mockOrders } from '@/data/mock';
+import { Shell } from '@/components/layout/Shell';
+import { HubTable, CardMetric } from '@/components/ui-b';
+import { 
+  Package, 
+  Search, 
+  Filter, 
+  Download, 
+  Eye, 
+  Clock, 
+  Truck,
+  CheckCircle2,
+  AlertCircle,
+  TrendingUp,
+  CircleDollarSign
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, Truck, CheckCircle2, Package, Activity as ActivityIcon, Search, Filter, Eye, Clock } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
+import { mockOrders } from '@/data/mock';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/dashboard/orders')({
-  component: OrdersPage,
+  component: () => <OrdersDashboardB />
 });
 
-function OrdersPage() {
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
-  }, []);
-
+function OrdersDashboardB() {
   const getStatusBadge = (status: string) => {
-    switch(status) {
-      case 'delivered': return <Badge variant="secondary" className="bg-emerald-50 text-emerald-600 border-none text-[10px] font-bold uppercase">Entregue</Badge>;
-      case 'shipped': return <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-none text-[10px] font-bold uppercase">Enviado</Badge>;
-      case 'purchased_from_supplier': return <Badge variant="secondary" className="bg-purple-50 text-purple-600 border-none text-[10px] font-bold uppercase">Comprado</Badge>;
-      case 'paid': return <Badge variant="secondary" className="bg-amber-50 text-amber-600 border-none text-[10px] font-bold uppercase">Pago</Badge>;
-      default: return <Badge variant="outline" className="text-[10px] font-bold uppercase border-slate-200 text-slate-400">Pendente</Badge>;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-     switch(status) {
-      case 'delivered': return React.createElement(CheckCircle2, { className: "h-3.5 w-3.5 text-emerald-500" });
-      case 'shipped': return React.createElement(Truck, { className: "h-3.5 w-3.5 text-blue-500" });
-      case 'purchased_from_supplier': return React.createElement(Package, { className: "h-3.5 w-3.5 text-purple-500" });
-      case 'paid': return React.createElement(ShoppingBag, { className: "h-3.5 w-3.5 text-amber-500" });
-      default: return React.createElement(Clock, { className: "h-3.5 w-3.5 text-slate-300" });
+    switch (status) {
+      case 'paid':
+        return (
+          <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+            Pago
+          </span>
+        );
+      case 'shipped':
+        return (
+          <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-500 border border-blue-500/20">
+            Enviado
+          </span>
+        );
+      case 'pending':
+        return (
+          <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-500 border border-orange-500/20">
+            Pendente
+          </span>
+        );
+      default:
+        return (
+          <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-white/5 text-white border border-white/10">
+            {status}
+          </span>
+        );
     }
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Rastreio de Pedidos</h2>
-          <p className="text-slate-500 text-sm">Acompanhe o fluxo completo da operação centralizada.</p>
+    <Shell>
+      <div className="space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+           <div className="space-y-1">
+              <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Gestão de Pedidos</h2>
+              <p className="text-[var(--hub-muted)] text-[9px] font-bold uppercase tracking-[0.3em]">Monitoramento de Vendas & Fulfillment em Tempo Real</p>
+           </div>
+           <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-black/40 px-4 py-2.5 rounded-xl border border-[var(--hub-border)] group focus-within:border-[var(--hub-primary)] transition-all w-64">
+                <Search className="h-4 w-4 text-[var(--hub-muted)] group-focus-within:text-[var(--hub-primary)]" />
+                <input 
+                  type="text" 
+                  placeholder="Buscar Pedido, Cliente ou Rastreio..." 
+                  className="bg-transparent border-none text-[11px] font-bold text-white focus:outline-none w-full placeholder:text-[var(--hub-muted)] uppercase tracking-wider"
+                />
+              </div>
+              <Button variant="outline" className="h-10 border-[var(--hub-border)] text-white text-[10px] font-black uppercase tracking-[0.2em] px-6 rounded-xl hover:bg-white/5">
+                 <Download className="h-4 w-4 mr-2" />
+                 Exportar
+              </Button>
+           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+           <CardMetric label="Pedidos Hoje" value="842" trend="+12.4%" trendType="up" icon={Package} />
+           <CardMetric label="Aguardando Envio" value="124" subtext="Fulfillment pendente" icon={Clock} />
+           <CardMetric label="Em Trânsito" value="452" icon={Truck} />
+           <CardMetric label="Ticket Médio" value="R$ 184,20" trend="+R$ 12,00" trendType="up" icon={CircleDollarSign} />
+        </div>
+
+        <div className="space-y-4">
+           <div className="flex items-center justify-between px-2">
+              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-white">Log de Operações</h3>
+              <div className="flex gap-2">
+                 <button className="px-4 py-2 text-[9px] font-black text-white bg-white/5 border border-[var(--hub-border)] rounded-lg uppercase tracking-widest hover:bg-white/10 transition-all">
+                    <Filter className="h-3 w-3 inline-block mr-2" />
+                    Filtros
+                 </button>
+              </div>
+           </div>
+           
+           <HubTable headers={['ID Pedido', 'Data', 'Cliente', 'Loja Origem', 'Total', 'Status', 'Ação']}>
+             {mockOrders.map((order) => (
+               <tr key={order.id} className="hover:bg-white/[0.02] transition-colors group">
+                 <td className="px-6 py-5 font-black text-[var(--hub-muted)] group-hover:text-white italic">#{order.id}</td>
+                 <td className="px-6 py-5">
+                    <span className="text-[var(--hub-muted)] font-bold text-[10px] uppercase tracking-wider">
+                      {new Date(order.createdAt).toLocaleDateString('pt-BR')}
+                    </span>
+                 </td>
+                 <td className="px-6 py-5">
+                    <div className="space-y-0.5">
+                       <span className="font-black text-white italic block leading-none">João Silva</span>
+                       <span className="text-[9px] text-[var(--hub-muted)] uppercase tracking-widest font-bold">joao@email.com</span>
+                    </div>
+                 </td>
+                 <td className="px-6 py-5">
+                    <span className="text-[9px] text-[var(--hub-muted)] font-black uppercase tracking-widest bg-black/40 px-2 py-1 rounded border border-[var(--hub-border)]">
+                      Titanium Hub
+                    </span>
+                 </td>
+                 <td className="px-6 py-5 text-white font-black italic">
+                    R$ {order.amount.toLocaleString('pt-BR')}
+                 </td>
+                 <td className="px-6 py-5">
+                    {getStatusBadge(order.status)}
+                 </td>
+                 <td className="px-6 py-5 text-right">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-[var(--hub-primary)]/10 text-[var(--hub-muted)] hover:text-[var(--hub-primary)] transition-all">
+                       <Eye className="h-4 w-4" />
+                    </Button>
+                 </td>
+               </tr>
+             ))}
+           </HubTable>
         </div>
       </div>
-
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-         <div className="relative max-w-sm w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input placeholder="Buscar pedido por ID ou produto..." className="pl-9 bg-white border-slate-200 rounded-full h-10 shadow-sm" />
-         </div>
-         <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="gap-2 rounded-full border-slate-200 text-slate-600">
-               <Filter className="h-3.5 w-3.5 text-slate-400" />
-               <span>Filtrar Status</span>
-            </Button>
-         </div>
-      </div>
-
-      <Card className="shadow-sm border-slate-100 overflow-hidden">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-slate-50/50">
-              <TableRow className="hover:bg-transparent border-b-slate-100">
-                <TableHead className="pl-6 text-[10px] font-bold uppercase tracking-wider text-slate-500">ID Pedido</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Loja & Origem</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Produto</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Valor Total</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Status Atual</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Data Compra</TableHead>
-                <TableHead className="text-right pr-6 text-[10px] font-bold uppercase tracking-wider text-slate-500">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                [...Array(3)].map((_, i) => (
-                  <TableRow key={i} className="border-b-slate-50">
-                    <TableCell className="font-bold pl-6"><Skeleton className="h-4 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-28 rounded-full" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell className="text-right pr-6"><Skeleton className="h-8 w-8 rounded-full ml-auto" /></TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                mockOrders.map((order) => (
-                  <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors border-b-slate-50 last:border-0">
-                    <TableCell className="font-bold pl-6 text-slate-900 py-4">#{order.id}</TableCell>
-                    <TableCell>
-                       <div className="flex flex-col">
-                          <span className="text-sm font-bold text-slate-900">Loja Tech</span>
-                          <span className="text-[10px] font-bold text-primary uppercase">Orgânico</span>
-                       </div>
-                    </TableCell>
-                    <TableCell className="text-slate-500 font-medium">Smartphone Pro</TableCell>
-                    <TableCell className="font-bold text-slate-900">R$ {order.amount.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(order.status)}
-                        {getStatusBadge(order.status)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-slate-500 text-xs font-medium">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</TableCell>
-                    <TableCell className="text-right pr-6">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary transition-colors">
-                         <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+    </Shell>
   );
 }
+

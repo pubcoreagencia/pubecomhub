@@ -1,17 +1,17 @@
 import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { ShellB } from '@/prototype-b/components/ShellB';
-import { HubTable, CardMetric } from '@/prototype-b/components/ui-b';
+import { Shell } from '@/components/layout/Shell';
+import { HubTable, CardMetric } from '@/components/ui-b';
 import { Users, TrendingUp, Award, CircleDollarSign, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const Route = createFileRoute('/prototype-b/dashboard/influencers')({
+export const Route = createFileRoute('/dashboard/influencers')({
   component: () => <InfluencersB />,
 });
 
 function InfluencersB() {
   return (
-    <ShellB>
+    <Shell>
       <div className="space-y-8">
         <div className="hub-card hub-gradient-border p-10 bg-gradient-to-br from-[var(--hub-primary)]/10 via-transparent to-transparent">
            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -94,7 +94,7 @@ function InfluencersB() {
            </HubTable>
         </div>
       </div>
-    </ShellB>
+    </Shell>
   );
 }
 

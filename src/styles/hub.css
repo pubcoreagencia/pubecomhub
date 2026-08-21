@@ -1,8 +1,9 @@
-/* PUB ECOM — PROTOTYPE B (Official Base Visual PUB Ops Hub) */
+/* PUB ECOM — Unified Premium Theme (Official Base Visual PUB Ops Hub) */
 
 @import "hub/layout.css";
 @import "hub/components.css";
 @import "hub/animations.css";
+
 
 :root {
   /* Official PUB Ops Hub OKLCH Palette */
@@ -24,7 +25,7 @@
   --hub-header-height: 64px;
 }
 
-.prototype-b {
+.pub-ecom {
   background-color: var(--hub-bg);
   color: var(--hub-foreground);
   min-height: 100vh;

@@ -12,39 +12,26 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as DashboardAffiliatesRouteImport } from './routes/dashboard/affiliates'
 import { Route as DashboardAudienceRouteImport } from './routes/dashboard/audience'
+import { Route as DashboardBonificationsRouteImport } from './routes/dashboard/bonifications'
 import { Route as DashboardFinanceRouteImport } from './routes/dashboard/finance'
+import { Route as DashboardInfluencersRouteImport } from './routes/dashboard/influencers'
+import { Route as DashboardInventoryRouteImport } from './routes/dashboard/inventory'
 import { Route as DashboardLiveRouteImport } from './routes/dashboard/live'
 import { Route as DashboardMarketingRouteImport } from './routes/dashboard/marketing'
 import { Route as DashboardOrdersRouteImport } from './routes/dashboard/orders'
+import { Route as DashboardProductsRouteImport } from './routes/dashboard/products'
+import { Route as DashboardRankingRouteImport } from './routes/dashboard/ranking'
+import { Route as DashboardSeoRouteImport } from './routes/dashboard/seo'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
 import { Route as DashboardStoresRouteImport } from './routes/dashboard/stores'
-import { Route as PrototypeBDashboardRouteRouteImport } from './routes/prototype-b/dashboard/route'
+import { Route as DashboardSuppliersRouteImport } from './routes/dashboard/suppliers'
+import { Route as DashboardTrackingRouteImport } from './routes/dashboard/tracking'
 import { Route as StoreIndexRouteImport } from './routes/store/index'
+import { Route as StoreCartRouteImport } from './routes/store/cart'
 import { Route as StoreCheckoutRouteImport } from './routes/store/checkout'
 import { Route as StoreConfirmationRouteImport } from './routes/store/confirmation'
-import { Route as StoreProductRouteImport } from './routes/store/product'
-import { Route as PrototypeBDashboardIndexRouteImport } from './routes/prototype-b/dashboard/index'
-import { Route as PrototypeBDashboardAffiliatesRouteImport } from './routes/prototype-b/dashboard/affiliates'
-import { Route as PrototypeBDashboardAudienceRouteImport } from './routes/prototype-b/dashboard/audience'
-import { Route as PrototypeBDashboardBonificationsRouteImport } from './routes/prototype-b/dashboard/bonifications'
-import { Route as PrototypeBDashboardFinanceRouteImport } from './routes/prototype-b/dashboard/finance'
-import { Route as PrototypeBDashboardInfluencersRouteImport } from './routes/prototype-b/dashboard/influencers'
-import { Route as PrototypeBDashboardInventoryRouteImport } from './routes/prototype-b/dashboard/inventory'
-import { Route as PrototypeBDashboardLiveRouteImport } from './routes/prototype-b/dashboard/live'
-import { Route as PrototypeBDashboardMarketingRouteImport } from './routes/prototype-b/dashboard/marketing'
-import { Route as PrototypeBDashboardOrdersRouteImport } from './routes/prototype-b/dashboard/orders'
-import { Route as PrototypeBDashboardProductsRouteImport } from './routes/prototype-b/dashboard/products'
-import { Route as PrototypeBDashboardRankingRouteImport } from './routes/prototype-b/dashboard/ranking'
-import { Route as PrototypeBDashboardSeoRouteImport } from './routes/prototype-b/dashboard/seo'
-import { Route as PrototypeBDashboardSettingsRouteImport } from './routes/prototype-b/dashboard/settings'
-import { Route as PrototypeBDashboardStoresRouteImport } from './routes/prototype-b/dashboard/stores'
-import { Route as PrototypeBDashboardSuppliersRouteImport } from './routes/prototype-b/dashboard/suppliers'
-import { Route as PrototypeBDashboardTrackingRouteImport } from './routes/prototype-b/dashboard/tracking'
-import { Route as PrototypeBStoreIndexRouteImport } from './routes/prototype-b/store/index'
-import { Route as PrototypeBStoreCartRouteImport } from './routes/prototype-b/store/cart'
-import { Route as PrototypeBStoreCheckoutRouteImport } from './routes/prototype-b/store/checkout'
-import { Route as PrototypeBStoreConfirmationRouteImport } from './routes/prototype-b/store/confirmation'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -61,14 +48,34 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardAffiliatesRoute = DashboardAffiliatesRouteImport.update({
+  id: '/affiliates',
+  path: '/affiliates',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardAudienceRoute = DashboardAudienceRouteImport.update({
   id: '/audience',
   path: '/audience',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardBonificationsRoute = DashboardBonificationsRouteImport.update({
+  id: '/bonifications',
+  path: '/bonifications',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardFinanceRoute = DashboardFinanceRouteImport.update({
   id: '/finance',
   path: '/finance',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardInfluencersRoute = DashboardInfluencersRouteImport.update({
+  id: '/influencers',
+  path: '/influencers',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardInventoryRoute = DashboardInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DashboardLiveRoute = DashboardLiveRouteImport.update({
@@ -86,6 +93,21 @@ const DashboardOrdersRoute = DashboardOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardProductsRoute = DashboardProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardRankingRoute = DashboardRankingRouteImport.update({
+  id: '/ranking',
+  path: '/ranking',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardSeoRoute = DashboardSeoRouteImport.update({
+  id: '/seo',
+  path: '/seo',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -96,15 +118,24 @@ const DashboardStoresRoute = DashboardStoresRouteImport.update({
   path: '/stores',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
-const PrototypeBDashboardRouteRoute =
-  PrototypeBDashboardRouteRouteImport.update({
-    id: '/prototype-b/dashboard',
-    path: '/prototype-b/dashboard',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const DashboardSuppliersRoute = DashboardSuppliersRouteImport.update({
+  id: '/suppliers',
+  path: '/suppliers',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardTrackingRoute = DashboardTrackingRouteImport.update({
+  id: '/tracking',
+  path: '/tracking',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const StoreIndexRoute = StoreIndexRouteImport.update({
   id: '/store/',
   path: '/store/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreCartRoute = StoreCartRouteImport.update({
+  id: '/store/cart',
+  path: '/store/cart',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoreCheckoutRoute = StoreCheckoutRouteImport.update({
@@ -117,373 +148,166 @@ const StoreConfirmationRoute = StoreConfirmationRouteImport.update({
   path: '/store/confirmation',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StoreProductRoute = StoreProductRouteImport.update({
-  id: '/store/product',
-  path: '/store/product',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrototypeBDashboardIndexRoute =
-  PrototypeBDashboardIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardAffiliatesRoute =
-  PrototypeBDashboardAffiliatesRouteImport.update({
-    id: '/affiliates',
-    path: '/affiliates',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardAudienceRoute =
-  PrototypeBDashboardAudienceRouteImport.update({
-    id: '/audience',
-    path: '/audience',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardBonificationsRoute =
-  PrototypeBDashboardBonificationsRouteImport.update({
-    id: '/bonifications',
-    path: '/bonifications',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardFinanceRoute =
-  PrototypeBDashboardFinanceRouteImport.update({
-    id: '/finance',
-    path: '/finance',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardInfluencersRoute =
-  PrototypeBDashboardInfluencersRouteImport.update({
-    id: '/influencers',
-    path: '/influencers',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardInventoryRoute =
-  PrototypeBDashboardInventoryRouteImport.update({
-    id: '/inventory',
-    path: '/inventory',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardLiveRoute = PrototypeBDashboardLiveRouteImport.update({
-  id: '/live',
-  path: '/live',
-  getParentRoute: () => PrototypeBDashboardRouteRoute,
-} as any)
-const PrototypeBDashboardMarketingRoute =
-  PrototypeBDashboardMarketingRouteImport.update({
-    id: '/marketing',
-    path: '/marketing',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardOrdersRoute =
-  PrototypeBDashboardOrdersRouteImport.update({
-    id: '/orders',
-    path: '/orders',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardProductsRoute =
-  PrototypeBDashboardProductsRouteImport.update({
-    id: '/products',
-    path: '/products',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardRankingRoute =
-  PrototypeBDashboardRankingRouteImport.update({
-    id: '/ranking',
-    path: '/ranking',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardSeoRoute = PrototypeBDashboardSeoRouteImport.update({
-  id: '/seo',
-  path: '/seo',
-  getParentRoute: () => PrototypeBDashboardRouteRoute,
-} as any)
-const PrototypeBDashboardSettingsRoute =
-  PrototypeBDashboardSettingsRouteImport.update({
-    id: '/settings',
-    path: '/settings',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardStoresRoute =
-  PrototypeBDashboardStoresRouteImport.update({
-    id: '/stores',
-    path: '/stores',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardSuppliersRoute =
-  PrototypeBDashboardSuppliersRouteImport.update({
-    id: '/suppliers',
-    path: '/suppliers',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBDashboardTrackingRoute =
-  PrototypeBDashboardTrackingRouteImport.update({
-    id: '/tracking',
-    path: '/tracking',
-    getParentRoute: () => PrototypeBDashboardRouteRoute,
-  } as any)
-const PrototypeBStoreIndexRoute = PrototypeBStoreIndexRouteImport.update({
-  id: '/prototype-b/store/',
-  path: '/prototype-b/store/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrototypeBStoreCartRoute = PrototypeBStoreCartRouteImport.update({
-  id: '/prototype-b/store/cart',
-  path: '/prototype-b/store/cart',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrototypeBStoreCheckoutRoute = PrototypeBStoreCheckoutRouteImport.update({
-  id: '/prototype-b/store/checkout',
-  path: '/prototype-b/store/checkout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrototypeBStoreConfirmationRoute =
-  PrototypeBStoreConfirmationRouteImport.update({
-    id: '/prototype-b/store/confirmation',
-    path: '/prototype-b/store/confirmation',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
-  '/prototype-b/dashboard': typeof PrototypeBDashboardRouteRouteWithChildren
+  '/dashboard/affiliates': typeof DashboardAffiliatesRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
+  '/dashboard/bonifications': typeof DashboardBonificationsRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
+  '/dashboard/influencers': typeof DashboardInfluencersRoute
+  '/dashboard/inventory': typeof DashboardInventoryRoute
   '/dashboard/live': typeof DashboardLiveRoute
   '/dashboard/marketing': typeof DashboardMarketingRoute
   '/dashboard/orders': typeof DashboardOrdersRoute
+  '/dashboard/products': typeof DashboardProductsRoute
+  '/dashboard/ranking': typeof DashboardRankingRoute
+  '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/stores': typeof DashboardStoresRoute
+  '/dashboard/suppliers': typeof DashboardSuppliersRoute
+  '/dashboard/tracking': typeof DashboardTrackingRoute
+  '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
   '/store/confirmation': typeof StoreConfirmationRoute
-  '/store/product': typeof StoreProductRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
-  '/prototype-b/dashboard/affiliates': typeof PrototypeBDashboardAffiliatesRoute
-  '/prototype-b/dashboard/audience': typeof PrototypeBDashboardAudienceRoute
-  '/prototype-b/dashboard/bonifications': typeof PrototypeBDashboardBonificationsRoute
-  '/prototype-b/dashboard/finance': typeof PrototypeBDashboardFinanceRoute
-  '/prototype-b/dashboard/influencers': typeof PrototypeBDashboardInfluencersRoute
-  '/prototype-b/dashboard/inventory': typeof PrototypeBDashboardInventoryRoute
-  '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
-  '/prototype-b/dashboard/marketing': typeof PrototypeBDashboardMarketingRoute
-  '/prototype-b/dashboard/orders': typeof PrototypeBDashboardOrdersRoute
-  '/prototype-b/dashboard/products': typeof PrototypeBDashboardProductsRoute
-  '/prototype-b/dashboard/ranking': typeof PrototypeBDashboardRankingRoute
-  '/prototype-b/dashboard/seo': typeof PrototypeBDashboardSeoRoute
-  '/prototype-b/dashboard/settings': typeof PrototypeBDashboardSettingsRoute
-  '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
-  '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
-  '/prototype-b/dashboard/tracking': typeof PrototypeBDashboardTrackingRoute
-  '/prototype-b/store/cart': typeof PrototypeBStoreCartRoute
-  '/prototype-b/store/checkout': typeof PrototypeBStoreCheckoutRoute
-  '/prototype-b/store/confirmation': typeof PrototypeBStoreConfirmationRoute
-  '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
-  '/prototype-b/store/': typeof PrototypeBStoreIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard/affiliates': typeof DashboardAffiliatesRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
+  '/dashboard/bonifications': typeof DashboardBonificationsRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
+  '/dashboard/influencers': typeof DashboardInfluencersRoute
+  '/dashboard/inventory': typeof DashboardInventoryRoute
   '/dashboard/live': typeof DashboardLiveRoute
   '/dashboard/marketing': typeof DashboardMarketingRoute
   '/dashboard/orders': typeof DashboardOrdersRoute
+  '/dashboard/products': typeof DashboardProductsRoute
+  '/dashboard/ranking': typeof DashboardRankingRoute
+  '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/stores': typeof DashboardStoresRoute
+  '/dashboard/suppliers': typeof DashboardSuppliersRoute
+  '/dashboard/tracking': typeof DashboardTrackingRoute
+  '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
   '/store/confirmation': typeof StoreConfirmationRoute
-  '/store/product': typeof StoreProductRoute
   '/dashboard': typeof DashboardIndexRoute
   '/store': typeof StoreIndexRoute
-  '/prototype-b/dashboard/affiliates': typeof PrototypeBDashboardAffiliatesRoute
-  '/prototype-b/dashboard/audience': typeof PrototypeBDashboardAudienceRoute
-  '/prototype-b/dashboard/bonifications': typeof PrototypeBDashboardBonificationsRoute
-  '/prototype-b/dashboard/finance': typeof PrototypeBDashboardFinanceRoute
-  '/prototype-b/dashboard/influencers': typeof PrototypeBDashboardInfluencersRoute
-  '/prototype-b/dashboard/inventory': typeof PrototypeBDashboardInventoryRoute
-  '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
-  '/prototype-b/dashboard/marketing': typeof PrototypeBDashboardMarketingRoute
-  '/prototype-b/dashboard/orders': typeof PrototypeBDashboardOrdersRoute
-  '/prototype-b/dashboard/products': typeof PrototypeBDashboardProductsRoute
-  '/prototype-b/dashboard/ranking': typeof PrototypeBDashboardRankingRoute
-  '/prototype-b/dashboard/seo': typeof PrototypeBDashboardSeoRoute
-  '/prototype-b/dashboard/settings': typeof PrototypeBDashboardSettingsRoute
-  '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
-  '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
-  '/prototype-b/dashboard/tracking': typeof PrototypeBDashboardTrackingRoute
-  '/prototype-b/store/cart': typeof PrototypeBStoreCartRoute
-  '/prototype-b/store/checkout': typeof PrototypeBStoreCheckoutRoute
-  '/prototype-b/store/confirmation': typeof PrototypeBStoreConfirmationRoute
-  '/prototype-b/dashboard': typeof PrototypeBDashboardIndexRoute
-  '/prototype-b/store': typeof PrototypeBStoreIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
-  '/prototype-b/dashboard': typeof PrototypeBDashboardRouteRouteWithChildren
+  '/dashboard/affiliates': typeof DashboardAffiliatesRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
+  '/dashboard/bonifications': typeof DashboardBonificationsRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
+  '/dashboard/influencers': typeof DashboardInfluencersRoute
+  '/dashboard/inventory': typeof DashboardInventoryRoute
   '/dashboard/live': typeof DashboardLiveRoute
   '/dashboard/marketing': typeof DashboardMarketingRoute
   '/dashboard/orders': typeof DashboardOrdersRoute
+  '/dashboard/products': typeof DashboardProductsRoute
+  '/dashboard/ranking': typeof DashboardRankingRoute
+  '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/stores': typeof DashboardStoresRoute
+  '/dashboard/suppliers': typeof DashboardSuppliersRoute
+  '/dashboard/tracking': typeof DashboardTrackingRoute
+  '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
   '/store/confirmation': typeof StoreConfirmationRoute
-  '/store/product': typeof StoreProductRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
-  '/prototype-b/dashboard/affiliates': typeof PrototypeBDashboardAffiliatesRoute
-  '/prototype-b/dashboard/audience': typeof PrototypeBDashboardAudienceRoute
-  '/prototype-b/dashboard/bonifications': typeof PrototypeBDashboardBonificationsRoute
-  '/prototype-b/dashboard/finance': typeof PrototypeBDashboardFinanceRoute
-  '/prototype-b/dashboard/influencers': typeof PrototypeBDashboardInfluencersRoute
-  '/prototype-b/dashboard/inventory': typeof PrototypeBDashboardInventoryRoute
-  '/prototype-b/dashboard/live': typeof PrototypeBDashboardLiveRoute
-  '/prototype-b/dashboard/marketing': typeof PrototypeBDashboardMarketingRoute
-  '/prototype-b/dashboard/orders': typeof PrototypeBDashboardOrdersRoute
-  '/prototype-b/dashboard/products': typeof PrototypeBDashboardProductsRoute
-  '/prototype-b/dashboard/ranking': typeof PrototypeBDashboardRankingRoute
-  '/prototype-b/dashboard/seo': typeof PrototypeBDashboardSeoRoute
-  '/prototype-b/dashboard/settings': typeof PrototypeBDashboardSettingsRoute
-  '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
-  '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
-  '/prototype-b/dashboard/tracking': typeof PrototypeBDashboardTrackingRoute
-  '/prototype-b/store/cart': typeof PrototypeBStoreCartRoute
-  '/prototype-b/store/checkout': typeof PrototypeBStoreCheckoutRoute
-  '/prototype-b/store/confirmation': typeof PrototypeBStoreConfirmationRoute
-  '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
-  '/prototype-b/store/': typeof PrototypeBStoreIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/dashboard'
-    | '/prototype-b/dashboard'
+    | '/dashboard/affiliates'
     | '/dashboard/audience'
+    | '/dashboard/bonifications'
     | '/dashboard/finance'
+    | '/dashboard/influencers'
+    | '/dashboard/inventory'
     | '/dashboard/live'
     | '/dashboard/marketing'
     | '/dashboard/orders'
+    | '/dashboard/products'
+    | '/dashboard/ranking'
+    | '/dashboard/seo'
     | '/dashboard/settings'
     | '/dashboard/stores'
+    | '/dashboard/suppliers'
+    | '/dashboard/tracking'
+    | '/store/cart'
     | '/store/checkout'
     | '/store/confirmation'
-    | '/store/product'
     | '/dashboard/'
     | '/store/'
-    | '/prototype-b/dashboard/affiliates'
-    | '/prototype-b/dashboard/audience'
-    | '/prototype-b/dashboard/bonifications'
-    | '/prototype-b/dashboard/finance'
-    | '/prototype-b/dashboard/influencers'
-    | '/prototype-b/dashboard/inventory'
-    | '/prototype-b/dashboard/live'
-    | '/prototype-b/dashboard/marketing'
-    | '/prototype-b/dashboard/orders'
-    | '/prototype-b/dashboard/products'
-    | '/prototype-b/dashboard/ranking'
-    | '/prototype-b/dashboard/seo'
-    | '/prototype-b/dashboard/settings'
-    | '/prototype-b/dashboard/stores'
-    | '/prototype-b/dashboard/suppliers'
-    | '/prototype-b/dashboard/tracking'
-    | '/prototype-b/store/cart'
-    | '/prototype-b/store/checkout'
-    | '/prototype-b/store/confirmation'
-    | '/prototype-b/dashboard/'
-    | '/prototype-b/store/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/dashboard/affiliates'
     | '/dashboard/audience'
+    | '/dashboard/bonifications'
     | '/dashboard/finance'
+    | '/dashboard/influencers'
+    | '/dashboard/inventory'
     | '/dashboard/live'
     | '/dashboard/marketing'
     | '/dashboard/orders'
+    | '/dashboard/products'
+    | '/dashboard/ranking'
+    | '/dashboard/seo'
     | '/dashboard/settings'
     | '/dashboard/stores'
+    | '/dashboard/suppliers'
+    | '/dashboard/tracking'
+    | '/store/cart'
     | '/store/checkout'
     | '/store/confirmation'
-    | '/store/product'
     | '/dashboard'
     | '/store'
-    | '/prototype-b/dashboard/affiliates'
-    | '/prototype-b/dashboard/audience'
-    | '/prototype-b/dashboard/bonifications'
-    | '/prototype-b/dashboard/finance'
-    | '/prototype-b/dashboard/influencers'
-    | '/prototype-b/dashboard/inventory'
-    | '/prototype-b/dashboard/live'
-    | '/prototype-b/dashboard/marketing'
-    | '/prototype-b/dashboard/orders'
-    | '/prototype-b/dashboard/products'
-    | '/prototype-b/dashboard/ranking'
-    | '/prototype-b/dashboard/seo'
-    | '/prototype-b/dashboard/settings'
-    | '/prototype-b/dashboard/stores'
-    | '/prototype-b/dashboard/suppliers'
-    | '/prototype-b/dashboard/tracking'
-    | '/prototype-b/store/cart'
-    | '/prototype-b/store/checkout'
-    | '/prototype-b/store/confirmation'
-    | '/prototype-b/dashboard'
-    | '/prototype-b/store'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
-    | '/prototype-b/dashboard'
+    | '/dashboard/affiliates'
     | '/dashboard/audience'
+    | '/dashboard/bonifications'
     | '/dashboard/finance'
+    | '/dashboard/influencers'
+    | '/dashboard/inventory'
     | '/dashboard/live'
     | '/dashboard/marketing'
     | '/dashboard/orders'
+    | '/dashboard/products'
+    | '/dashboard/ranking'
+    | '/dashboard/seo'
     | '/dashboard/settings'
     | '/dashboard/stores'
+    | '/dashboard/suppliers'
+    | '/dashboard/tracking'
+    | '/store/cart'
     | '/store/checkout'
     | '/store/confirmation'
-    | '/store/product'
     | '/dashboard/'
     | '/store/'
-    | '/prototype-b/dashboard/affiliates'
-    | '/prototype-b/dashboard/audience'
-    | '/prototype-b/dashboard/bonifications'
-    | '/prototype-b/dashboard/finance'
-    | '/prototype-b/dashboard/influencers'
-    | '/prototype-b/dashboard/inventory'
-    | '/prototype-b/dashboard/live'
-    | '/prototype-b/dashboard/marketing'
-    | '/prototype-b/dashboard/orders'
-    | '/prototype-b/dashboard/products'
-    | '/prototype-b/dashboard/ranking'
-    | '/prototype-b/dashboard/seo'
-    | '/prototype-b/dashboard/settings'
-    | '/prototype-b/dashboard/stores'
-    | '/prototype-b/dashboard/suppliers'
-    | '/prototype-b/dashboard/tracking'
-    | '/prototype-b/store/cart'
-    | '/prototype-b/store/checkout'
-    | '/prototype-b/store/confirmation'
-    | '/prototype-b/dashboard/'
-    | '/prototype-b/store/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
-  PrototypeBDashboardRouteRoute: typeof PrototypeBDashboardRouteRouteWithChildren
+  StoreCartRoute: typeof StoreCartRoute
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreConfirmationRoute: typeof StoreConfirmationRoute
-  StoreProductRoute: typeof StoreProductRoute
   StoreIndexRoute: typeof StoreIndexRoute
-  PrototypeBStoreCartRoute: typeof PrototypeBStoreCartRoute
-  PrototypeBStoreCheckoutRoute: typeof PrototypeBStoreCheckoutRoute
-  PrototypeBStoreConfirmationRoute: typeof PrototypeBStoreConfirmationRoute
-  PrototypeBStoreIndexRoute: typeof PrototypeBStoreIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -509,6 +333,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/affiliates': {
+      id: '/dashboard/affiliates'
+      path: '/affiliates'
+      fullPath: '/dashboard/affiliates'
+      preLoaderRoute: typeof DashboardAffiliatesRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/audience': {
       id: '/dashboard/audience'
       path: '/audience'
@@ -516,11 +347,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAudienceRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/bonifications': {
+      id: '/dashboard/bonifications'
+      path: '/bonifications'
+      fullPath: '/dashboard/bonifications'
+      preLoaderRoute: typeof DashboardBonificationsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/finance': {
       id: '/dashboard/finance'
       path: '/finance'
       fullPath: '/dashboard/finance'
       preLoaderRoute: typeof DashboardFinanceRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/influencers': {
+      id: '/dashboard/influencers'
+      path: '/influencers'
+      fullPath: '/dashboard/influencers'
+      preLoaderRoute: typeof DashboardInfluencersRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/inventory': {
+      id: '/dashboard/inventory'
+      path: '/inventory'
+      fullPath: '/dashboard/inventory'
+      preLoaderRoute: typeof DashboardInventoryRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/live': {
@@ -544,6 +396,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardOrdersRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/products': {
+      id: '/dashboard/products'
+      path: '/products'
+      fullPath: '/dashboard/products'
+      preLoaderRoute: typeof DashboardProductsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/ranking': {
+      id: '/dashboard/ranking'
+      path: '/ranking'
+      fullPath: '/dashboard/ranking'
+      preLoaderRoute: typeof DashboardRankingRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/seo': {
+      id: '/dashboard/seo'
+      path: '/seo'
+      fullPath: '/dashboard/seo'
+      preLoaderRoute: typeof DashboardSeoRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/settings': {
       id: '/dashboard/settings'
       path: '/settings'
@@ -558,18 +431,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStoresRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/prototype-b/dashboard': {
-      id: '/prototype-b/dashboard'
-      path: '/prototype-b/dashboard'
-      fullPath: '/prototype-b/dashboard'
-      preLoaderRoute: typeof PrototypeBDashboardRouteRouteImport
-      parentRoute: typeof rootRouteImport
+    '/dashboard/suppliers': {
+      id: '/dashboard/suppliers'
+      path: '/suppliers'
+      fullPath: '/dashboard/suppliers'
+      preLoaderRoute: typeof DashboardSuppliersRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/tracking': {
+      id: '/dashboard/tracking'
+      path: '/tracking'
+      fullPath: '/dashboard/tracking'
+      preLoaderRoute: typeof DashboardTrackingRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
     '/store/': {
       id: '/store/'
       path: '/store'
       fullPath: '/store/'
       preLoaderRoute: typeof StoreIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store/cart': {
+      id: '/store/cart'
+      path: '/store/cart'
+      fullPath: '/store/cart'
+      preLoaderRoute: typeof StoreCartRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/store/checkout': {
@@ -586,182 +473,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreConfirmationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/store/product': {
-      id: '/store/product'
-      path: '/store/product'
-      fullPath: '/store/product'
-      preLoaderRoute: typeof StoreProductRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prototype-b/dashboard/': {
-      id: '/prototype-b/dashboard/'
-      path: '/'
-      fullPath: '/prototype-b/dashboard/'
-      preLoaderRoute: typeof PrototypeBDashboardIndexRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/affiliates': {
-      id: '/prototype-b/dashboard/affiliates'
-      path: '/affiliates'
-      fullPath: '/prototype-b/dashboard/affiliates'
-      preLoaderRoute: typeof PrototypeBDashboardAffiliatesRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/audience': {
-      id: '/prototype-b/dashboard/audience'
-      path: '/audience'
-      fullPath: '/prototype-b/dashboard/audience'
-      preLoaderRoute: typeof PrototypeBDashboardAudienceRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/bonifications': {
-      id: '/prototype-b/dashboard/bonifications'
-      path: '/bonifications'
-      fullPath: '/prototype-b/dashboard/bonifications'
-      preLoaderRoute: typeof PrototypeBDashboardBonificationsRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/finance': {
-      id: '/prototype-b/dashboard/finance'
-      path: '/finance'
-      fullPath: '/prototype-b/dashboard/finance'
-      preLoaderRoute: typeof PrototypeBDashboardFinanceRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/influencers': {
-      id: '/prototype-b/dashboard/influencers'
-      path: '/influencers'
-      fullPath: '/prototype-b/dashboard/influencers'
-      preLoaderRoute: typeof PrototypeBDashboardInfluencersRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/inventory': {
-      id: '/prototype-b/dashboard/inventory'
-      path: '/inventory'
-      fullPath: '/prototype-b/dashboard/inventory'
-      preLoaderRoute: typeof PrototypeBDashboardInventoryRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/live': {
-      id: '/prototype-b/dashboard/live'
-      path: '/live'
-      fullPath: '/prototype-b/dashboard/live'
-      preLoaderRoute: typeof PrototypeBDashboardLiveRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/marketing': {
-      id: '/prototype-b/dashboard/marketing'
-      path: '/marketing'
-      fullPath: '/prototype-b/dashboard/marketing'
-      preLoaderRoute: typeof PrototypeBDashboardMarketingRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/orders': {
-      id: '/prototype-b/dashboard/orders'
-      path: '/orders'
-      fullPath: '/prototype-b/dashboard/orders'
-      preLoaderRoute: typeof PrototypeBDashboardOrdersRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/products': {
-      id: '/prototype-b/dashboard/products'
-      path: '/products'
-      fullPath: '/prototype-b/dashboard/products'
-      preLoaderRoute: typeof PrototypeBDashboardProductsRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/ranking': {
-      id: '/prototype-b/dashboard/ranking'
-      path: '/ranking'
-      fullPath: '/prototype-b/dashboard/ranking'
-      preLoaderRoute: typeof PrototypeBDashboardRankingRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/seo': {
-      id: '/prototype-b/dashboard/seo'
-      path: '/seo'
-      fullPath: '/prototype-b/dashboard/seo'
-      preLoaderRoute: typeof PrototypeBDashboardSeoRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/settings': {
-      id: '/prototype-b/dashboard/settings'
-      path: '/settings'
-      fullPath: '/prototype-b/dashboard/settings'
-      preLoaderRoute: typeof PrototypeBDashboardSettingsRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/stores': {
-      id: '/prototype-b/dashboard/stores'
-      path: '/stores'
-      fullPath: '/prototype-b/dashboard/stores'
-      preLoaderRoute: typeof PrototypeBDashboardStoresRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/suppliers': {
-      id: '/prototype-b/dashboard/suppliers'
-      path: '/suppliers'
-      fullPath: '/prototype-b/dashboard/suppliers'
-      preLoaderRoute: typeof PrototypeBDashboardSuppliersRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/dashboard/tracking': {
-      id: '/prototype-b/dashboard/tracking'
-      path: '/tracking'
-      fullPath: '/prototype-b/dashboard/tracking'
-      preLoaderRoute: typeof PrototypeBDashboardTrackingRouteImport
-      parentRoute: typeof PrototypeBDashboardRouteRoute
-    }
-    '/prototype-b/store/': {
-      id: '/prototype-b/store/'
-      path: '/prototype-b/store'
-      fullPath: '/prototype-b/store/'
-      preLoaderRoute: typeof PrototypeBStoreIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prototype-b/store/cart': {
-      id: '/prototype-b/store/cart'
-      path: '/prototype-b/store/cart'
-      fullPath: '/prototype-b/store/cart'
-      preLoaderRoute: typeof PrototypeBStoreCartRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prototype-b/store/checkout': {
-      id: '/prototype-b/store/checkout'
-      path: '/prototype-b/store/checkout'
-      fullPath: '/prototype-b/store/checkout'
-      preLoaderRoute: typeof PrototypeBStoreCheckoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prototype-b/store/confirmation': {
-      id: '/prototype-b/store/confirmation'
-      path: '/prototype-b/store/confirmation'
-      fullPath: '/prototype-b/store/confirmation'
-      preLoaderRoute: typeof PrototypeBStoreConfirmationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 interface DashboardRouteRouteChildren {
+  DashboardAffiliatesRoute: typeof DashboardAffiliatesRoute
   DashboardAudienceRoute: typeof DashboardAudienceRoute
+  DashboardBonificationsRoute: typeof DashboardBonificationsRoute
   DashboardFinanceRoute: typeof DashboardFinanceRoute
+  DashboardInfluencersRoute: typeof DashboardInfluencersRoute
+  DashboardInventoryRoute: typeof DashboardInventoryRoute
   DashboardLiveRoute: typeof DashboardLiveRoute
   DashboardMarketingRoute: typeof DashboardMarketingRoute
   DashboardOrdersRoute: typeof DashboardOrdersRoute
+  DashboardProductsRoute: typeof DashboardProductsRoute
+  DashboardRankingRoute: typeof DashboardRankingRoute
+  DashboardSeoRoute: typeof DashboardSeoRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardStoresRoute: typeof DashboardStoresRoute
+  DashboardSuppliersRoute: typeof DashboardSuppliersRoute
+  DashboardTrackingRoute: typeof DashboardTrackingRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
+  DashboardAffiliatesRoute: DashboardAffiliatesRoute,
   DashboardAudienceRoute: DashboardAudienceRoute,
+  DashboardBonificationsRoute: DashboardBonificationsRoute,
   DashboardFinanceRoute: DashboardFinanceRoute,
+  DashboardInfluencersRoute: DashboardInfluencersRoute,
+  DashboardInventoryRoute: DashboardInventoryRoute,
   DashboardLiveRoute: DashboardLiveRoute,
   DashboardMarketingRoute: DashboardMarketingRoute,
   DashboardOrdersRoute: DashboardOrdersRoute,
+  DashboardProductsRoute: DashboardProductsRoute,
+  DashboardRankingRoute: DashboardRankingRoute,
+  DashboardSeoRoute: DashboardSeoRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardStoresRoute: DashboardStoresRoute,
+  DashboardSuppliersRoute: DashboardSuppliersRoute,
+  DashboardTrackingRoute: DashboardTrackingRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
@@ -769,65 +520,13 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
   DashboardRouteRouteChildren,
 )
 
-interface PrototypeBDashboardRouteRouteChildren {
-  PrototypeBDashboardAffiliatesRoute: typeof PrototypeBDashboardAffiliatesRoute
-  PrototypeBDashboardAudienceRoute: typeof PrototypeBDashboardAudienceRoute
-  PrototypeBDashboardBonificationsRoute: typeof PrototypeBDashboardBonificationsRoute
-  PrototypeBDashboardFinanceRoute: typeof PrototypeBDashboardFinanceRoute
-  PrototypeBDashboardInfluencersRoute: typeof PrototypeBDashboardInfluencersRoute
-  PrototypeBDashboardInventoryRoute: typeof PrototypeBDashboardInventoryRoute
-  PrototypeBDashboardLiveRoute: typeof PrototypeBDashboardLiveRoute
-  PrototypeBDashboardMarketingRoute: typeof PrototypeBDashboardMarketingRoute
-  PrototypeBDashboardOrdersRoute: typeof PrototypeBDashboardOrdersRoute
-  PrototypeBDashboardProductsRoute: typeof PrototypeBDashboardProductsRoute
-  PrototypeBDashboardRankingRoute: typeof PrototypeBDashboardRankingRoute
-  PrototypeBDashboardSeoRoute: typeof PrototypeBDashboardSeoRoute
-  PrototypeBDashboardSettingsRoute: typeof PrototypeBDashboardSettingsRoute
-  PrototypeBDashboardStoresRoute: typeof PrototypeBDashboardStoresRoute
-  PrototypeBDashboardSuppliersRoute: typeof PrototypeBDashboardSuppliersRoute
-  PrototypeBDashboardTrackingRoute: typeof PrototypeBDashboardTrackingRoute
-  PrototypeBDashboardIndexRoute: typeof PrototypeBDashboardIndexRoute
-}
-
-const PrototypeBDashboardRouteRouteChildren: PrototypeBDashboardRouteRouteChildren =
-  {
-    PrototypeBDashboardAffiliatesRoute: PrototypeBDashboardAffiliatesRoute,
-    PrototypeBDashboardAudienceRoute: PrototypeBDashboardAudienceRoute,
-    PrototypeBDashboardBonificationsRoute:
-      PrototypeBDashboardBonificationsRoute,
-    PrototypeBDashboardFinanceRoute: PrototypeBDashboardFinanceRoute,
-    PrototypeBDashboardInfluencersRoute: PrototypeBDashboardInfluencersRoute,
-    PrototypeBDashboardInventoryRoute: PrototypeBDashboardInventoryRoute,
-    PrototypeBDashboardLiveRoute: PrototypeBDashboardLiveRoute,
-    PrototypeBDashboardMarketingRoute: PrototypeBDashboardMarketingRoute,
-    PrototypeBDashboardOrdersRoute: PrototypeBDashboardOrdersRoute,
-    PrototypeBDashboardProductsRoute: PrototypeBDashboardProductsRoute,
-    PrototypeBDashboardRankingRoute: PrototypeBDashboardRankingRoute,
-    PrototypeBDashboardSeoRoute: PrototypeBDashboardSeoRoute,
-    PrototypeBDashboardSettingsRoute: PrototypeBDashboardSettingsRoute,
-    PrototypeBDashboardStoresRoute: PrototypeBDashboardStoresRoute,
-    PrototypeBDashboardSuppliersRoute: PrototypeBDashboardSuppliersRoute,
-    PrototypeBDashboardTrackingRoute: PrototypeBDashboardTrackingRoute,
-    PrototypeBDashboardIndexRoute: PrototypeBDashboardIndexRoute,
-  }
-
-const PrototypeBDashboardRouteRouteWithChildren =
-  PrototypeBDashboardRouteRoute._addFileChildren(
-    PrototypeBDashboardRouteRouteChildren,
-  )
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
-  PrototypeBDashboardRouteRoute: PrototypeBDashboardRouteRouteWithChildren,
+  StoreCartRoute: StoreCartRoute,
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreConfirmationRoute: StoreConfirmationRoute,
-  StoreProductRoute: StoreProductRoute,
   StoreIndexRoute: StoreIndexRoute,
-  PrototypeBStoreCartRoute: PrototypeBStoreCartRoute,
-  PrototypeBStoreCheckoutRoute: PrototypeBStoreCheckoutRoute,
-  PrototypeBStoreConfirmationRoute: PrototypeBStoreConfirmationRoute,
-  PrototypeBStoreIndexRoute: PrototypeBStoreIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
