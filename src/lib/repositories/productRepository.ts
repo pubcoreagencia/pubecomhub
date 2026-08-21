@@ -48,7 +48,7 @@ export class ProductRepository implements IProductRepository {
   }
 
   private mapDbProductToType(dbProduct: any): Product {
-    return {
+    const product: Product = {
       id: dbProduct.id,
       name: dbProduct.name,
       price: Number(dbProduct.price),
@@ -57,14 +57,19 @@ export class ProductRepository implements IProductRepository {
       storeId: dbProduct.store_id,
       stock: dbProduct.stock,
       image: dbProduct.image_url ?? undefined,
-      masterProductId: dbProduct.master_product_id ?? undefined,
-      customName: dbProduct.custom_name ?? undefined,
-      customDescription: dbProduct.custom_description ?? undefined,
-      customImageUrl: dbProduct.custom_image_url ?? undefined,
-      profitMargin: dbProduct.profit_margin ? Number(dbProduct.profit_margin) : undefined,
-      status: dbProduct.status as 'active' | 'inactive' | undefined,
       created_at: dbProduct.created_at,
     };
+
+    if (dbProduct.master_product_id) product.masterProductId = dbProduct.master_product_id;
+    if (dbProduct.custom_name) product.customName = dbProduct.custom_name;
+    if (dbProduct.custom_description) product.customDescription = dbProduct.custom_description;
+    if (dbProduct.custom_image_url) product.customImageUrl = dbProduct.custom_image_url;
+    if (dbProduct.profit_margin !== undefined && dbProduct.profit_margin !== null) {
+      product.profitMargin = Number(dbProduct.profit_margin);
+    }
+    if (dbProduct.status) product.status = dbProduct.status as 'active' | 'inactive';
+
+    return product;
   }
 }
 
