@@ -56,7 +56,7 @@ export class CatalogIngestionService {
         sku: item.sku,
         name: item.title,
         description: item.description,
-        imageUrl: item.images[0],
+        imageUrl: item.images[0] ?? null,
         category: item.category,
         supplierCost: item.supplierCost,
         basePricePub: item.basePricePub,
