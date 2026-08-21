@@ -57,13 +57,11 @@ function TrackingDashboardB() {
                 </div>
                 <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden border border-[var(--hub-border)]">
                   <div 
-                    className="h-full rounded-full transition-all duration-1000" 
+                    className={cn("h-full rounded-full transition-all duration-1000", !source.color.startsWith('var') && !source.color.startsWith('rgba') ? source.color : "")}
                     style={{ 
                       width: source.value,
-                      backgroundColor: source.color.startsWith('var') || source.color.startsWith('rgba') ? source.color : undefined,
-                      background: !source.color.startsWith('var') && !source.color.startsWith('rgba') ? undefined : undefined
+                      backgroundColor: source.color.startsWith('var') || source.color.startsWith('rgba') ? source.color : undefined
                     }}
-                    className={cn("h-full rounded-full transition-all duration-1000", !source.color.startsWith('var') && !source.color.startsWith('rgba') ? source.color : "")}
                   />
                 </div>
               </div>
