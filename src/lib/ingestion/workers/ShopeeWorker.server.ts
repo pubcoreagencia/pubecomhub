@@ -100,11 +100,25 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
         }
 
         let offset = 0;
+        let pageCount = 0;
+        
         while (items.length < limit) {
+          pageCount++;
+          console.log(`[ShopeeWorker] Processing page ${pageCount} (offset ${offset})...`);
+          
           const pageResults: any = await page.evaluate(async ({ shopId, offset }) => {
             try {
               const api = `https://shopee.com.br/api/v4/search/search_items?by=relevancy&limit=30&match_id=${shopId}&newest=${offset}&order=desc&page_type=shop&scenario=PAGE_SHOP&version=2`;
-              const response = await fetch(api);
+              const response = await fetch(api, {
+                headers: {
+                  'x-requested-with': 'XMLHttpRequest'
+                }
+              });
+              
+              if (response.status === 403) {
+                return { error: "HTTP 403 Forbidden - O acesso foi bloqueado pela Shopee." };
+              }
+              
               if (!response.ok) return { error: `HTTP ${response.status}` };
               const data = await response.json();
               return { items: data.items || [] };
@@ -114,15 +128,22 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
           }, { shopId: detectedShopId, offset });
 
           if (pageResults.error) {
-            errors.push(`Erro na página ${offset}: ${pageResults.error}`);
+            errors.push(`Erro na página ${pageCount}: ${pageResults.error}`);
             break;
           }
 
           const newItems = pageResults.items.map((i: any) => i.item_basic);
-          if (newItems.length === 0) break;
+          if (!newItems || newItems.length === 0) {
+            console.log(`[ShopeeWorker] No more items found at page ${pageCount}`);
+            break;
+          }
 
           items.push(...newItems);
+          console.log(`[ShopeeWorker] Found ${newItems.length} items on page ${pageCount}. Total so far: ${items.length}`);
+          
           offset += newItems.length;
+          
+          // Small delay to be polite
           await new Promise(r => setTimeout(r, 1000));
         }
       } finally {

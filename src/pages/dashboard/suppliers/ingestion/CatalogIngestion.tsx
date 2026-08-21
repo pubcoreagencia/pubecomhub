@@ -151,11 +151,31 @@ export const CatalogIngestion = () => {
         </Card>
       ) : status === 'preview' || status === 'importing' ? (
         <div className="space-y-6 animate-in fade-in duration-500">
+          {preview?.metadata?.errors?.length > 0 && (
+            <Card className="bg-red-950/20 border-red-500/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-red-400 text-sm flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  STATUS: BLOCKED
+                </CardTitle>
+                <CardDescription className="text-red-200/60 text-xs mt-1">
+                  <span className="font-bold">CAUSE:</span> {preview.metadata.errors[0]}
+                </CardDescription>
+                <CardDescription className="text-red-200/60 text-xs">
+                  <span className="font-bold">IMPACT:</span> Nenhum produto real foi importado.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="bg-emerald-950/20 border-emerald-500/20">
               <CardHeader className="pb-2">
                 <CardDescription className="text-emerald-50/40 text-xs uppercase font-bold">Total Encontrado</CardDescription>
                 <CardTitle className="text-2xl text-emerald-50">{preview?.totalFound}</CardTitle>
+                {preview?.metadata?.shopId && (
+                  <div className="text-[10px] text-emerald-400 font-mono mt-1">ShopID: {preview.metadata.shopId}</div>
+                )}
               </CardHeader>
             </Card>
             <Card className="bg-emerald-950/20 border-emerald-500/20">
@@ -172,11 +192,9 @@ export const CatalogIngestion = () => {
             </Card>
             <Card className="bg-emerald-950/20 border-emerald-500/20">
               <CardHeader className="pb-2">
-                <CardDescription className="text-emerald-50/40 text-xs uppercase font-bold">Custo Total Est.</CardDescription>
+                <CardDescription className="text-emerald-50/40 text-xs uppercase font-bold">Execução</CardDescription>
                 <CardTitle className="text-2xl text-emerald-50">
-                  R$ {preview?.items
-                    .filter(i => selectedItems.has(i.externalId))
-                    .reduce((acc, curr) => acc + curr.supplierCost, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {preview?.metadata?.executionTime ? `${(preview.metadata.executionTime / 1000).toFixed(1)}s` : '-'}
                 </CardTitle>
               </CardHeader>
             </Card>
