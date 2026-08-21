@@ -1,5 +1,12 @@
 # Changelog - PUB ECOM HUB
 
+## [1.6.2] - 2026-08-21
+### Adicionado
+- **Fase 2F.3 - Deploy e Prova Real**: 
+  - Resolvido problema de bundling do `playwright-core` no ambiente Cloudflare Workers usando `esbuild` customizado com exclusão de dependências `node:*` e `chromium-bidi`.
+  - Scripts de build e deploy dry-run validados com sucesso.
+  - Preparação para deploy real concluída (aguardando credenciais).
+
 ## [1.6.1] - 2026-08-21
 ### Adicionado
 - **Fase 2F.2 - Deploy do Catalog Worker**: Preparação técnica para o deploy na Cloudflare.
