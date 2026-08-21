@@ -1,5 +1,14 @@
 # Changelog - PUB ECOM HUB
 
+## [1.3.0] - 2026-08-21
+### Added
+- **Catalog Ingestion Engine**: Novo módulo para importação automática de produtos.
+- **Arquitetura de Adapters**: Implementados `ShopeeAdapter` e `MockAdapter`.
+- **Interface de Ingestão**: Nova página `CatalogIngestion` com fluxo de análise e preview.
+- **Pricing Service**: Lógica de cálculo de `basePricePub` (Markup de 30% sobre custo).
+- **Server Functions**: `analyzeCatalogFn` e `importProductsFn` para operações seguras.
+- Repositório `MasterProductRepository` estendido com método `upsert`.
+
 ## [1.2.0] - 2026-08-21
 ### Added
 - **Modelo de Domínio FASE 2A**: Introdução de `MasterProduct`, `StoreProduct`, `Wallets` e `OrderTracking`.
