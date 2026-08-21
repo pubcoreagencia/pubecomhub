@@ -144,7 +144,7 @@ function Index() {
         </div>
 
         <p className="text-center text-xs text-emerald-500/40 uppercase tracking-[0.2em]">
-          Debug: expose shopee shop base diagnostics
+          debug: materialize shopee shop resolution diagnostics
         </p>
       </div>
     </div>
