@@ -24,6 +24,7 @@ import { Route as StoreIndexRouteImport } from './routes/store/index'
 import { Route as StoreCheckoutRouteImport } from './routes/store/checkout'
 import { Route as StoreConfirmationRouteImport } from './routes/store/confirmation'
 import { Route as StoreProductRouteImport } from './routes/store/product'
+import { Route as PrototypeBDashboardIndexRouteImport } from './routes/prototype-b/dashboard/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -101,11 +102,17 @@ const StoreProductRoute = StoreProductRouteImport.update({
   path: '/store/product',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrototypeBDashboardIndexRoute =
+  PrototypeBDashboardIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => PrototypeBDashboardRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
-  '/prototype-b/dashboard': typeof PrototypeBDashboardRouteRoute
+  '/prototype-b/dashboard': typeof PrototypeBDashboardRouteRouteWithChildren
   '/dashboard/audience': typeof DashboardAudienceRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
   '/dashboard/live': typeof DashboardLiveRoute
@@ -118,10 +125,10 @@ export interface FileRoutesByFullPath {
   '/store/product': typeof StoreProductRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
+  '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/prototype-b/dashboard': typeof PrototypeBDashboardRouteRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
   '/dashboard/live': typeof DashboardLiveRoute
@@ -134,12 +141,13 @@ export interface FileRoutesByTo {
   '/store/product': typeof StoreProductRoute
   '/dashboard': typeof DashboardIndexRoute
   '/store': typeof StoreIndexRoute
+  '/prototype-b/dashboard': typeof PrototypeBDashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
-  '/prototype-b/dashboard': typeof PrototypeBDashboardRouteRoute
+  '/prototype-b/dashboard': typeof PrototypeBDashboardRouteRouteWithChildren
   '/dashboard/audience': typeof DashboardAudienceRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
   '/dashboard/live': typeof DashboardLiveRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/store/product': typeof StoreProductRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
+  '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -171,10 +180,10 @@ export interface FileRouteTypes {
     | '/store/product'
     | '/dashboard/'
     | '/store/'
+    | '/prototype-b/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/prototype-b/dashboard'
     | '/dashboard/audience'
     | '/dashboard/finance'
     | '/dashboard/live'
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/store/product'
     | '/dashboard'
     | '/store'
+    | '/prototype-b/dashboard'
   id:
     | '__root__'
     | '/'
@@ -204,12 +214,13 @@ export interface FileRouteTypes {
     | '/store/product'
     | '/dashboard/'
     | '/store/'
+    | '/prototype-b/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
-  PrototypeBDashboardRouteRoute: typeof PrototypeBDashboardRouteRoute
+  PrototypeBDashboardRouteRoute: typeof PrototypeBDashboardRouteRouteWithChildren
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreConfirmationRoute: typeof StoreConfirmationRoute
   StoreProductRoute: typeof StoreProductRoute
@@ -323,6 +334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreProductRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prototype-b/dashboard/': {
+      id: '/prototype-b/dashboard/'
+      path: '/'
+      fullPath: '/prototype-b/dashboard/'
+      preLoaderRoute: typeof PrototypeBDashboardIndexRouteImport
+      parentRoute: typeof PrototypeBDashboardRouteRoute
+    }
   }
 }
 
@@ -352,10 +370,24 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
   DashboardRouteRouteChildren,
 )
 
+interface PrototypeBDashboardRouteRouteChildren {
+  PrototypeBDashboardIndexRoute: typeof PrototypeBDashboardIndexRoute
+}
+
+const PrototypeBDashboardRouteRouteChildren: PrototypeBDashboardRouteRouteChildren =
+  {
+    PrototypeBDashboardIndexRoute: PrototypeBDashboardIndexRoute,
+  }
+
+const PrototypeBDashboardRouteRouteWithChildren =
+  PrototypeBDashboardRouteRoute._addFileChildren(
+    PrototypeBDashboardRouteRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
-  PrototypeBDashboardRouteRoute: PrototypeBDashboardRouteRoute,
+  PrototypeBDashboardRouteRoute: PrototypeBDashboardRouteRouteWithChildren,
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreConfirmationRoute: StoreConfirmationRoute,
   StoreProductRoute: StoreProductRoute,
