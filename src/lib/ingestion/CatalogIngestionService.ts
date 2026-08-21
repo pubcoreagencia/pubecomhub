@@ -62,7 +62,7 @@ export class CatalogIngestionService {
         basePricePub: item.basePricePub,
         status: 'active',
         isAvailable: true,
-        metadata: item.metadata || undefined
+        metadata: item.metadata ?? null
       });
     }
   }
