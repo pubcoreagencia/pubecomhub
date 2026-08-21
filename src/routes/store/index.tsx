@@ -78,38 +78,42 @@ function StoreHome() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden pt-12 pb-24 lg:pt-20 lg:pb-32 bg-slate-50">
-        <div className="container px-6 mx-auto max-w-[1400px] flex flex-col lg:flex-row items-center gap-16">
-          <div className="flex-1 text-center lg:text-left space-y-8 animate-in fade-in slide-in-from-left-8 duration-700">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white shadow-sm border border-slate-100">
-               <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
-               <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Novo Smartphone Pro Disponível</span>
+      <section className="relative overflow-hidden pt-12 pb-24 lg:pt-28 lg:pb-36 bg-slate-50">
+        <div className="container px-6 mx-auto max-w-[1400px] flex flex-col lg:flex-row items-center gap-20">
+          <div className="flex-1 text-center lg:text-left space-y-10 animate-in fade-in slide-in-from-left-8 duration-700">
+            <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white shadow-xl shadow-slate-200/50 border border-slate-100">
+               <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
+               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Novo Smartphone Pro Titanium</span>
             </div>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-slate-900 leading-[0.9]">
-              TECNOLOGIA <br/> 
-              <span className="text-primary">SEM LIMITES.</span>
+            <h1 className="text-6xl md:text-8xl lg:text-[100px] font-black tracking-tighter text-slate-900 leading-[0.85]">
+              POWER <br/> 
+              <span className="text-primary italic">UNLEASHED.</span>
             </h1>
-            <p className="text-lg md:text-xl text-slate-500 max-w-[600px] font-medium leading-relaxed">
-              Explore o futuro com dispositivos que redefinem o possível. Performance bruta e design impecável em suas mãos.
+            <p className="text-lg md:text-xl text-slate-500 max-w-[550px] font-bold leading-relaxed opacity-80">
+              Explore a nova fronteira da performance mobile com o dispositivo que está redefinindo os limites da tecnologia.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button size="lg" className="rounded-full px-10 h-14 text-base font-bold shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all gap-2 group">
-                Explorar Coleção <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <div className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start pt-4">
+              <Button size="lg" className="rounded-full px-12 h-16 text-base font-black uppercase tracking-widest shadow-2xl shadow-primary/30 hover:shadow-primary/40 transition-all gap-3 group hover:scale-[1.05]">
+                Comprar Agora <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1.5" />
               </Button>
-              <Button size="lg" variant="outline" className="rounded-full px-10 h-14 text-base font-bold border-slate-200 hover:bg-white transition-all">
+              <Button size="lg" variant="outline" className="rounded-full px-10 h-16 text-base font-black uppercase tracking-widest border-2 border-slate-200 hover:bg-white hover:border-slate-900 transition-all">
                 Ver Vídeo
               </Button>
             </div>
           </div>
           <div className="flex-1 w-full relative animate-in fade-in slide-in-from-right-8 duration-1000">
-             <div className="absolute -inset-4 bg-primary/10 rounded-full blur-3xl opacity-50" />
+             <div className="absolute -inset-10 bg-primary/20 rounded-full blur-[100px] opacity-40 animate-pulse" />
              <Link to="/store/product" className="relative block group">
-               <div className="overflow-hidden rounded-[2.5rem] shadow-2xl border-4 border-white transition-transform duration-500 group-hover:scale-[1.02]">
-                  <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1200" alt="Featured" className="object-cover w-full h-[600px]" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-12">
-                     <div className="bg-white/20 backdrop-blur-md p-6 rounded-2xl w-full text-white border border-white/20">
-                        <p className="text-xs font-bold uppercase tracking-widest mb-1">Destaque da Semana</p>
-                        <h3 className="text-2xl font-black">Smartphone Pro Titanium</h3>
+               <div className="overflow-hidden rounded-[4rem] shadow-[0_32px_64px_rgba(0,0,0,0.15)] border-8 border-white transition-all duration-700 group-hover:scale-[1.02] group-hover:shadow-2xl">
+                  <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1200" alt="Featured" className="object-cover w-full h-[650px] transition-transform duration-1000 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-16">
+                     <div className="bg-white/10 backdrop-blur-xl p-8 rounded-[2.5rem] w-full text-white border border-white/20 shadow-2xl">
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-70">Exclusividade PUB ECOM</p>
+                        <h3 className="text-3xl font-black tracking-tight leading-none">Smartphone Pro Titanium</h3>
+                        <div className="mt-6 flex items-center justify-between">
+                           <span className="text-2xl font-black">R$ 2.999,00</span>
+                           <Button className="rounded-full bg-white text-slate-900 hover:bg-white px-6 font-black uppercase tracking-widest text-[10px]">Shop Now</Button>
+                        </div>
                      </div>
                   </div>
                </div>
@@ -117,6 +121,7 @@ function StoreHome() {
           </div>
         </div>
       </section>
+
 
       {/* Benefits */}
       <section className="py-12 border-y border-slate-100 bg-white">
