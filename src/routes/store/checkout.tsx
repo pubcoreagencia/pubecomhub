@@ -108,7 +108,7 @@ function CheckoutPage() {
             </div>
             
             <div className="pt-4">
-              <Link to="/store/confirmation" onClick={() => clearCart()}>
+              <Link to="/store/confirmation">
                 <Button className="w-full h-20 text-lg font-black uppercase tracking-[0.2em] rounded-full shadow-2xl shadow-primary/20 hover:scale-[1.01] transition-all gap-3 group">
                   Finalizar Pagamento <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </Button>

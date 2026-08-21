@@ -1,8 +1,8 @@
 import { Store, Product, Supplier, Order, FinancialMetric } from '../types';
 
 export const mockStores: Store[] = [
-  { id: 's1', name: 'Loja Tech', subdomain: 'tech', ownerId: 'u1', createdAt: new Date().toISOString(), status: 'active' },
-  { id: 's2', name: 'Moda Fashion', subdomain: 'moda', ownerId: 'u2', createdAt: new Date().toISOString(), status: 'active' },
+  { id: 's1', name: 'Loja Tech', subdomain: 'tech', ownerId: 'u1', createdAt: '2026-01-01T12:00:00.000Z', status: 'active' },
+  { id: 's2', name: 'Moda Fashion', subdomain: 'moda', ownerId: 'u2', createdAt: '2026-01-02T12:00:00.000Z', status: 'active' },
 ];
 
 export const mockProducts: Product[] = [
@@ -17,7 +17,7 @@ export const mockSuppliers: Supplier[] = [
 
 export const mockOrders: Order[] = [
   {
-    id: 'ord1',
+    id: '1245',
     storeId: 's1',
     productId: 'p1',
     customerId: 'cust1',
@@ -27,8 +27,35 @@ export const mockOrders: Order[] = [
     tax: 150,
     discount: 100,
     status: 'delivered',
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    createdAt: '2026-08-20T14:30:00.000Z',
     influencerId: 'inf1'
+  },
+  {
+    id: '1246',
+    storeId: 's2',
+    productId: 'p2',
+    customerId: 'cust2',
+    amount: 499,
+    cost: 200,
+    shipping: 20,
+    tax: 25,
+    discount: 0,
+    status: 'shipped',
+    createdAt: '2026-08-20T16:45:00.000Z',
+  },
+  {
+    id: '1247',
+    storeId: 's1',
+    productId: 'p1',
+    customerId: 'cust3',
+    amount: 2999,
+    cost: 1500,
+    shipping: 50,
+    tax: 150,
+    discount: 300,
+    status: 'paid',
+    createdAt: '2026-08-21T09:15:00.000Z',
+    influencerId: 'inf2'
   },
 ];
 

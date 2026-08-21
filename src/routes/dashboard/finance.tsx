@@ -111,11 +111,11 @@ function FinancePage() {
                   <TableRow key={o.id} className="hover:bg-slate-50/50 transition-colors border-b-slate-50 last:border-0">
                     <TableCell className="font-bold pl-6 text-slate-900">#{o.id}</TableCell>
                     <TableCell className="text-slate-500 font-medium">Loja Tech</TableCell>
-                    <TableCell className="font-medium text-slate-900">R$ {o.amount.toFixed(2)}</TableCell>
-                    <TableCell className="text-rose-500 font-medium">-R$ {(o.cost + o.shipping + fees).toFixed(2)}</TableCell>
-                    <TableCell className="text-emerald-600 font-bold">R$ {net.toFixed(2)}</TableCell>
-                    <TableCell className="text-blue-600 font-bold">{inf > 0 ? `R$ ${inf.toFixed(2)}` : '-'}</TableCell>
-                    <TableCell className="font-black text-indigo-600 pr-6 text-right text-base">R$ {pub.toFixed(2)}</TableCell>
+                    <TableCell className="font-medium text-slate-900">R$ {o.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                    <TableCell className="text-rose-500 font-medium">-R$ {(o.cost + o.shipping + fees).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                    <TableCell className="text-emerald-600 font-bold">R$ {net.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                    <TableCell className="text-blue-600 font-bold">{inf > 0 ? `R$ ${inf.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}</TableCell>
+                    <TableCell className="font-black text-indigo-600 pr-6 text-right text-base">R$ {pub.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
                   </TableRow>
                 );
               })}

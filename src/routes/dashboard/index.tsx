@@ -4,6 +4,7 @@ import { mockOrders, calculateFinance } from '@/data/mock';
 import { DollarSign, ShoppingCart, Users, TrendingUp, ArrowUpRight, ArrowDownRight, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/dashboard/')({
@@ -64,7 +65,7 @@ function DashboardPage() {
               <m.icon className={cn("h-4 w-4", m.color)} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-900">R$ {m.value.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-slate-900">R$ {m.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
               <p className="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
                 {m.trend.includes('+') ? <ArrowUpRight className="h-3 w-3 text-emerald-500" /> : null}
                 {m.trend}
@@ -107,7 +108,7 @@ function DashboardPage() {
                     <p className="text-sm font-bold text-slate-900">Pedido #{order.id}</p>
                     <p className="text-xs text-slate-500">Loja Tech • Smartphone Pro</p>
                   </div>
-                  <div className="text-sm font-bold text-slate-900">+R$ {order.amount}</div>
+                  <div className="text-sm font-bold text-slate-900">+R$ {order.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                 </div>
               ))}
             </div>
@@ -118,14 +119,3 @@ function DashboardPage() {
   );
 }
 
-function Badge({ children, variant = 'default', className }: { children: React.ReactNode; variant?: 'default' | 'outline', className?: string }) {
-  return (
-    <span className={cn(
-      "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase",
-      variant === 'outline' ? "border text-slate-600" : "bg-primary text-white",
-      className
-    )}>
-      {children}
-    </span>
-  );
-}
