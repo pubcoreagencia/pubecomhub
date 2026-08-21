@@ -3,7 +3,7 @@ import { ShellB } from '@/prototype-b/components/ShellB';
 import { CardMetric, AcquisitionFunnel, HubTable } from '@/prototype-b/components/ui-b';
 
 export const Route = createFileRoute('/prototype-b/dashboard/')({
-  component: Dashboard,
+  component: () => <Dashboard />,
 });
 
 function Dashboard() {
@@ -37,10 +37,10 @@ function Dashboard() {
               ].map(row => (
                 <tr key={row.pos}>
                    <td className="px-5 py-4 font-black">{row.pos}</td>
-                   <td className="px-5 py-4 font-bold">{row.loja}</td>
+                   <td className="px-5 py-4 font-bold text-white">{row.loja}</td>
                    <td className="px-5 py-4 text-[var(--hub-muted)]">{row.mentor}</td>
-                   <td className="px-5 py-4">{row.pedidos}</td>
-                   <td className="px-5 py-4">{row.conv}</td>
+                   <td className="px-5 py-4 text-white">{row.pedidos}</td>
+                   <td className="px-5 py-4 text-white">{row.conv}</td>
                    <td className="px-5 py-4 font-bold text-[var(--hub-primary)]">{row.lucro}</td>
                 </tr>
               ))}
@@ -50,7 +50,7 @@ function Dashboard() {
         {/* Sidebar Widgets */}
         <div className="col-span-1 space-y-6">
           <AcquisitionFunnel />
-          <div className="hub-card p-6 h-[300px]">
+          <div className="hub-card p-6 min-h-[300px]">
              <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-white mb-6">Eventos em tempo real</h4>
              <div className="space-y-4">
                {['Pedido #10942 aprovado', 'Cliente iniciou checkout', 'Pagamento processado'].map((evt, i) => (
