@@ -36,13 +36,13 @@ export interface NormalizedProduct {
   externalId: string;
   sourceUrl: string;
   title: string;
-  description?: string;
+  description?: string | null;
   supplierCost: number;
   basePricePub: number;
   sku: string;
   images: string[];
-  category?: string;
-  metadata?: Record<string, any>;
+  category?: string | null;
+  metadata?: Record<string, any> | null;
 }
 
 export interface SupplierImport {
