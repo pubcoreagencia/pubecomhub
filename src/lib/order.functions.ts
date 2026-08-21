@@ -24,7 +24,7 @@ export const createOrderFn = createServerFn({ method: "POST" })
     const order = await orderRepository.create({
       storeId: data.storeId,
       customerId: data.customerId,
-      productId: data.productId,
+      productId: data.productId ?? null,
       amount: data.amount,
       cost: data.cost,
       shipping: data.shipping,
