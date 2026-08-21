@@ -60,7 +60,7 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - **Ingestion Engine**: Arquitetura baseada em Adapters e Services para expansão multi-fonte.
 - **Fase 2E - Worker Externo**: Implementação de ponte para Cloudflare Browser Run para superar bloqueios de scraping (403) no ambiente local.
 - **Fase 2F - PUB ECOM Catalog Worker**: Criação do projeto independente `catalog-worker/` com suporte nativo a Browser Run.
-- **Fase 2F.3 - Deploy e Prova Real**: Pipeline de build e deploy dry-run validado com sucesso usando esbuild e wrangler. Deploy real bloqueado por falta de autenticação Cloudflare no sandbox.
+- **Fase 2F.4 - Autenticação e Deploy Real**: Infraestrutura validada (build/bundle), mas o deploy real está bloqueado pela ausência de `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` no ambiente.
 - **Integração Planejada**: 
 
 
