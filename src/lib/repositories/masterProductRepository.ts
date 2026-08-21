@@ -5,6 +5,7 @@ export interface IMasterProductRepository {
   getAll(): Promise<MasterProduct[]>;
   getById(id: string): Promise<MasterProduct | null>;
   getBySupplier(supplierId: string): Promise<MasterProduct[]>;
+  upsert(product: Omit<MasterProduct, 'id' | 'created_at'>): Promise<MasterProduct>;
 }
 
 export class MasterProductRepository implements IMasterProductRepository {
@@ -46,6 +47,34 @@ export class MasterProductRepository implements IMasterProductRepository {
 
     if (error) throw error;
     return (data || []).map(this.mapDbToType);
+  }
+
+  async upsert(product: Omit<MasterProduct, 'id' | 'created_at'>): Promise<MasterProduct> {
+    if (this.useMock) {
+      console.log('Mock upsert:', product);
+      return { ...product, id: Math.random().toString(36).substr(2, 9), created_at: new Date().toISOString() } as MasterProduct;
+    }
+
+    const { data, error } = await supabase
+      .from('master_products')
+      .upsert({
+        supplier_id: product.supplierId,
+        sku: product.sku,
+        name: product.name,
+        description: product.description,
+        image_url: product.imageUrl,
+        category: product.category,
+        supplier_cost: product.supplierCost,
+        base_price_pub: product.basePricePub,
+        status: product.status,
+        is_available: product.isAvailable,
+        metadata: product.metadata
+      }, { onConflict: 'sku' }) // Supondo SKU único
+      .select()
+      .single();
+
+    if (error) throw error;
+    return this.mapDbToType(data);
   }
 
   private mapDbToType(db: any): MasterProduct {
