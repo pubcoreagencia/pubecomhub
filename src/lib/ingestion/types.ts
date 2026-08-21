@@ -22,27 +22,27 @@ export interface RawProduct {
   externalId: string;
   url: string;
   title: string;
-  description?: string;
+  description?: string | null;
   price: number;
-  originalPrice?: number;
-  stock?: number;
-  sku?: string;
+  originalPrice?: number | null;
+  stock?: number | null;
+  sku?: string | null;
   images: string[];
-  category?: string;
-  metadata?: Record<string, any>;
+  category?: string | null;
+  metadata?: Record<string, any> | null;
 }
 
 export interface NormalizedProduct {
   externalId: string;
   sourceUrl: string;
   title: string;
-  description?: string | null;
+  description: string | null;
   supplierCost: number;
   basePricePub: number;
   sku: string;
   images: string[];
-  category?: string | null;
-  metadata?: Record<string, any> | null;
+  category: string | null;
+  metadata: Record<string, any> | null;
 }
 
 export interface SupplierImport {
@@ -50,14 +50,14 @@ export interface SupplierImport {
   supplierId: string;
   sourceUrl: string;
   startedAt: string;
-  finishedAt?: string;
+  finishedAt?: string | null;
   totalFound: number;
   imported: number;
   updated: number;
   duplicated: number;
   failed: number;
   status: ImportStatus;
-  errorSummary?: string;
+  errorSummary?: string | null;
 }
 
 export interface SupplierImportItem {
@@ -66,7 +66,7 @@ export interface SupplierImportItem {
   rawExternalId: string;
   normalizedData: NormalizedProduct;
   status: 'pending' | 'approved' | 'rejected' | 'completed' | 'failed';
-  errorMessage?: string;
+  errorMessage?: string | null;
 }
 
 export interface ImportPreview {

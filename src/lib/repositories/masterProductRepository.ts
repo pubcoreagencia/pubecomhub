@@ -61,14 +61,14 @@ export class MasterProductRepository implements IMasterProductRepository {
         supplier_id: product.supplierId,
         sku: product.sku,
         name: product.name,
-        description: product.description,
-        image_url: product.imageUrl,
-        category: product.category,
+        description: product.description ?? null,
+        image_url: product.imageUrl ?? null,
+        category: product.category ?? null,
         supplier_cost: product.supplierCost,
         base_price_pub: product.basePricePub,
         status: product.status,
         is_available: product.isAvailable,
-        metadata: product.metadata
+        metadata: (product.metadata as any) ?? null
       }, { onConflict: 'sku' }) // Supondo SKU único
       .select()
       .single();
@@ -83,14 +83,14 @@ export class MasterProductRepository implements IMasterProductRepository {
       supplierId: db.supplier_id,
       sku: db.sku,
       name: db.name,
-      description: db.description ?? undefined,
-      imageUrl: db.image_url ?? undefined,
-      category: db.category ?? undefined,
+      description: db.description ?? null,
+      imageUrl: db.image_url ?? null,
+      category: db.category ?? null,
       supplierCost: Number(db.supplier_cost),
       basePricePub: Number(db.base_price_pub),
       status: db.status as 'active' | 'inactive',
       isAvailable: db.is_available,
-      metadata: db.metadata ?? undefined,
+      metadata: db.metadata ?? null,
       created_at: db.created_at,
     };
   }

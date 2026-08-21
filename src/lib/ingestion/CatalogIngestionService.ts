@@ -25,19 +25,16 @@ export class CatalogIngestionService {
       externalId: raw.externalId,
       sourceUrl: raw.url,
       title: raw.title,
-      description: raw.description,
+      description: raw.description ?? null,
       supplierCost: raw.price,
       basePricePub: PricingService.calculatePubBasePrice(raw.price),
       sku: raw.sku || `SKU-${raw.externalId}`,
       images: raw.images,
-      category: raw.category,
-      metadata: raw.metadata
+      category: raw.category ?? null,
+      metadata: raw.metadata ?? null
     }));
 
     // Simular identificação de novos vs duplicados
-    // Na fase real, consultaríamos o MasterProductRepository
-    const existingSkus = new Set<string>(); // Mock logic for now
-
     return {
       supplierName: "Fornecedor Detectado",
       sourceUrl: url,
@@ -54,9 +51,19 @@ export class CatalogIngestionService {
     console.log(`Importing ${items.length} products for supplier ${supplierId}`);
     
     for (const item of items) {
-      // Aqui chamaríamos masterProductRepository.upsert
-      // que precisa ser implementado ou estendido
-      console.log(`Saving MasterProduct: ${item.title} (SKU: ${item.sku})`);
+      await masterProductRepository.upsert({
+        supplierId,
+        sku: item.sku,
+        name: item.title,
+        description: item.description,
+        imageUrl: item.images[0],
+        category: item.category,
+        supplierCost: item.supplierCost,
+        basePricePub: item.basePricePub,
+        status: 'active',
+        isAvailable: true,
+        metadata: item.metadata || undefined
+      });
     }
   }
 }
