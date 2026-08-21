@@ -6,7 +6,7 @@ export const Route = createFileRoute("/")({
     // For the prototype, we want to show the instructions page if visited directly,
     // but the actual "app" is the dashboard/store.
     // Let's redirect to dashboard by default as per existing logic.
-    throw redirect({ to: "/prototype-b/dashboard" });
+    throw redirect({ to: "/dashboard" });
   },
 });
 

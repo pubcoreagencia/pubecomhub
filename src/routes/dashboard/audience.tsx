@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { ShellB } from '@/prototype-b/components/ShellB';
-import { CardMetric, HubTable } from '@/prototype-b/components/ui-b';
+import { Shell } from '@/components/layout/Shell';
+import { CardMetric, HubTable } from '@/components/ui-b';
 import { Target, Users, Zap, RefreshCcw, UserPlus, UserCheck, ShoppingCart, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,7 +18,7 @@ function AudienceEngineB() {
   ];
 
   return (
-    <ShellB>
+    <Shell>
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex flex-col gap-2">
@@ -64,6 +64,6 @@ function AudienceEngineB() {
             ))}
         </div>
       </div>
-    </ShellB>
+    </Shell>
   );
 }

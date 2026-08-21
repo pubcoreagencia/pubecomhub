@@ -6,15 +6,15 @@ import {
   Plus, 
   ArrowUpRight
 } from 'lucide-react';
-import { ShellB } from '@/prototype-b/components/ShellB';
+import { Shell } from '@/components/layout/Shell';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/dashboard/bonifications')({
   component: () => (
-    <ShellB>
+    <Shell>
       <BonificationsDashboardB />
-    </ShellB>
+    </Shell>
   )
 });
 

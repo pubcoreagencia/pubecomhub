@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { mockProducts } from '../../../prototype-b/data/mock';
+import { mockProducts } from '@/data/mock';
 
 export const Route = createFileRoute('/store/cart')({
   component: StorefrontCartB

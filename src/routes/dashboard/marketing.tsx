@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { ShellB } from '@/prototype-b/components/ShellB';
-import { CardMetric } from '@/prototype-b/components/ui-b';
+import { Shell } from '@/components/layout/Shell';
+import { CardMetric } from '@/components/ui-b';
 import { 
   Users, MousePointer2, BarChart2, Megaphone, Target, 
   Search, Filter 
@@ -15,7 +15,7 @@ export const Route = createFileRoute('/dashboard/marketing')({
 
 function MarketingB() {
   return (
-    <ShellB>
+    <Shell>
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <CardMetric 
@@ -91,7 +91,7 @@ function MarketingB() {
           </div>
         </div>
       </div>
-    </ShellB>
+    </Shell>
   );
 }
 

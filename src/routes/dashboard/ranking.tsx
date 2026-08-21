@@ -11,16 +11,16 @@ import {
   Crown,
   ChevronRight
 } from 'lucide-react';
-import { ShellB } from '@/prototype-b/components/ShellB';
-import { CardMetric } from '@/prototype-b/components/ui-b';
+import { Shell } from '@/components/layout/Shell';
+import { CardMetric } from '@/components/ui-b';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/dashboard/ranking')({
   component: () => (
-    <ShellB>
+    <Shell>
       <RankingDashboardB />
-    </ShellB>
+    </Shell>
   )
 });
 

@@ -1,4 +1,4 @@
-import FinancePageB from '@/prototype-b/pages/FinancePageB';
+import FinancePageB from '@/pages/dashboard/FinancePageB';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/dashboard/finance')({

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { ShellB } from '@/prototype-b/components/ShellB';
-import { HubTable, CardMetric } from '@/prototype-b/components/ui-b';
+import { Shell } from '@/components/layout/Shell';
+import { HubTable, CardMetric } from '@/components/ui-b';
 import { Box, Package, Truck, AlertTriangle, Search, Filter, Plus, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,7 @@ export const Route = createFileRoute('/dashboard/products')({
 
 function ProductsB() {
   return (
-    <ShellB>
+    <Shell>
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
            <div className="space-y-1">
@@ -110,7 +110,7 @@ function ProductsB() {
            </HubTable>
         </div>
       </div>
-    </ShellB>
+    </Shell>
   );
 }
 

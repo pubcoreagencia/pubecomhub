@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ShellB } from '@/prototype-b/components/ShellB';
-import { CardMetric, AcquisitionFunnel, HubTable } from '@/prototype-b/components/ui-b';
+import { Shell } from '@/components/layout/Shell';
+import { CardMetric, AcquisitionFunnel, HubTable } from '@/components/ui-b';
 import { 
   Users, 
   ShoppingCart, 
@@ -19,7 +19,7 @@ export const Route = createFileRoute('/dashboard/live')({
 
 function LiveShopB() {
   return (
-    <ShellB>
+    <Shell>
       <div className="space-y-6">
         {/* Real-time Header Metrics */}
         <div className="grid grid-cols-4 gap-6">
@@ -119,6 +119,6 @@ function LiveShopB() {
           </div>
         </div>
       </div>
-    </ShellB>
+    </Shell>
   );
 }

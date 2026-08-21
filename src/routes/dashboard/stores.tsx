@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { ShellB } from '@/prototype-b/components/ShellB';
-import { HubTable } from '@/prototype-b/components/ui-b';
+import { Shell } from '@/components/layout/Shell';
+import { HubTable } from '@/components/ui-b';
 import { Plus, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -10,7 +10,7 @@ export const Route = createFileRoute('/dashboard/stores')({
 
 function StoresB() {
   return (
-    <ShellB>
+    <Shell>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
            <div className="flex items-center gap-4">
@@ -52,6 +52,6 @@ function StoresB() {
           ))}
         </HubTable>
       </div>
-    </ShellB>
+    </Shell>
   );
 }

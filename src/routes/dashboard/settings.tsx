@@ -12,16 +12,16 @@ import {
   Check,
   ChevronRight
 } from 'lucide-react';
-import { ShellB } from '@/prototype-b/components/ShellB';
+import { Shell } from '@/components/layout/Shell';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/dashboard/settings')({
   component: () => (
-    <ShellB>
+    <Shell>
       <SettingsDashboardB />
-    </ShellB>
+    </Shell>
   )
 });
 

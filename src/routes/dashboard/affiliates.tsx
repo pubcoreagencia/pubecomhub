@@ -7,16 +7,16 @@ import {
   Zap, 
   Settings
 } from 'lucide-react';
-import { ShellB } from '@/prototype-b/components/ShellB';
-import { HubTable, CardMetric } from '@/prototype-b/components/ui-b';
+import { Shell } from '@/components/layout/Shell';
+import { HubTable, CardMetric } from '@/components/ui-b';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/dashboard/affiliates')({
   component: () => (
-    <ShellB>
+    <Shell>
       <AffiliatesDashboardB />
-    </ShellB>
+    </Shell>
   )
 });
 
