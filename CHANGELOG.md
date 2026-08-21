@@ -1,8 +1,17 @@
 # Changelog - PUB ECOM HUB
 
+## [1.1.0] - 2026-08-21
+### Added
+- Configuração do banco de dados Lovable Cloud (Supabase).
+- Migração inicial com tabelas: `profiles`, `stores`, `suppliers`, `products`, `customers`, `orders`, `commissions`, `financial_transactions`.
+- Camada de Repositórios real (`orderRepository`, `storeRepository`, `productRepository`) com suporte a Mock fallback.
+- Interfaces de repositório em `src/types/index.ts`.
+- Server Functions em `src/lib/order.functions.ts`.
+
 ## [1.0.1] - 2026-08-21
 ### Added
 - Validação de TypeScript concluída sem erros.
+
 - Build de produção concluído com sucesso.
 
 ### Changed
