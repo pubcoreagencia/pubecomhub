@@ -53,3 +53,4 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - **Fundação de Dados**: Criada camada de persistência real sem quebrar o frontend.
 - **Independência**: Produto independente PUB ECOM HUB (pubcoreagencia/pubecomhub).
 - **Ingestion Engine**: Arquitetura baseada em Adapters e Services para expansão multi-fonte.
+- **Shopee Adapter**: Implementação inicial de descoberta de produtos via extração de ShopID e preparação para automação server-side.

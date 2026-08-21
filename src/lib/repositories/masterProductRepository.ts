@@ -1,58 +1,43 @@
-import { MasterProduct } from '@/types';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
+import { MasterProduct } from "@/types";
 
-export interface IMasterProductRepository {
-  getAll(): Promise<MasterProduct[]>;
-  getById(id: string): Promise<MasterProduct | null>;
-  getBySupplier(supplierId: string): Promise<MasterProduct[]>;
-  upsert(product: Omit<MasterProduct, 'id' | 'created_at'>): Promise<MasterProduct>;
-}
-
-export class MasterProductRepository implements IMasterProductRepository {
-  private useMock = true;
-
-  async getAll(): Promise<MasterProduct[]> {
-    if (this.useMock) {
-      return []; // To be filled with mocks if needed
-    }
-
-    const { data, error } = await supabase
-      .from('master_products')
-      .select('*');
-
-    if (error) throw error;
-    return (data || []).map(this.mapDbToType);
-  }
-
-  async getById(id: string): Promise<MasterProduct | null> {
-    if (this.useMock) return null;
-
+export class MasterProductRepository {
+  async findAll(): Promise<MasterProduct[]> {
     const { data, error } = await supabase
       .from('master_products')
       .select('*')
-      .eq('id', id)
-      .single();
+      .order('created_at', { ascending: false });
 
-    if (error) return null;
-    return this.mapDbToType(data);
+    if (error) throw error;
+    return (data || []).map(this.mapToEntity);
   }
 
-  async getBySupplier(supplierId: string): Promise<MasterProduct[]> {
-    if (this.useMock) return [];
-
+  async findBySku(sku: string): Promise<MasterProduct | null> {
     const { data, error } = await supabase
       .from('master_products')
       .select('*')
-      .eq('supplier_id', supplierId);
+      .eq('sku', sku)
+      .maybeSingle();
 
     if (error) throw error;
-    return (data || []).map(this.mapDbToType);
+    return data ? this.mapToEntity(data) : null;
   }
 
-  async upsert(product: Omit<MasterProduct, 'id' | 'created_at'>): Promise<MasterProduct> {
-    if (this.useMock) {
-      console.log('Mock upsert:', product);
-      return { ...product, id: Math.random().toString(36).substr(2, 9), created_at: new Date().toISOString() } as MasterProduct;
+  async findByExternalId(externalId: string, supplierId: string): Promise<MasterProduct | null> {
+    const { data, error } = await supabase
+      .from('master_products')
+      .select('*')
+      .eq('metadata->>external_id', externalId)
+      .eq('supplier_id', supplierId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data ? this.mapToEntity(data) : null;
+  }
+
+  async upsert(product: Partial<MasterProduct>): Promise<MasterProduct> {
+    if (!product.supplierId || !product.sku || !product.name) {
+      throw new Error("Missing required fields for MasterProduct upsert");
     }
 
     const { data, error } = await supabase
@@ -61,37 +46,39 @@ export class MasterProductRepository implements IMasterProductRepository {
         supplier_id: product.supplierId,
         sku: product.sku,
         name: product.name,
-        description: product.description ?? null,
-        image_url: product.imageUrl ?? null,
-        category: product.category ?? null,
-        supplier_cost: product.supplierCost,
-        base_price_pub: product.basePricePub,
-        status: product.status,
-        is_available: product.isAvailable,
-        metadata: (product.metadata as any) ?? null
-      }, { onConflict: 'sku' }) // Supondo SKU único
+        description: product.description || null,
+        image_url: product.imageUrl || null,
+        category: product.category || null,
+        supplier_cost: product.supplierCost || 0,
+        base_price_pub: product.basePricePub || 0,
+        status: product.status || 'active',
+        is_available: product.isAvailable ?? true,
+        metadata: product.metadata || null
+      }, {
+        onConflict: 'sku'
+      })
       .select()
       .single();
 
     if (error) throw error;
-    return this.mapDbToType(data);
+    return this.mapToEntity(data);
   }
 
-  private mapDbToType(db: any): MasterProduct {
+  private mapToEntity(row: any): MasterProduct {
     return {
-      id: db.id,
-      supplierId: db.supplier_id,
-      sku: db.sku,
-      name: db.name,
-      description: db.description ?? null,
-      imageUrl: db.image_url ?? null,
-      category: db.category ?? null,
-      supplierCost: Number(db.supplier_cost),
-      basePricePub: Number(db.base_price_pub),
-      status: db.status as 'active' | 'inactive',
-      isAvailable: db.is_available,
-      metadata: db.metadata ?? null,
-      created_at: db.created_at,
+      id: row.id,
+      supplierId: row.supplier_id,
+      sku: row.sku,
+      name: row.name,
+      description: row.description,
+      imageUrl: row.image_url,
+      category: row.category,
+      supplierCost: Number(row.supplier_cost),
+      basePricePub: Number(row.base_price_pub),
+      status: row.status,
+      isAvailable: row.is_available,
+      metadata: row.metadata,
+      created_at: row.created_at
     };
   }
 }
