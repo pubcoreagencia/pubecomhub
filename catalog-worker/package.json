@@ -1,0 +1,12 @@
+{
+  "name": "pub-ecom-catalog-worker",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240821.0",
+    "wrangler": "^3.72.0"
+  },
+  "dependencies": {
+    "@cloudflare/playwright": "^0.0.1"
+  },
+  "private": true
+}
