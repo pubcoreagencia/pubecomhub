@@ -2,81 +2,76 @@ import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { 
   Gift, 
-  TrendingUp, 
   Users, 
   Plus, 
-  Search, 
-  Filter, 
-  Star,
-  Award,
-  Zap,
   ArrowUpRight
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ShellB } from '@/prototype-b/components/ShellB';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/prototype-b/dashboard/bonifications')({
-  component: BonificationsDashboardB
+  component: () => (
+    <ShellB>
+      <BonificationsDashboardB />
+    </ShellB>
+  )
 });
 
 function BonificationsDashboardB() {
   const bonuses = [
-    { title: "Top Performance Mensal", target: "100 Vendas", reward: "Bônus R$ 5.000", recipients: 3, status: "Active" },
-    { title: "Lançamento Titanium", target: "50 Vendas / 24h", reward: "Comissão Extra 5%", recipients: 12, status: "Active" },
-    { title: "Fidelidade Semestral", target: "6 Meses Ativo", reward: "Selo Platinum VIP", recipients: 24, status: "Active" }
+    { title: "Top Performance Mensal", target: "100 Vendas", reward: "R$ 5.000,00", recipients: 3 },
+    { title: "Lançamento Titanium", target: "50 Vendas / 24h", reward: "Extra 5%", recipients: 12 },
+    { title: "Fidelidade Semestral", target: "6 Meses Ativo", reward: "Platinum VIP", recipients: 24 }
   ];
 
   return (
-    <div className="space-y-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black tracking-tighter text-slate-900">Bonificações</h1>
-          <p className="text-slate-500 font-bold">Gamificação e incentivos para parceiros e afiliados.</p>
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Gamificação & Incentivos</h2>
+          <p className="text-[var(--hub-muted)] text-[9px] font-bold uppercase tracking-[0.3em]">PUB ECOM Bonifications Engine</p>
         </div>
-        <Button className="rounded-2xl font-black text-xs uppercase tracking-widest px-8 h-12 shadow-xl shadow-primary/20">
-          Nova Regra <Plus className="ml-2 h-4 w-4" />
+        <Button className="h-10 hub-bg-primary hover:opacity-90 text-black text-[10px] font-black uppercase tracking-[0.2em] px-6 shadow-lg shadow-[var(--hub-primary)]/20 rounded-xl">
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Regra
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {bonuses.map((b, i) => (
-          <Card key={i} className="group rounded-[40px] border-none ring-1 ring-slate-100 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden bg-white">
-            <CardContent className="p-10 text-center flex flex-col items-center">
-              <div className="h-20 w-20 rounded-[30px] bg-slate-50 flex items-center justify-center mb-6 group-hover:bg-primary/10 transition-colors">
-                <Gift className="h-10 w-10 text-primary group-hover:scale-110 transition-transform" />
-              </div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tighter uppercase leading-tight mb-2">{b.title}</h3>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 italic">{b.target}</p>
-              
-              <div className="w-full bg-slate-50 rounded-2xl p-6 mb-8 border border-slate-100">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Recompensa</p>
-                <p className="text-2xl font-black text-emerald-600 tracking-tighter italic">{b.reward}</p>
-              </div>
+          <div key={i} className="hub-card hub-gradient-border p-10 text-center flex flex-col items-center group bg-black/20">
+            <div className="h-16 w-16 rounded-2xl bg-black/40 border border-[var(--hub-border)] flex items-center justify-center mb-6 group-hover:border-[var(--hub-primary)]/40 transition-all">
+              <Gift className="h-8 w-8 text-[var(--hub-primary)] group-hover:scale-110 transition-transform" />
+            </div>
+            <h3 className="text-xl font-black text-white tracking-tighter uppercase mb-2 italic leading-tight">{b.title}</h3>
+            <p className="text-[9px] font-black text-[var(--hub-muted)] uppercase tracking-[0.2em] mb-6 italic opacity-60">{b.target}</p>
+            
+            <div className="w-full bg-black/40 rounded-xl p-6 mb-8 border border-[var(--hub-border)] border-dashed">
+              <p className="text-[9px] font-black text-[var(--hub-muted)] uppercase tracking-widest mb-1 italic">Recompensa</p>
+              <p className="text-2xl font-black text-[var(--hub-primary)] tracking-tighter italic">{b.reward}</p>
+            </div>
 
-              <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                <Users className="h-4 w-4" /> {b.recipients} Parceiros Qualificados
-              </div>
-            </CardContent>
-          </Card>
+            <div className="flex items-center gap-2 text-[9px] font-black text-[var(--hub-muted)] uppercase tracking-[0.2em]">
+              <Users className="h-3 w-3" /> {b.recipients} Parceiros Qualificados
+            </div>
+          </div>
         ))}
       </div>
 
-      <Card className="rounded-[32px] border-none ring-1 ring-slate-100 shadow-sm overflow-hidden bg-slate-900 text-white p-10">
+      <div className="hub-card hub-gradient-border bg-black/40 border-[var(--hub-primary)]/20 p-10 mt-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="space-y-4 text-center md:text-left">
-            <h2 className="text-3xl font-black tracking-tighter uppercase leading-tight">Gamificação Titanium Engine</h2>
-            <p className="text-slate-400 font-bold max-w-xl leading-relaxed">
-              Aumente o engajamento da sua rede criando desafios automáticos com recompensas em tempo real.
+            <h2 className="text-3xl font-black text-white tracking-tighter uppercase leading-tight italic">Titanium Engine</h2>
+            <p className="text-[var(--hub-muted)] text-sm font-bold max-w-xl leading-relaxed italic">
+              Aumente o engajamento da sua rede criando desafios automáticos com recompensas em tempo real direto na Central Financeira.
             </p>
           </div>
-          <Button className="rounded-2xl font-black text-xs uppercase tracking-widest px-10 h-14 shadow-2xl shadow-primary/20 bg-primary hover:scale-105 transition-transform">
-            Ver Configurações Avançadas <ArrowUpRight className="ml-2 h-4 w-4" />
+          <Button className="h-12 rounded-xl hub-bg-primary text-black font-black text-[10px] uppercase tracking-[0.3em] px-10 shadow-2xl shadow-[var(--hub-primary)]/20 hover:scale-105 transition-all">
+            Ver Configurações <ArrowUpRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
