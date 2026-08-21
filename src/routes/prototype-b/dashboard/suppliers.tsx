@@ -5,21 +5,22 @@ import {
   Search, 
   Filter, 
   Globe, 
-  Mail, 
-  Phone, 
   Package, 
   Truck,
   Star,
   ExternalLink
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ShellB } from '@/prototype-b/components/ShellB';
+import { HubTable } from '@/prototype-b/components/ui-b';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/prototype-b/dashboard/suppliers')({
-  component: SuppliersDashboardB
+  component: () => (
+    <ShellB>
+      <SuppliersDashboardB />
+    </ShellB>
+  )
 });
 
 function SuppliersDashboardB() {
@@ -43,77 +44,75 @@ function SuppliersDashboardB() {
   ];
 
   return (
-    <div className="space-y-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black tracking-tighter text-slate-900">Fornecedores</h1>
-          <p className="text-slate-500 font-bold">Gestão de parceiros e cadeia de suprimentos.</p>
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Cadeia de Suprimentos</h2>
+          <p className="text-[var(--hub-muted)] text-[9px] font-bold uppercase tracking-[0.3em]">Gestão de Parceiros & Logística Global</p>
         </div>
-        <Button className="rounded-2xl font-black text-xs uppercase tracking-widest px-8 h-12 shadow-xl shadow-primary/20">
-          Novo Fornecedor <Plus className="ml-2 h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-black/40 px-4 py-2.5 rounded-xl border border-[var(--hub-border)] group focus-within:border-[var(--hub-primary)] transition-all w-64">
+            <Search className="h-4 w-4 text-[var(--hub-muted)] group-focus-within:text-[var(--hub-primary)]" />
+            <input 
+              type="text" 
+              placeholder="Buscar fornecedor..." 
+              className="bg-transparent border-none text-[11px] font-bold text-white focus:outline-none w-full placeholder:text-[var(--hub-muted)] uppercase tracking-wider"
+            />
+          </div>
+          <Button className="h-10 hub-bg-primary hover:opacity-90 text-black text-[10px] font-black uppercase tracking-[0.2em] px-6 shadow-lg shadow-[var(--hub-primary)]/20 rounded-xl">
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Parceiro
+          </Button>
+        </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input 
-            placeholder="Buscar por nome, categoria ou localização..." 
-            className="pl-12 h-14 rounded-2xl border-none ring-1 ring-slate-100 bg-white font-bold text-sm shadow-sm"
-          />
-        </div>
-        <Button variant="outline" className="rounded-2xl h-14 px-8 font-black text-[10px] uppercase tracking-widest border-none ring-1 ring-slate-100 bg-white shadow-sm">
-          Filtros <Filter className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {suppliers.map((s, i) => (
-          <Card key={i} className="group rounded-[40px] border-none ring-1 ring-slate-100 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden bg-white flex flex-col md:flex-row">
+          <div key={i} className="hub-card hub-gradient-border group overflow-hidden flex flex-col md:flex-row">
             <div className="w-full md:w-48 h-48 relative overflow-hidden shrink-0">
               <img 
                 src={s.image} 
                 alt={s.name} 
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-60 group-hover:opacity-100"
               />
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
+              <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors" />
             </div>
             
-            <CardContent className="p-8 flex-1">
+            <div className="p-8 flex-1 flex flex-col justify-between bg-black/20">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <div className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">
+                  <div className="flex items-center gap-2 text-[9px] font-black text-[var(--hub-primary)] uppercase tracking-[0.2em] mb-1">
                     <Globe className="h-3 w-3" /> {s.location}
                   </div>
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-tight">{s.name}</h3>
+                  <h3 className="text-2xl font-black text-white tracking-tighter uppercase leading-tight italic">{s.name}</h3>
                 </div>
-                <div className="flex items-center gap-1 bg-slate-50 px-3 py-1 rounded-full">
-                  <Star className="h-3 w-3 fill-current text-yellow-400" />
-                  <span className="text-[10px] font-black">{s.rating}</span>
+                <div className="flex items-center gap-1 bg-black/40 border border-[var(--hub-border)] px-3 py-1 rounded-lg">
+                  <Star className="h-3 w-3 fill-current text-[var(--hub-primary)]" />
+                  <span className="text-[10px] font-black text-white">{s.rating}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-6 mb-8">
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Categoria</p>
-                  <p className="text-sm font-black text-slate-700">{s.category}</p>
+                  <p className="text-[9px] font-black text-[var(--hub-muted)] uppercase tracking-[0.2em] mb-1 italic opacity-60">Categoria</p>
+                  <p className="text-xs font-black text-white uppercase tracking-wider">{s.category}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Total Pedidos</p>
-                  <p className="text-sm font-black text-slate-700">{s.orders.toLocaleString()}</p>
+                  <p className="text-[9px] font-black text-[var(--hub-muted)] uppercase tracking-[0.2em] mb-1 italic opacity-60">Total Pedidos</p>
+                  <p className="text-xs font-black text-white italic">{s.orders.toLocaleString()}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <Button className="flex-1 rounded-xl font-black text-[10px] uppercase tracking-widest h-10 shadow-lg shadow-primary/10">
+                <Button className="flex-1 rounded-lg font-black text-[9px] uppercase tracking-[0.2em] h-10 border border-[var(--hub-border)] bg-white/5 text-white hover:bg-white/10 transition-all">
                   Ver Catálogo <Package className="ml-2 h-3 w-3" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-50 border-none ring-1 ring-slate-100">
-                  <ExternalLink className="h-4 w-4 text-slate-400" />
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg hover:bg-white/5 border border-[var(--hub-border)] text-[var(--hub-muted)] hover:text-white transition-all">
+                  <ExternalLink className="h-4 w-4" />
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
     </div>
