@@ -8,6 +8,8 @@
 - **Pricing Service**: Lógica de cálculo de `basePricePub` (Markup de 30% sobre custo).
 - **Server Functions**: `analyzeCatalogFn` e `importProductsFn` para operações seguras.
 - Repositório `MasterProductRepository` estendido com método `upsert`.
+- **Fase 2B**: Implementação do `ShopeeAdapter` real com lógica de extração de ShopID, paginação teórica e tratamento de erros.
+- Deduplicação real baseada em SKU no `CatalogIngestionService`.
 
 ## [1.2.0] - 2026-08-21
 ### Added
