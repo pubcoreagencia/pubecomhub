@@ -30,7 +30,7 @@ export const calculateSaleMargins = (gross: number, cost: number, shipping: numb
   };
 };
 
-export const mockFinancialMetric = {
+export const mockFinancialSummary = {
   total_revenue: 1842900,
   total_net_profit: 536800,
   total_influencer_payout: 268400,
