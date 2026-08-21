@@ -32,74 +32,86 @@ function FinancePage() {
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Central Financeira</h2>
-          <p className="text-slate-500 text-sm">Gestão de margens, custos e repasses da operação.</p>
+          <h2 className="text-3xl font-black tracking-tighter text-slate-900 leading-none">Central Financeira</h2>
+          <p className="text-slate-500 text-sm mt-2 font-medium">Gestão de margens, custos e repasses da operação centralizada.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="gap-2 rounded-full border-slate-200">
-            <Calendar className="h-3.5 w-3.5 text-slate-400" />
-            <span>Este Mês</span>
+          <Button variant="outline" size="sm" className="gap-2 rounded-full border-slate-200 font-bold text-[10px] uppercase tracking-widest px-6 h-11 bg-white">
+            <Calendar className="h-4 w-4 text-slate-400" />
+            <span>Mês Atual</span>
           </Button>
-          <Button size="sm" className="gap-2 rounded-full px-4 shadow-sm">
-            <Download className="h-3.5 w-3.5" />
-            <span>Exportar</span>
+          <Button size="sm" className="gap-2 rounded-full px-8 h-11 shadow-xl shadow-primary/10 font-bold text-[10px] uppercase tracking-widest">
+            <Download className="h-4 w-4" />
+            <span>Exportar CSV</span>
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {loading ? (
           [...Array(6)].map((_, i) => (
-            <Card key={i} className="shadow-sm border-slate-100">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
+            <Card key={i} className="shadow-sm border-slate-100 rounded-3xl h-32">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 pt-6 px-6">
                 <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-5 w-5 rounded-lg" />
               </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <Skeleton className="h-8 w-32" />
+              <CardContent className="px-6 pb-6">
+                <Skeleton className="h-10 w-32" />
               </CardContent>
             </Card>
           ))
         ) : (
           metrics.map((m, i) => (
             <Card key={i} className={cn(
-              "shadow-sm border-slate-100 transition-all hover:shadow-md",
-              m.highlight && "border-indigo-200 bg-indigo-50/30"
+              "group shadow-sm border-slate-100 transition-all duration-500 hover:shadow-xl hover:-translate-y-1 rounded-3xl bg-white relative overflow-hidden",
+              m.highlight && "border-indigo-200 ring-4 ring-indigo-50/50"
             )}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 px-4">
-                <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{m.label}</CardTitle>
-                <div className={cn("p-1.5 rounded-lg", m.bg)}>
-                  {React.createElement(m.icon, { className: cn("h-3.5 w-3.5", m.color) })}
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-6 px-6">
+                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-slate-600 transition-colors">{m.label}</CardTitle>
+                <div className={cn("p-2.5 rounded-xl transition-all duration-500 group-hover:scale-110 shadow-sm", m.bg)}>
+                  {React.createElement(m.icon, { className: cn("h-4.5 w-4.5", m.color) })}
                 </div>
               </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <div className={cn("text-2xl font-bold text-slate-900", m.color)}>
+              <CardContent className="px-6 pb-6 pt-2">
+                <div className={cn("text-3xl font-black tracking-tighter text-slate-900 group-hover:scale-[1.02] transition-transform origin-left", m.color)}>
                   R$ {m.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </div>
+                {m.highlight && (
+                   <div className="mt-3 flex items-center gap-2">
+                      <Badge className="bg-indigo-600 text-[9px] font-black uppercase tracking-widest rounded-full px-2 py-0 border-none">Plataforma</Badge>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Resultado Final</span>
+                   </div>
+                )}
               </CardContent>
             </Card>
           ))
         )}
       </div>
 
-      <Card className="shadow-sm border-slate-100">
-        <CardHeader className="px-6 py-4 border-b border-slate-50">
-          <CardTitle className="text-base font-bold text-slate-900">Histórico de Transações</CardTitle>
+
+      <Card className="shadow-sm border-none rounded-[2.5rem] bg-white overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <CardHeader className="px-8 py-6 border-b border-slate-50 flex flex-row items-center justify-between">
+          <CardTitle className="text-xl font-black tracking-tight text-slate-900">Histórico de Transações Detalhado</CardTitle>
+          <div className="flex gap-2">
+             <Button variant="ghost" size="sm" className="h-9 w-9 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all">
+                <Filter className="h-4 w-4" />
+             </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader className="bg-slate-50/50">
-              <TableRow className="hover:bg-transparent border-b-slate-100">
-                <TableHead className="pl-6 text-[10px] font-bold uppercase tracking-wider text-slate-500">Pedido</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Loja</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Faturamento</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Custo Total</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500 text-emerald-600">Lucro Líq.</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500 text-blue-600">Influencer</TableHead>
-                <TableHead className="pr-6 text-right text-[10px] font-bold uppercase tracking-wider text-indigo-600">PUB ECOM</TableHead>
+              <TableRow className="hover:bg-transparent border-b-slate-100 h-14">
+                <TableHead className="pl-8 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">ID Pedido</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Origem Lojista</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Faturamento</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Custos Totais</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Lucro Líquido</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">Comissão Influencer</TableHead>
+                <TableHead className="pr-8 text-right text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">Resultado PUB ECOM</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -109,14 +121,30 @@ function FinancePage() {
                 const inf = o.influencerId ? net * 0.5 : 0;
                 const pub = net - inf;
                 return (
-                  <TableRow key={o.id} className="hover:bg-slate-50/50 transition-colors border-b-slate-50 last:border-0">
-                    <TableCell className="font-bold pl-6 text-slate-900">#{o.id}</TableCell>
-                    <TableCell className="text-slate-500 font-medium">Loja Tech</TableCell>
-                    <TableCell className="font-medium text-slate-900">R$ {o.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
-                    <TableCell className="text-rose-500 font-medium">-R$ {(o.cost + o.shipping + fees).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
-                    <TableCell className="text-emerald-600 font-bold">R$ {net.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
-                    <TableCell className="text-blue-600 font-bold">{inf > 0 ? `R$ ${inf.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}</TableCell>
-                    <TableCell className="font-black text-indigo-600 pr-6 text-right text-base">R$ {pub.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                  <TableRow key={o.id} className="hover:bg-slate-50/30 transition-all border-b-slate-50 last:border-0 h-20 group">
+                    <TableCell className="font-black pl-8 text-slate-900 text-sm group-hover:text-primary transition-colors">#{o.id}</TableCell>
+                    <TableCell>
+                       <div className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-900">Loja Tech</span>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Master Admin</span>
+                       </div>
+                    </TableCell>
+                    <TableCell className="font-bold text-slate-900 text-sm">R$ {o.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                    <TableCell className="text-rose-500 font-bold text-sm">-R$ {(o.cost + o.shipping + fees).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                    <TableCell className="text-emerald-600 font-black text-base">R$ {net.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</TableCell>
+                    <TableCell>
+                       {inf > 0 ? (
+                         <div className="flex flex-col">
+                            <span className="text-blue-600 font-black text-sm">R$ {inf.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            <span className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">(50% do Lucro)</span>
+                         </div>
+                       ) : (
+                         <span className="text-slate-300 font-bold text-xs">—</span>
+                       )}
+                    </TableCell>
+                    <TableCell className="font-black text-indigo-600 pr-8 text-right text-lg tracking-tighter group-hover:scale-105 transition-transform origin-right">
+                       R$ {pub.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -125,5 +153,6 @@ function FinancePage() {
         </CardContent>
       </Card>
     </div>
+
   );
 }
