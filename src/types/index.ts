@@ -54,7 +54,7 @@ export interface Product {
   customDescription?: string;
   customImageUrl?: string;
   profitMargin?: number | undefined;
-  status?: 'active' | 'inactive';
+  status?: 'active' | 'inactive' | undefined;
   created_at?: string;
 }
 
