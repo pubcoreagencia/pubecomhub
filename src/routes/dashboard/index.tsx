@@ -66,70 +66,76 @@ function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {metrics.map((m, i) => (
-          <Card key={i} className="shadow-sm border-slate-100 transition-all hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-2">
-                <div className={cn("p-2 rounded-lg bg-slate-50", m.color.replace('text-', 'bg-').replace('600', '100'))}>
+          <Card key={i} className="group shadow-sm border-slate-100 transition-all hover:shadow-xl hover:border-primary/10 hover:-translate-y-1 bg-white rounded-3xl overflow-hidden relative">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 pt-6 px-6">
+              <div className="flex items-center gap-3">
+                <div className={cn("p-3 rounded-2xl transition-all duration-300 group-hover:scale-110", m.color.replace('text-', 'bg-').replace('600', '100'))}>
                   {React.createElement(m.icon, {
-                    className: cn("h-4 w-4", m.color)
+                    className: cn("h-5 w-5", m.color)
                   })}
                 </div>
-                <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{m.label}</CardTitle>
+                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{m.label}</CardTitle>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">R$ {m.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-              <p className="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
-                {m.trend.includes('+') ? <ArrowUpRight className="h-3 w-3 text-emerald-500" /> : null}
+            <CardContent className="px-6 pb-6">
+              <div className="text-3xl font-black text-slate-900 tracking-tighter">R$ {m.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5 font-bold uppercase tracking-wide">
+                {m.trend.includes('+') ? <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500" /> : null}
                 {m.trend}
-                <span className="text-slate-400 font-normal"> vs. período anterior</span>
-              </p>
-              <p className="text-[10px] text-slate-400 mt-2 font-medium">
-                {m.description}
+                <span className="text-slate-400 font-medium"> vs. 30d</span>
               </p>
             </CardContent>
+            {/* Hover Indicator */}
+            <div className="absolute bottom-0 left-0 h-1.5 w-full bg-slate-50">
+               <div className={cn("h-full w-1/3 transition-all duration-500", m.color.replace('text-', 'bg-'))} />
+            </div>
           </Card>
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 shadow-sm border-slate-100">
-          <CardHeader>
-            <CardTitle className="text-base">Desempenho de Vendas (Diário)</CardTitle>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4 shadow-sm border-slate-100 rounded-3xl p-6">
+          <CardHeader className="p-0 pb-6">
+            <CardTitle className="text-lg font-black tracking-tight text-slate-900">Desempenho de Vendas (Diário)</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="h-[250px] flex items-end justify-between gap-3 px-4 pt-4">
+          <CardContent className="p-0">
+            <div className="h-[280px] flex items-end justify-between gap-4">
               {[40, 60, 45, 90, 65, 80, 50].map((h, i) => (
-                <div key={i} className="bg-indigo-100 w-full rounded-t-lg hover:bg-primary/20 transition-all cursor-pointer relative group">
-                   <div className="absolute inset-x-0 bottom-0 bg-primary/80 rounded-t-lg transition-all" style={{ height: `${h}%` }} />
-                   <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                      {h * 10}
-                   </span>
+                <div key={i} className="flex flex-col items-center gap-3 group w-full">
+                  <div className="bg-slate-50 flex-1 w-full rounded-2xl relative overflow-hidden transition-all hover:bg-slate-100 cursor-pointer">
+                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-primary to-indigo-500 rounded-2xl transition-all duration-700 ease-out group-hover:brightness-110" style={{ height: `${h}%` }} />
+                  </div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-primary transition-colors">
+                     {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][i]}
+                  </span>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
-        <Card className="col-span-3 shadow-sm border-slate-100">
-          <CardHeader>
-            <CardTitle className="text-base">Pedidos Recentes</CardTitle>
+        <Card className="col-span-3 shadow-sm border-slate-100 rounded-3xl p-6">
+          <CardHeader className="p-0 pb-6">
+            <CardTitle className="text-lg font-black tracking-tight text-slate-900">Pedidos Recentes</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
+          <CardContent className="p-0">
+            <div className="space-y-4">
               {mockOrders.map(order => (
-                <div key={order.id} className="flex items-center gap-4 group">
-                  <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                     <Package className="h-5 w-5" />
+                <div key={order.id} className="flex items-center gap-4 group p-3 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer">
+                  <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                     <Package className="h-6 w-6" />
                   </div>
                   <div className="flex-1 space-y-0.5">
-                    <p className="text-sm font-bold text-slate-900">Pedido #{order.id}</p>
-                    <p className="text-xs text-slate-500">Loja Tech • Smartphone Pro</p>
+                    <p className="text-sm font-black text-slate-900">Pedido #{order.id}</p>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Loja Tech • Smartphone Pro</p>
                   </div>
-                  <div className="text-sm font-bold text-slate-900">+R$ {order.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                  <div className="text-sm font-black text-slate-900">+R$ {order.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                 </div>
               ))}
+              <Button variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary">
+                 Ver todos os pedidos <ArrowRight className="h-3 w-3 ml-2" />
+              </Button>
             </div>
           </CardContent>
         </Card>
