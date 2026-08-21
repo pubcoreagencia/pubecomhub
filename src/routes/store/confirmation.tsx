@@ -24,7 +24,7 @@ function StorefrontConfirmationB() {
     <div className="min-h-screen bg-white font-sans selection:bg-primary/10 selection:text-primary">
       {/* Mini Navbar */}
       <nav className="h-20 border-b border-slate-50 flex items-center justify-center px-8 bg-white/80 backdrop-blur-xl z-50">
-        <Link to="/pub-ecom/store" className="flex items-center gap-3 group">
+        <Link to="/store" className="flex items-center gap-3 group">
           <div className="h-10 w-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
             <ShoppingBag className="h-6 w-6 text-white" />
           </div>
@@ -72,7 +72,7 @@ function StorefrontConfirmationB() {
           </Card>
 
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Link to="/pub-ecom/store">
+            <Link to="/store">
               <Button className="w-full sm:w-auto rounded-2xl font-black text-sm uppercase tracking-widest px-12 h-16 shadow-2xl shadow-primary/30 group">
                 Voltar à Loja <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-2 transition-transform" />
               </Button>
@@ -107,7 +107,7 @@ function StorefrontConfirmationB() {
 
       <footer className="py-16 text-center border-t border-slate-50">
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-          © 2026 PUB ECOM Prototype B. Powered by Titanium Engine.
+          © 2026 PUB ECOM. Powered by Titanium Engine.
         </p>
       </footer>
     </div>
