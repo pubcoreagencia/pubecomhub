@@ -48,9 +48,12 @@ export default function DashboardLayout() {
              <h2 className="text-lg font-semibold text-slate-800">Painel Master</h2>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm">Ver Loja Pública</Button>
+            <Link to="/store">
+              <Button variant="outline" size="sm">Ver Loja Pública</Button>
+            </Link>
             <div className="h-8 w-8 rounded-full bg-slate-200" />
           </div>
+
         </header>
         <div className="p-8">
           <Outlet />
