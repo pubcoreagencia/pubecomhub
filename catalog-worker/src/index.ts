@@ -30,6 +30,8 @@ export default {
       try {
         const body: any = await request.json();
         const targetUrl = body.url;
+        const limit = body.limit || 1;
+        const pageSize = body.pageSize || 1;
 
         // 4. SSRF & Target Validation
         if (!targetUrl) {
@@ -68,9 +70,8 @@ export default {
           if (shopNumericMatch) {
             resolvedShopId = shopNumericMatch[1];
             method = 'url_pattern';
-            console.log(`[Worker] ShopID resolved via URL: ${resolvedShopId}`);
           } else {
-            // 5.1 Extract Username
+            // Extract Username
             const cleanUrl = targetUrl.split('#')[0].split('?')[0];
             const urlParts = cleanUrl.split('/').filter(Boolean);
             const username = urlParts[urlParts.length - 1];
@@ -78,82 +79,96 @@ export default {
             console.log(`[Worker] Resolving username: ${username}`);
 
             await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            const finalPageUrl = page.url();
             
-            // 5.2 Strategy: API /api/v4/shop/get_shop_base_v2 (Context-based)
-            const apiResult = await page.evaluate(async (uname) => {
+            // FASE 2F.7 - Instrumentação de Diagnóstico Real
+            const diagResult = await page.evaluate(async (uname) => {
               const results: any = {
-                username: uname,
-                post: { status: 0, hasData: false, hasShopId: false, keys: [], error: null, size: 0 },
-                get: { status: 0, hasShopId: false }
+                shopIdStrategy: "shop-base-username",
+                shopBaseStatus: 0,
+                shopBaseContentType: null,
+                shopBaseResponseSize: 0,
+                shopBaseKeys: [],
+                shopBaseHasData: false,
+                shopBaseHasShopId: false,
+                fallbackGetStatus: 0,
+                fallbackGetResponseSize: 0,
+                fallbackGetKeys: [],
+                fallbackGetHasData: false,
+                fallbackGetHasShopId: false,
+                shopId: null
               };
 
               try {
-                // POST Strategy
+                // 1. POST /api/v4/shop/get_shop_base_v2
                 const postResp = await fetch('https://shopee.com.br/api/v4/shop/get_shop_base_v2', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    username: uname,
                     request_source: "mobile_shop_home_page",
-                    livestream_params: {}
+                    livestream_params: {},
+                    username: uname
                   })
                 });
                 
-                results.post.status = postResp.status;
-                const text = await postResp.text();
-                results.post.size = text.length;
+                results.shopBaseStatus = postResp.status;
+                results.shopBaseContentType = postResp.headers.get('content-type');
+                const postText = await postResp.text();
+                results.shopBaseResponseSize = postText.length;
                 
                 try {
-                  const json = JSON.parse(text);
-                  results.post.keys = Object.keys(json);
-                  results.post.hasData = !!json.data;
-                  results.post.shopid = json.data?.shopid || json.shopid || null;
-                  results.post.hasShopId = !!results.post.shopid;
-                } catch (e) {
-                  results.post.error = "Invalid JSON";
-                }
+                  const postJson = JSON.parse(postText);
+                  results.shopBaseKeys = Object.keys(postJson);
+                  results.shopBaseHasData = !!postJson.data;
+                  const sid = postJson.data?.shopid || postJson.shopid;
+                  if (sid) {
+                    results.shopBaseHasShopId = true;
+                    results.shopId = sid.toString();
+                  }
+                } catch (e) {}
 
-                // GET Strategy (Fallback documented)
+                // 2. GET /api/v4/shop/get_shop_base?username=<username>
                 const getResp = await fetch(`https://shopee.com.br/api/v4/shop/get_shop_base?username=${uname}`);
-                results.get.status = getResp.status;
+                results.fallbackGetStatus = getResp.status;
+                const getText = await getResp.text();
+                results.fallbackGetResponseSize = getText.length;
+                
                 try {
-                  const getJson = await getResp.json() as any;
-                  results.get.shopid = getJson.data?.shopid || getJson.shopid || null;
-                  results.get.hasShopId = !!results.get.shopid;
+                  const getJson = JSON.parse(getText);
+                  results.fallbackGetKeys = Object.keys(getJson);
+                  results.fallbackGetHasData = !!getJson.data;
+                  const sid = getJson.data?.shopid || getJson.shopid;
+                  if (sid) {
+                    results.fallbackGetHasShopId = true;
+                    if (!results.shopId) results.shopId = sid.toString();
+                  }
                 } catch (e) {}
 
               } catch (e) {
-                results.post.error = String(e);
+                console.error("Diagnostic fetch error:", e);
               }
+              
               return results;
             }, username);
 
-            const diagMetadata = {
-              shopIdStrategy: apiResult.post.hasShopId ? 'shop-base-username' : 'shop-base-username-error',
-              shopBaseStatus: apiResult.post.status,
-              shopBaseHasData: apiResult.post.hasData,
-              shopBaseHasShopId: apiResult.post.hasShopId,
-              shopBasePostSize: apiResult.post.size,
-              shopBaseKeys: apiResult.post.keys,
-              shopBaseError: apiResult.post.error,
-              shopBaseGetStatus: apiResult.get.status,
-              shopBaseGetHasShopId: apiResult.get.hasShopId,
-              originalUrl: targetUrl,
-              finalUrl: page.url(),
-              extractedUsername: username
+            // Registrar metadados e URL final conforme solicitado
+            const diagnostics = {
+              ...diagResult,
+              finalPageUrl,
+              username
             };
+            // Remover campo temporário de shopId do objeto de diagnóstico para não poluir
+            delete (diagnostics as any).shopId;
 
-            if (apiResult.post.shopid || apiResult.get.shopid) {
-              resolvedShopId = (apiResult.post.shopid || apiResult.get.shopid).toString();
-              method = apiResult.post.hasShopId ? 'shop-base-username' : 'shop-base-username-get';
+            (globalThis as any).diag = diagnostics;
+
+            if (diagResult.shopId) {
+              resolvedShopId = diagResult.shopId;
+              method = 'shop-base-username';
             }
 
-            // Merge diagnostics into final response if failure occurs later or succeeds
-            (globalThis as any).diag = diagMetadata;
-
-            // 5.3 Fallbacks if API fails
+            // Fallbacks de segurança se a instrumentação não pegou o ID (não mudar lógica existente, apenas diagnosticar)
             if (!resolvedShopId) {
-              // Strategy A: window.__PRELOADED_STATE__
               resolvedShopId = await page.evaluate(() => {
                 return (globalThis as any).__PRELOADED_STATE__?.shop?.shopid || 
                        (globalThis as any).__PRELOADED_STATE__?.common?.shopid;
@@ -165,7 +180,6 @@ export default {
             }
 
             if (!resolvedShopId) {
-              // Strategy B: JSON-LD
               resolvedShopId = await page.evaluate(() => {
                 const scripts = Array.from((globalThis as any).document.querySelectorAll('script[type="application/ld+json"]'));
                 for (const script of scripts) {
@@ -183,7 +197,6 @@ export default {
           }
 
           if (!resolvedShopId) {
-            console.error(`[Worker] Failed to resolve ShopID for ${targetUrl}`);
             return new Response(JSON.stringify({
               success: false,
               source: 'shopee',
@@ -199,20 +212,17 @@ export default {
             }), { status: 404, headers: { 'Content-Type': 'application/json' } });
           }
 
-          console.log(`[Worker] ShopID ${resolvedShopId} resolved via ${method}. Starting catalog fetch...`);
-
           // 6. Real Catalog Fetch (search_items)
-          let items: any[] = [];
-          const searchResult = await page.evaluate(async (sid) => {
+          const searchResult = await page.evaluate(async ({ sid, lmt, psz }) => {
             try {
               const resp = await fetch('https://shopee.com.br/api/v4/search/search_items', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   shopid: parseInt(sid),
-                  limit: 1,
+                  limit: lmt,
                   offset: 0,
-                  pageSize: 1
+                  pageSize: psz
                 })
               });
               const json = await resp.json() as any;
@@ -220,15 +230,13 @@ export default {
             } catch (e) {
               return { status: 0, error: String(e) };
             }
-          }, resolvedShopId);
-
-          items = searchResult.items || [];
+          }, { sid: resolvedShopId, lmt: limit, psz: pageSize });
 
           return new Response(JSON.stringify({
             success: true,
             source: 'shopee',
             shopId: resolvedShopId,
-            items: items,
+            items: searchResult.items || [],
             metadata: {
               provider: 'cloudflare-browser-run',
               method,
@@ -238,11 +246,9 @@ export default {
             errors: []
           }), { headers: { 'Content-Type': 'application/json' } });
 
-
         } finally {
           await browser.close();
         }
-
 
       } catch (error: any) {
         return new Response(JSON.stringify({
