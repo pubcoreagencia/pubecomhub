@@ -58,11 +58,10 @@ export const CatalogIngestion = () => {
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
-    const currentUrl = url || '';
-    if (!currentUrl) return;
+    if (!url) return;
 
     // Clean URL: remove fragments like #product_list
-    const cleanUrl = currentUrl.split('#')[0].trim();
+    const cleanUrl = url.split('#')[0].trim();
     
     if (!cleanUrl) return;
     
