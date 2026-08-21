@@ -55,3 +55,9 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - **Ingestion Engine**: Arquitetura baseada em Adapters e Services para expansão multi-fonte.
 - **Shopee Adapter**: Implementação real utilizando `ShopeeExecutionProvider` e `ShopeeWorker.server.ts` com Playwright para descoberta dinâmica de produtos.
 - **Worker System**: Abstração de execução server-side para contornar proteções de scraping de forma segura.
+- **Prova Operacional (Fase 2D)**:
+  - **URL Testada**: `https://shopee.com.br/shop/286044738`
+  - **ShopID Detectado**: `286044738`
+  - **Status**: `BLOCKED` (HTTP 403 detectado pela Shopee durante execução no sandbox).
+  - **Validação de Segurança**: Hostname validation e bloqueio de SSRF confirmados.
+  - **Conclusão**: Infraestrutura operacional validada, mas execução limitada por bloqueios de IP/Scraping da Shopee no ambiente atual.
