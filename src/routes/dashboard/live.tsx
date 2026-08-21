@@ -37,38 +37,39 @@ function LiveShopPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Live Shop</h2>
-          <p className="text-slate-500 text-sm">Monitoramento em tempo real da jornada de compra.</p>
+          <h2 className="text-3xl font-black tracking-tighter text-slate-900 leading-none">Live Shop</h2>
+          <p className="text-slate-500 text-sm mt-2 font-medium">Monitoramento em tempo real da jornada de compra.</p>
         </div>
         {!loading && (
-          <div className="flex items-center gap-2 px-3 py-1 bg-red-50 text-red-600 rounded-full border border-red-100 animate-pulse shadow-sm">
-            <Activity className="h-3.5 w-3.5" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">Transmissão Ao Vivo</span>
+          <div className="flex items-center gap-3 px-5 py-2 bg-red-50 text-red-600 rounded-full border border-red-100 animate-pulse shadow-sm ring-4 ring-red-50/50">
+            <div className="h-2 w-2 rounded-full bg-red-600 animate-ping" />
+            <Activity className="h-4 w-4" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Transmissão Ao Vivo</span>
           </div>
         )}
       </div>
 
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-6 grid-cols-2 lg:grid-cols-5">
         {funnelSteps.map((step, i) => (
-          <Card key={i} className="shadow-sm border-slate-100 overflow-hidden relative">
-            <CardHeader className="pb-2 pt-4 px-4">
-               <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center mb-2", step.color)}>
-                  {React.createElement(step.icon, { className: "h-4 w-4" })}
+          <Card key={i} className="shadow-sm border-slate-100 rounded-3xl overflow-hidden relative group hover:shadow-xl transition-all duration-500 hover:-translate-y-1 bg-white">
+            <CardHeader className="pb-2 pt-6 px-6">
+               <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 duration-500", step.color)}>
+                  {React.createElement(step.icon, { className: "h-5 w-5" })}
                </div>
-               <CardTitle className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+               <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
                  {loading ? <Skeleton className="h-3 w-16" /> : step.label}
                </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4">
-              {loading ? <Skeleton className="h-8 w-12" /> : <div className="text-xl font-bold text-slate-900">{step.value.toLocaleString()}</div>}
+            <CardContent className="px-6 pb-6">
+              {loading ? <Skeleton className="h-8 w-12" /> : <div className="text-2xl font-black text-slate-900 tracking-tighter">{step.value.toLocaleString()}</div>}
             </CardContent>
             {i < funnelSteps.length - 1 && (
                <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 hidden lg:block">
-                  <div className="h-6 w-6 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-300">
-                     <ArrowRight className="h-3 w-3" />
+                  <div className="h-8 w-8 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-300 shadow-sm">
+                     <ArrowRight className="h-4 w-4" />
                   </div>
                </div>
             )}
@@ -76,18 +77,18 @@ function LiveShopPage() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2 shadow-sm border-slate-100">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-bold">Eventos em Tempo Real</CardTitle>
-            <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-none text-[10px]">Atualizado agora</Badge>
+      <div className="grid gap-8 lg:grid-cols-3">
+        <Card className="lg:col-span-2 shadow-sm border-slate-100 rounded-[2.5rem] bg-white overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between px-8 py-6 border-b border-slate-50">
+            <CardTitle className="text-lg font-black tracking-tight text-slate-900">Eventos em Tempo Real</CardTitle>
+            <Badge variant="secondary" className="bg-slate-50 text-slate-400 border-none text-[9px] font-black uppercase tracking-widest px-3 py-1">Atualizado Agora</Badge>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-1 text-sm">
+          <CardContent className="p-4">
+            <div className="space-y-2">
               {loading ? (
                 [...Array(4)].map((_, i) => (
-                  <div key={i} className="flex items-center space-x-3 py-4">
-                    <Skeleton className="h-10 w-10 rounded-xl" />
+                  <div key={i} className="flex items-center space-x-4 py-4 px-4">
+                    <Skeleton className="h-12 w-12 rounded-2xl" />
                     <div className="space-y-2 flex-1">
                       <Skeleton className="h-4 w-1/2" />
                       <Skeleton className="h-3 w-1/4" />
@@ -96,22 +97,23 @@ function LiveShopPage() {
                 ))
               ) : (
                 events.map((event, i) => (
-                  <div key={i} className="flex items-center gap-4 py-4 border-b last:border-0 border-slate-50 group hover:bg-slate-50/50 px-2 rounded-xl transition-colors">
-                    <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", event.bg, event.color)}>
-                      {React.createElement(event.icon, { className: "h-5 w-5" })}
+                  <div key={i} className="flex items-center gap-5 py-4 px-4 rounded-3xl transition-all duration-300 group hover:bg-slate-50">
+                    <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 border border-transparent transition-all group-hover:shadow-md group-hover:scale-105", event.bg, event.color)}>
+                      {React.createElement(event.icon, { className: "h-6 w-6" })}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="font-bold text-slate-900 truncate">{event.label}</p>
-                        {event.amount && <span className="font-bold text-slate-900 text-xs shrink-0">{event.amount}</span>}
+                        <p className="font-black text-slate-900 truncate tracking-tight text-base">{event.label}</p>
+                        {event.amount && <span className="font-black text-slate-900 text-sm shrink-0 bg-slate-100 px-3 py-1 rounded-full">{event.amount}</span>}
                       </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] font-bold text-primary uppercase">{event.store}</span>
-                        <span className="text-[10px] text-slate-400 font-medium">• {event.time}</span>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.1em]">{event.store}</span>
+                        <div className="h-1 w-1 rounded-full bg-slate-300" />
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{event.time}</span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                       <ArrowRight className="h-4 w-4 text-slate-300" />
+                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:shadow-sm">
+                       <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-primary" />
                     </Button>
                   </div>
                 ))
@@ -120,34 +122,43 @@ function LiveShopPage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-slate-100">
-           <CardHeader>
-              <CardTitle className="text-base font-bold">Resumo do Funil</CardTitle>
+        <Card className="shadow-sm border-slate-100 rounded-[2.5rem] bg-white overflow-hidden p-2">
+           <CardHeader className="px-6 py-6 pb-0">
+              <CardTitle className="text-lg font-black tracking-tight text-slate-900">Resumo do Funil</CardTitle>
            </CardHeader>
-           <CardContent className="space-y-6">
-              <div className="relative h-[240px] w-full flex flex-col gap-2 pt-4">
-                 {[80, 60, 40, 25].map((w, i) => (
-                    <div key={i} className="relative h-full w-full flex items-center justify-center">
+           <CardContent className="space-y-10 p-6 pt-4">
+              <div className="relative h-[280px] w-full flex flex-col gap-3 pt-4">
+                 {[85, 65, 45, 30].map((w, i) => (
+                    <div key={i} className="relative h-full w-full flex items-center group cursor-pointer">
                        <div 
                         className={cn(
-                          "h-full rounded-xl transition-all duration-1000",
-                          i === 0 ? "bg-slate-100" : i === 1 ? "bg-amber-100" : i === 2 ? "bg-blue-100" : "bg-emerald-100"
+                          "h-full rounded-2xl transition-all duration-1000 ease-out shadow-sm border border-white/50",
+                          i === 0 ? "bg-slate-50" : i === 1 ? "bg-amber-50" : i === 2 ? "bg-blue-50" : "bg-emerald-50"
                         )} 
                         style={{ width: `${w}%` }} 
                        />
-                       <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
-                          {['Sessões', 'Carrinhos', 'Checkouts', 'Vendas'][i]}
-                       </span>
+                       <div className="absolute left-6 flex flex-col">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-slate-600 transition-colors">
+                             {['Visitas', 'Carrinhos', 'Checkouts', 'Vendas'][i]}
+                          </span>
+                          <span className="text-sm font-black text-slate-900 opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0">
+                             {w * 100}
+                          </span>
+                       </div>
                     </div>
                  ))}
               </div>
-              <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100 space-y-1">
-                 <p className="text-[10px] font-bold text-indigo-400 uppercase">Destaque de hoje</p>
-                 <p className="text-sm font-bold text-indigo-900">Aumento de 15% na taxa de checkout para carrinho.</p>
+              <div className="p-6 bg-indigo-600 rounded-3xl text-white relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500 shadow-xl shadow-indigo-200">
+                 <div className="absolute -right-4 -top-4 h-24 w-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all" />
+                 <div className="relative z-10 space-y-2">
+                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em]">Audience Insight</p>
+                    <p className="text-base font-bold leading-tight tracking-tight">Campanha com Influenciador aumentou retenção em 22% nas últimas 2h.</p>
+                 </div>
               </div>
            </CardContent>
         </Card>
       </div>
     </div>
+
   );
 }
