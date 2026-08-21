@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -78,7 +79,7 @@ function StoresPage() {
                     <TableCell className="pl-6 py-4">
                        <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                             <StoreIcon className="h-5 w-5" />
+                             {React.createElement(StoreIcon, { className: "h-5 w-5" })}
                           </div>
                           <span className="font-bold text-slate-900">{store.name}</span>
                        </div>

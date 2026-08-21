@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -34,11 +35,11 @@ function OrdersPage() {
 
   const getStatusIcon = (status: string) => {
      switch(status) {
-      case 'delivered': return <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />;
-      case 'shipped': return <Truck className="h-3.5 w-3.5 text-blue-500" />;
-      case 'purchased_from_supplier': return <Package className="h-3.5 w-3.5 text-purple-500" />;
-      case 'paid': return <ShoppingBag className="h-3.5 w-3.5 text-amber-500" />;
-      default: return <Clock className="h-3.5 w-3.5 text-slate-300" />;
+      case 'delivered': return React.createElement(CheckCircle2, { className: "h-3.5 w-3.5 text-emerald-500" });
+      case 'shipped': return React.createElement(Truck, { className: "h-3.5 w-3.5 text-blue-500" });
+      case 'purchased_from_supplier': return React.createElement(Package, { className: "h-3.5 w-3.5 text-purple-500" });
+      case 'paid': return React.createElement(ShoppingBag, { className: "h-3.5 w-3.5 text-amber-500" });
+      default: return React.createElement(Clock, { className: "h-3.5 w-3.5 text-slate-300" });
     }
   };
 
