@@ -18,12 +18,12 @@ Mock/API (Data Source)
 
 ## Estrutura de Pastas
 
-- `src/prototype-b/types/`: Definições de interfaces e tipos.
-- `src/prototype-b/data/`: Mock data e fontes de dados.
-- `src/prototype-b/repositories/`: Classes/Funções de acesso a dados.
-- `src/prototype-b/services/`: Lógica de negócio (cálculos de comissões, financeiro, etc).
-- `src/prototype-b/components/`: Componentes UI reutilizáveis específicos do Prototype B.
-- `src/prototype-b/routes/`: Definições de rotas (serão mapeadas no TanStack Router).
+- `src/pub-ecom/types/`: Definições de interfaces e tipos.
+- `src/pub-ecom/data/`: Mock data e fontes de dados.
+- `src/pub-ecom/repositories/`: Classes/Funções de acesso a dados.
+- `src/pub-ecom/services/`: Lógica de negócio (cálculos de comissões, financeiro, etc).
+- `src/pub-ecom/components/`: Componentes UI reutilizáveis específicos do Prototype B.
+- `src/pub-ecom/routes/`: Definições de rotas (serão mapeadas no TanStack Router).
 
 ## Regras de Negócio Implementadas
 

@@ -1,15 +1,15 @@
 import * as React from 'react';
-import { ShellB } from '@/prototype-b/components/ShellB';
-import { CardMetric, HubTable } from '@/prototype-b/components/ui-b';
+import { Shell } from '@/pub-ecom/components/Shell';
+import { CardMetric, HubTable } from '@/pub-ecom/components/ui-b';
 import { 
   CircleDollarSign, TrendingUp, ArrowDownToLine, 
   Percent, Wallet, Receipt, ArrowUpRight 
 } from 'lucide-react';
-import { mockFinancialSummary } from '@/prototype-b/services/financialService';
+import { mockFinancialSummary } from '@/pub-ecom/services/financialService';
 
 export default function FinancePageB() {
   return (
-    <ShellB>
+    <Shell>
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
            <div className="space-y-1">
@@ -114,6 +114,6 @@ export default function FinancePageB() {
            </div>
         </div>
       </div>
-    </ShellB>
+    </Shell>
   );
 }

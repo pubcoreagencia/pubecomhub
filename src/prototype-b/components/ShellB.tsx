@@ -15,63 +15,63 @@ const navGroups = [
   {
     label: "Operação",
     items: [
-      { label: "Dashboard Master", icon: LayoutDashboard, href: "/prototype-b/dashboard" },
-      { label: "Live Shop", icon: Activity, href: "/prototype-b/dashboard/live" },
-      { label: "Lojas", icon: Store, href: "/prototype-b/dashboard/stores" },
-      { label: "Pedidos", icon: Package, href: "/prototype-b/dashboard/orders" },
+      { label: "Dashboard Master", icon: LayoutDashboard, href: "/pub-ecom/dashboard" },
+      { label: "Live Shop", icon: Activity, href: "/pub-ecom/dashboard/live" },
+      { label: "Lojas", icon: Store, href: "/pub-ecom/dashboard/stores" },
+      { label: "Pedidos", icon: Package, href: "/pub-ecom/dashboard/orders" },
     ]
   },
   {
     label: "Produtos & Logística",
     items: [
-      { label: "Produtos", icon: Box, href: "/prototype-b/dashboard/products" },
-      { label: "Fornecedores", icon: Truck, href: "/prototype-b/dashboard/suppliers" },
-      { label: "Estoque", icon: Layers, href: "/prototype-b/dashboard/inventory" },
+      { label: "Produtos", icon: Box, href: "/pub-ecom/dashboard/products" },
+      { label: "Fornecedores", icon: Truck, href: "/pub-ecom/dashboard/suppliers" },
+      { label: "Estoque", icon: Layers, href: "/pub-ecom/dashboard/inventory" },
     ]
   },
   {
     label: "Financeiro & Performance",
     items: [
-      { label: "Central Financeira", icon: BarChart3, href: "/prototype-b/dashboard/finance" },
-      { label: "Tracking & Pixels", icon: MousePointer2, href: "/prototype-b/dashboard/tracking" },
-      { label: "Marketing & Ads", icon: Megaphone, href: "/prototype-b/dashboard/marketing" },
-      { label: "SEO & Orgânico", icon: BarChart, href: "/prototype-b/dashboard/seo" },
+      { label: "Central Financeira", icon: BarChart3, href: "/pub-ecom/dashboard/finance" },
+      { label: "Tracking & Pixels", icon: MousePointer2, href: "/pub-ecom/dashboard/tracking" },
+      { label: "Marketing & Ads", icon: Megaphone, href: "/pub-ecom/dashboard/marketing" },
+      { label: "SEO & Orgânico", icon: BarChart, href: "/pub-ecom/dashboard/seo" },
     ]
   },
   {
     label: "Crescimento",
     items: [
-      { label: "Audience Engine", icon: Target, href: "/prototype-b/dashboard/audience" },
-      { label: "Funil de Aquisição", icon: TrendingUp, href: "/prototype-b/dashboard/live" },
-      { label: "UTM / Tracking", icon: Globe, href: "/prototype-b/dashboard/tracking" },
+      { label: "Audience Engine", icon: Target, href: "/pub-ecom/dashboard/audience" },
+      { label: "Funil de Aquisição", icon: TrendingUp, href: "/pub-ecom/dashboard/live" },
+      { label: "UTM / Tracking", icon: Globe, href: "/pub-ecom/dashboard/tracking" },
     ]
   },
   {
     label: "Parceiros",
     items: [
-      { label: "Afiliados", icon: Share2, href: "/prototype-b/dashboard/affiliates" },
-      { label: "Influencers", icon: Users, href: "/prototype-b/dashboard/influencers" },
-      { label: "Ranking Global", icon: Award, href: "/prototype-b/dashboard/ranking" },
-      { label: "Bonificações", icon: Gift, href: "/prototype-b/dashboard/bonifications" },
+      { label: "Afiliados", icon: Share2, href: "/pub-ecom/dashboard/affiliates" },
+      { label: "Influencers", icon: Users, href: "/pub-ecom/dashboard/influencers" },
+      { label: "Ranking Global", icon: Award, href: "/pub-ecom/dashboard/ranking" },
+      { label: "Bonificações", icon: Gift, href: "/pub-ecom/dashboard/bonifications" },
     ]
   },
   {
     label: "Sistema",
     items: [
-      { label: "Configurações", icon: Settings, href: "/prototype-b/dashboard/settings" },
+      { label: "Configurações", icon: Settings, href: "/pub-ecom/dashboard/settings" },
     ]
   }
 ];
 
-export function ShellB({ children }: { children: React.ReactNode }) {
+export function Shell({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   return (
-    <div className="prototype-b flex h-screen overflow-hidden selection:bg-[var(--hub-primary)] selection:text-[var(--hub-primary-foreground)]">
+    <div className="pub-ecom flex h-screen overflow-hidden selection:bg-[var(--hub-primary)] selection:text-[var(--hub-primary-foreground)]">
       {/* Official Hub Sidebar */}
       <aside className="hub-sidebar w-[var(--hub-sidebar-width)] flex flex-col z-50 shrink-0">
         <div className="p-8 border-b border-[var(--hub-border)]/50">
-          <Link to="/prototype-b/dashboard" className="flex items-center gap-4 group">
+          <Link to="/pub-ecom/dashboard" className="flex items-center gap-4 group">
             <div className="h-10 w-10 hub-bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-[var(--hub-primary)]/20 transition-transform group-hover:scale-105">
               <CircleDollarSign className="h-6 w-6 text-black" />
             </div>

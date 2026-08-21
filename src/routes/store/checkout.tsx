@@ -31,7 +31,7 @@ function StorefrontCheckoutB() {
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-primary/10 selection:text-primary">
       {/* Checkout Header */}
       <nav className="h-20 border-b border-slate-100 flex items-center justify-between px-8 lg:px-16 bg-white sticky top-0 z-50">
-        <Link to="/prototype-b/store" className="flex items-center gap-2 group">
+        <Link to="/pub-ecom/store" className="flex items-center gap-2 group">
           <div className="h-8 w-8 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
             <ShoppingBag className="h-5 w-5 text-white" />
           </div>
@@ -156,7 +156,7 @@ function StorefrontCheckoutB() {
                   </div>
                 </div>
 
-                <Link to="/prototype-b/store/confirmation">
+                <Link to="/pub-ecom/store/confirmation">
                   <Button className="w-full rounded-[20px] font-black text-sm uppercase tracking-widest h-14 shadow-xl shadow-primary/20 mt-4 group">
                     Pagar Agora <CheckCircle2 className="ml-2 h-4 w-4 fill-current group-hover:scale-110 transition-transform" />
                   </Button>
