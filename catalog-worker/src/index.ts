@@ -74,7 +74,6 @@ async function resolveShopIdWithDiagnostics(page: any, targetUrl: string): Promi
         // Sort by frequency
         uniqueShopIds.sort((a, b) => shopIdMap[b] - shopIdMap[a]);
         results.shopId = uniqueShopIds[0];
-        // If we found a consistent shopId via product links, we can stop here or mark it
       }
 
       // POST /api/v4/shop/get_shop_base_v2 (only if not found or for diagnostics)
@@ -143,12 +142,14 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
+    // Health Check
     if (url.pathname === '/health' && request.method === 'GET') {
       return new Response(JSON.stringify({ ok: true, service: "pub-ecom-catalog-worker" }), {
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
+    // Auth Check
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || authHeader !== `Bearer ${env.CATALOG_WORKER_TOKEN}`) {
       return new Response(JSON.stringify({ success: false, errors: ['Unauthorized'] }), { 
@@ -157,6 +158,31 @@ export default {
       });
     }
 
+    // Debug Browser Limits
+    if (url.pathname === '/debug/browser' && request.method === 'GET') {
+      try {
+        const [sessions, history, limits] = await Promise.all([
+          chromium.sessions(env.BROWSER),
+          chromium.history(env.BROWSER),
+          chromium.limits(env.BROWSER)
+        ]);
+
+        return new Response(JSON.stringify({
+          sessions,
+          history,
+          limits
+        }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (error: any) {
+        return new Response(JSON.stringify({
+          success: false,
+          errors: [error.message]
+        }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+      }
+    }
+
+    // Ingestion Flow
     if (url.pathname === '/ingestion/shopee' && request.method === 'POST') {
       try {
         const body: any = await request.json();
@@ -178,7 +204,6 @@ export default {
           let resolvedShopId = diag.shopId;
           let method = diag.strategy;
 
-          // Only if primary diagnostic failed, check fallbacks (but keep diag for metadata)
           if (!resolvedShopId) {
             resolvedShopId = await page.evaluate(() => {
               const state = (globalThis as any).__PRELOADED_STATE__;

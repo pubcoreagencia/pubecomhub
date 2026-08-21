@@ -21,10 +21,10 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - `src/data/`: Dados mockados centralizados (`mock.ts`) usados como fallback.
 - `src/lib/services/`: Lógica de negócio (ex: cálculo de repasse de 50%).
 - `src/lib/repositories/`: Repositórios de dados com abstração Mock/Real.
-  - `orderRepository.ts`: Repositório de pedidos.
-  - `storeRepository.ts`: Repositório de lojas.
-  - `productRepository.ts`: Repositório de produtos da loja.
-  - `masterProductRepository.ts`: Repositório do catálogo master global.
+- `src/lib/repositories/orderRepository.ts`: Repositório de pedidos.
+- `src/lib/repositories/storeRepository.ts`: Repositório de lojas.
+- `src/lib/repositories/productRepository.ts`: Repositório de produtos da loja.
+- `src/lib/repositories/masterProductRepository.ts`: Repositório do catálogo master global.
 - `src/types/`: Definições de tipos unificadas e interfaces de repositórios.
 
 ## Módulos Implementados
@@ -60,14 +60,12 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - **Ingestion Engine**: Arquitetura baseada em Adapters e Services para expansão multi-fonte.
 - **Fase 2E - Worker Externo**: Implementação de ponte para Cloudflare Browser Run para superar bloqueios de scraping (403) no ambiente local.
 - **Fase 2F - PUB ECOM Catalog Worker**: Criação do projeto independente `catalog-worker/` com suporte nativo a Browser Run.
-- **Fase 2F.4 - Health Check do PUB ECOM Catalog Worker**: Ponto de verificação operacional concluído com endpoint `/health` público e validação técnica (build/typecheck/dry-run). O deploy real permanece pendente de credenciais Cloudflare no ambiente.
+- **Fase 2F.4 - Health Check**: Ponto de verificação operacional concluído com endpoint `/health`.
+- **Fase 2F.9 - Diagnóstico de Limites**: Implementado endpoint `/debug/browser` para investigar erros HTTP 429 (Rate Limit) através das APIs de telemetria da Cloudflare (`playwright.limits()`).
 - **Integração Planejada**: 
-
-
   - **URL**: `https://pub-ecom-catalog-worker.<your-subdomain>.workers.dev`
   - **Auth**: Bearer Token seguro (Server-side only).
 - **Prova Operacional (Fase 2D)**:
   - **URL Testada**: `https://shopee.com.br/shop/286044738`
   - **ShopID Detectado**: `286044738`
-  - **Status**: Arquitetura de infraestrutura externa concluída.
-
+  - **Status**: Diagnóstico de limites Browser Run em progresso.
