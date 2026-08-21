@@ -68,7 +68,7 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
         const scripts = Array.from(document.querySelectorAll('script'));
         for (const script of scripts) {
           const match = script.innerHTML.match(/shopid["\s:]+(\d+)/);
-          if (match && match[1] !== '0') return match[1];
+          if (match && match[1] && match[1] !== '0') return match[1];
         }
         
         // Try from the URL
