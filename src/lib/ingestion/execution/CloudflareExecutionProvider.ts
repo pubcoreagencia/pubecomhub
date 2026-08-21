@@ -6,8 +6,9 @@ export class CloudflareExecutionProvider implements ExecutionProvider<any> {
     
     // In a real TanStack Start server environment, these would be in process.env
     // Read inside the method to ensure they are available at execution time
-    const workerUrl = process.env.CATALOG_WORKER_URL;
-    const workerToken = process.env.CATALOG_WORKER_TOKEN;
+    const workerUrl = process.env['CATALOG_WORKER_URL'];
+    const workerToken = process.env['CATALOG_WORKER_TOKEN'];
+
 
     if (!workerUrl) {
       throw new Error("Configuração ausente: CATALOG_WORKER_URL não definido.");

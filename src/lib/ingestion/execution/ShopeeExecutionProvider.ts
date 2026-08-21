@@ -8,7 +8,8 @@ export class ShopeeExecutionProvider implements ExecutionProvider<any> {
     const { url, limit = 50, shopId } = params;
     
     // Check if external worker is configured
-    const workerUrl = process.env.CATALOG_WORKER_URL;
+    const workerUrl = process.env['CATALOG_WORKER_URL'];
+
     
     if (workerUrl) {
       console.log(`[ShopeeExecutionProvider] Using Cloudflare External Worker: ${workerUrl}`);
