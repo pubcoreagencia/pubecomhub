@@ -5,6 +5,7 @@ import { mockOrders } from '@/data/mock';
 import { Activity, ShoppingCart, UserCheck, CreditCard, CheckCircle2, Zap, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/dashboard/live')({
