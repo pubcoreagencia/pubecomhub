@@ -23,7 +23,8 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - `src/lib/repositories/`: Repositórios de dados com abstração Mock/Real.
   - `orderRepository.ts`: Repositório de pedidos.
   - `storeRepository.ts`: Repositório de lojas.
-  - `productRepository.ts`: Repositório de produtos.
+  - `productRepository.ts`: Repositório de produtos da loja.
+  - `masterProductRepository.ts`: Repositório do catálogo master global.
 - `src/types/`: Definições de tipos unificadas e interfaces de repositórios.
 
 ## Módulos Implementados
@@ -34,9 +35,12 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - **Operação**: Gestão de pedidos, estoque, produtos e fornecedores.
 - **Crescimento**: Marketing, SEO, Afiliados e Influenciadores.
 
-## Regras de Negócio
+## Regras de Negócio e Domínio
+- **Master vs Store Product**: Separação entre o catálogo global e as customizações por loja.
+- **Pricing em Camadas**: Custo Fornecedor -> Preço Base PUB -> Preço de Venda Lojista.
 - **Influenciadores**: Recebem 50% do lucro líquido das vendas (Venda - Custo - Frete - Taxas - Descontos).
-- **Storefront**: Checkout funcional com persistência e preparação para backend real.
+- **Event Engine**: Captura de eventos de marketing (PAGE_VIEW, etc.) para CRM e Audience.
+- **Storefront**: Checkout funcional preparado para fulfillment e tracking real.
 
 ## Próximos Passos
 - Ativar migração total Mock -> Real nos repositórios.

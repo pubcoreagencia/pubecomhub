@@ -24,15 +24,37 @@ export interface Supplier {
   created_at?: string;
 }
 
+export interface MasterProduct {
+  id: string;
+  supplierId: string;
+  sku: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  category?: string;
+  supplierCost: number;
+  basePricePub: number;
+  status: 'active' | 'inactive';
+  isAvailable: boolean;
+  metadata?: Record<string, any>;
+  created_at?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
   price: number;
-  cost: number;
+  cost: number; // For backward compatibility, represents basePricePub
   supplierId: string;
   storeId: string;
   stock: number;
   image?: string;
+  masterProductId?: string;
+  customName?: string;
+  customDescription?: string;
+  customImageUrl?: string;
+  profitMargin?: number | undefined;
+  status?: 'active' | 'inactive' | undefined;
   created_at?: string;
 }
 
@@ -58,7 +80,11 @@ export interface Order {
   shipping: number;
   tax: number;
   discount: number;
-  status: 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending_payment' | 'paid' | 'processing' | 'supplier_ordered' | 'supplier_confirmed' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled' | 'refunded' | 'payment_failed';
+  fulfillmentStatus?: string;
+  trackingCode?: string;
+  paymentMethod?: string;
+  financialMetadata?: Record<string, any>;
   net_profit?: number;
   createdAt: string;
 }
@@ -70,6 +96,58 @@ export interface Commission {
   amount: number;
   type: 'influencer' | 'affiliate';
   status: 'pending' | 'paid';
+  created_at: string;
+}
+
+export interface Wallet {
+  id: string;
+  profileId: string;
+  balance: number;
+  currency: string;
+  updated_at?: string;
+}
+
+export interface WalletTransaction {
+  id: string;
+  walletId: string;
+  type: 'credit' | 'debit';
+  amount: number;
+  description?: string;
+  referenceId?: string;
+  referenceType?: string;
+  created_at: string;
+}
+
+export interface OrderTracking {
+  id: string;
+  orderId: string;
+  status: string;
+  message?: string;
+  metadata?: Record<string, any>;
+  created_at: string;
+}
+
+export type MarketingEventType = 
+  | 'PAGE_VIEW' 
+  | 'PRODUCT_VIEW' 
+  | 'ADD_TO_CART' 
+  | 'CHECKOUT_STARTED' 
+  | 'PIX_CREATED' 
+  | 'PIX_EXPIRED' 
+  | 'PAYMENT_FAILED' 
+  | 'PAYMENT_APPROVED' 
+  | 'ORDER_CREATED' 
+  | 'ORDER_PROCESSING' 
+  | 'ORDER_SHIPPED' 
+  | 'ORDER_DELIVERED' 
+  | 'ORDER_CANCELLED' 
+  | 'REFUND_CREATED';
+
+export interface MarketingEvent {
+  id: string;
+  customerId: string;
+  eventType: MarketingEventType;
+  metadata?: Record<string, any>;
   created_at: string;
 }
 
