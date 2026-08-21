@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ShellB } from '../../components/ShellB';
 import { CardMetric, AcquisitionFunnel, HubTable } from '../../components/ui-b';
 
-export const Route = createFileRoute('/prototype-b/dashboard')({
+export const Route = createFileRoute('/prototype-b/dashboard/')({
   component: Dashboard,
 });
 
