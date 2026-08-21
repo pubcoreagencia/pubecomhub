@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Users, Filter, ArrowRight, UserPlus, ShoppingCart, CreditCard, ShoppingBag, MousePointer2, ShieldCheck, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/dashboard/audience')({
   component: AudiencePage,
