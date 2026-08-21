@@ -55,11 +55,11 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
     viewport: { width: 1280, height: 1800 }
   });
 
-  const page = await context.new_page();
+  const page = await context.newPage();
 
   try {
     // 1. Navigate to the store page to establish session and intercept API calls
-    await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
     // 2. Extract ShopID if not provided
     if (!detectedShopId) {
@@ -81,7 +81,7 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
     while (items.length < limit) {
       console.log(`[ShopeeWorker] Fetching products for shop ${detectedShopId} at offset ${offset}`);
       
-      const pageResults = await page.evaluate(async ({ shopId, offset, limit }) => {
+      const pageResults: any = await page.evaluate(async ({ shopId, offset }: { shopId: string, offset: number }) => {
         try {
           const api = `https://shopee.com.br/api/v4/search/search_items?by=relevancy&limit=30&match_id=${shopId}&newest=${offset}&order=desc&page_type=shop&scenario=PAGE_SHOP&version=2`;
           const response = await fetch(api);
