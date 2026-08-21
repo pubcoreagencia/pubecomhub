@@ -1,0 +1,10 @@
+/* Hub Animations */
+@keyframes hub-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(110, 231, 183, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(110, 231, 183, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(110, 231, 183, 0); }
+}
+
+.hub-animate-pulse {
+  animation: hub-pulse 2s infinite;
+}

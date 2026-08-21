@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { createFileRoute } from '@tanstack/react-router';
+import { ShellB } from '@/prototype-b/components/ShellB';
+import { HubTable, CardMetric } from '@/prototype-b/components/ui-b';
 import { 
   Package, 
   Search, 
@@ -9,103 +11,128 @@ import {
   Clock, 
   Truck,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  TrendingUp,
+  CircleDollarSign
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { mockOrders } from '../../../prototype-b/data/mock';
+import { mockOrders } from '@/prototype-b/data/mock';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/prototype-b/dashboard/orders')({
-  component: OrdersDashboardB
+  component: () => <OrdersDashboardB />
 });
 
 function OrdersDashboardB() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
-        return <Badge className="bg-emerald-50 text-emerald-600 border-none ring-1 ring-emerald-100 font-black uppercase text-[8px]">Pago</Badge>;
+        return (
+          <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+            Pago
+          </span>
+        );
       case 'shipped':
-        return <Badge className="bg-blue-50 text-blue-600 border-none ring-1 ring-blue-100 font-black uppercase text-[8px]">Enviado</Badge>;
+        return (
+          <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-500 border border-blue-500/20">
+            Enviado
+          </span>
+        );
       case 'pending':
-        return <Badge className="bg-orange-50 text-orange-600 border-none ring-1 ring-orange-100 font-black uppercase text-[8px]">Pendente</Badge>;
+        return (
+          <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-500 border border-orange-500/20">
+            Pendente
+          </span>
+        );
       default:
-        return <Badge className="bg-slate-50 text-slate-600 border-none ring-1 ring-slate-100 font-black uppercase text-[8px]">{status}</Badge>;
+        return (
+          <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-white/5 text-white border border-white/10">
+            {status}
+          </span>
+        );
     }
   };
 
   return (
-    <div className="space-y-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black tracking-tighter text-slate-900">Pedidos</h1>
-          <p className="text-slate-500 font-bold">Rastreamento e gestão de vendas em tempo real.</p>
+    <ShellB>
+      <div className="space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+           <div className="space-y-1">
+              <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">Gestão de Pedidos</h2>
+              <p className="text-[var(--hub-muted)] text-[9px] font-bold uppercase tracking-[0.3em]">Monitoramento de Vendas & Fulfillment em Tempo Real</p>
+           </div>
+           <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-black/40 px-4 py-2.5 rounded-xl border border-[var(--hub-border)] group focus-within:border-[var(--hub-primary)] transition-all w-64">
+                <Search className="h-4 w-4 text-[var(--hub-muted)] group-focus-within:text-[var(--hub-primary)]" />
+                <input 
+                  type="text" 
+                  placeholder="Buscar Pedido, Cliente ou Rastreio..." 
+                  className="bg-transparent border-none text-[11px] font-bold text-white focus:outline-none w-full placeholder:text-[var(--hub-muted)] uppercase tracking-wider"
+                />
+              </div>
+              <Button variant="outline" className="h-10 border-[var(--hub-border)] text-white text-[10px] font-black uppercase tracking-[0.2em] px-6 rounded-xl hover:bg-white/5">
+                 <Download className="h-4 w-4 mr-2" />
+                 Exportar
+              </Button>
+           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="rounded-2xl font-black text-xs uppercase tracking-widest px-6 h-12 border-slate-200">
-            Exportar CSV <Download className="ml-2 h-4 w-4" />
-          </Button>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+           <CardMetric label="Pedidos Hoje" value="842" trend="+12.4%" trendType="up" icon={Package} />
+           <CardMetric label="Aguardando Envio" value="124" subtext="Fulfillment pendente" icon={Clock} />
+           <CardMetric label="Em Trânsito" value="452" icon={Truck} />
+           <CardMetric label="Ticket Médio" value="R$ 184,20" trend="+R$ 12,00" trendType="up" icon={CircleDollarSign} />
+        </div>
+
+        <div className="space-y-4">
+           <div className="flex items-center justify-between px-2">
+              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-white">Log de Operações</h3>
+              <div className="flex gap-2">
+                 <button className="px-4 py-2 text-[9px] font-black text-white bg-white/5 border border-[var(--hub-border)] rounded-lg uppercase tracking-widest hover:bg-white/10 transition-all">
+                    <Filter className="h-3 w-3 inline-block mr-2" />
+                    Filtros
+                 </button>
+              </div>
+           </div>
+           
+           <HubTable headers={['ID Pedido', 'Data', 'Cliente', 'Loja Origem', 'Total', 'Status', 'Ação']}>
+             {mockOrders.map((order) => (
+               <tr key={order.id} className="hover:bg-white/[0.02] transition-colors group">
+                 <td className="px-6 py-5 font-black text-[var(--hub-muted)] group-hover:text-white italic">#{order.id}</td>
+                 <td className="px-6 py-5">
+                    <span className="text-[var(--hub-muted)] font-bold text-[10px] uppercase tracking-wider">
+                      {new Date(order.createdAt).toLocaleDateString('pt-BR')}
+                    </span>
+                 </td>
+                 <td className="px-6 py-5">
+                    <div className="space-y-0.5">
+                       <span className="font-black text-white italic block leading-none">João Silva</span>
+                       <span className="text-[9px] text-[var(--hub-muted)] uppercase tracking-widest font-bold">joao@email.com</span>
+                    </div>
+                 </td>
+                 <td className="px-6 py-5">
+                    <span className="text-[9px] text-[var(--hub-muted)] font-black uppercase tracking-widest bg-black/40 px-2 py-1 rounded border border-[var(--hub-border)]">
+                      Titanium Hub
+                    </span>
+                 </td>
+                 <td className="px-6 py-5 text-white font-black italic">
+                    R$ {order.amount.toLocaleString('pt-BR')}
+                 </td>
+                 <td className="px-6 py-5">
+                    {getStatusBadge(order.status)}
+                 </td>
+                 <td className="px-6 py-5 text-right">
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-[var(--hub-primary)]/10 text-[var(--hub-muted)] hover:text-[var(--hub-primary)] transition-all">
+                       <Eye className="h-4 w-4" />
+                    </Button>
+                 </td>
+               </tr>
+             ))}
+           </HubTable>
         </div>
       </div>
-
-      <Card className="rounded-3xl border-none ring-1 ring-slate-100 shadow-sm bg-white overflow-hidden">
-        <div className="p-6 border-b border-slate-50 flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input 
-              placeholder="Buscar por cliente, pedido ou código de rastreio..." 
-              className="pl-12 h-12 rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm"
-            />
-          </div>
-          <Button variant="outline" className="rounded-2xl h-12 px-6 font-black text-[10px] uppercase tracking-widest border-slate-100">
-            Filtros Avançados <Filter className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-        
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-slate-50/50">
-                  <th className="px-8 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">ID Pedido</th>
-                  <th className="px-8 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Data</th>
-                  <th className="px-8 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Cliente</th>
-                  <th className="px-8 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Total</th>
-                  <th className="px-8 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
-                  <th className="px-8 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {mockOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-slate-50 transition-colors group">
-                    <td className="px-8 py-5 text-sm font-black text-slate-900 italic">#{order.id}</td>
-                    <td className="px-8 py-5 text-sm font-bold text-slate-500">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</td>
-                    <td className="px-8 py-5">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-black text-slate-900">João Silva</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">joao@email.com</span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5 text-right text-sm font-black text-slate-900 tracking-tighter">
-                      R$ {order.amount.toLocaleString('pt-BR')}
-                    </td>
-                    <td className="px-8 py-5 text-center">
-                      {getStatusBadge(order.status)}
-                    </td>
-                    <td className="px-8 py-5 text-right">
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Eye className="h-4 w-4 text-slate-900" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    </ShellB>
   );
 }
+
