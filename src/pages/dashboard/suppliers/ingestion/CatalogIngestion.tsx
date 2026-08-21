@@ -61,7 +61,8 @@ export const CatalogIngestion = () => {
     if (!url) return;
 
     // Clean URL: remove fragments like #product_list
-    const cleanUrl = url.split('#')[0].trim();
+    const urlParts = url.split('#');
+    const cleanUrl = urlParts && urlParts[0] ? urlParts[0].trim() : '';
     
     if (!cleanUrl) return;
     
