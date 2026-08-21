@@ -1,48 +1,27 @@
-# Plano de Desenvolvimento: Protótipo PUB ECOM
+# Plano de Estabilizacao e Melhorias UX — PUB ECOM PROTOTYPE V1
 
-O objetivo é criar um protótipo frontend completo, navegável e visualmente premium para a plataforma **PUB ECOM**, seguindo as referências do repositório oficial e as necessidades de gestão (Master), operacional (Lojistas) e promocional (Afiliados/Influenciadores).
+Este plano foca em pequenas melhorias de UX (loading states, persistencia de carrinho) e estabilidade, mantendo a arquitetura TanStack Start e o status de "Congelado" do Protótipo V1.
 
-## Arquitetura e Design
-- **Estética:** Design SaaS moderno, limpo e profissional, utilizando a paleta de cores e componentes do Shadcn UI.
-- **Navegação:** Implementar um Dashboard Master centralizado com menus laterais para acesso aos diversos módulos.
-- **Responsividade:** Interface adaptada para desktop e mobile.
+## Melhorias de UX
 
-## Módulos do Protótipo (Prioridade)
+### 1. Estados de Loading e Skeletons
+Adicionar feedback visual de carregamento em rotas chave do Dashboard e Storefront para simular processamento de dados.
+- Implementar hooks de simulação de carregamento (`isLoading`) em componentes de página.
+- Utilizar o componente `Skeleton` para placeholders de tabelas e cards.
 
-### 1. Dashboard Master e Live Shop
-- Visão centralizada da PUB ECOM como Operador Central.
-- **Live Shop:** Funil em tempo real (Visitantes -> Carrinhos -> Checkout -> Vendas) com identificação da loja de origem.
+### 2. Persistencia do Carrinho na Store
+Garantir que os itens do carrinho permaneçam salvos durante a navegação entre Home, Produto e Checkout usando `localStorage`.
+- Criar um hook customizado `useCart` ou utilizar uma store simples para gerenciar o estado global do carrinho.
+- Sincronizar o estado com o `localStorage`.
+- Atualizar o contador da Navbar e o resumo do Checkout para ler deste estado.
 
-### 2. Lojas e Pedidos (Dropshipping Centralizado)
-- Fluxo simulado: Compra na Loja -> PUB ECOM compra do Fornecedor -> Fornecedor envia ao Cliente.
-- Listagem e gestão de Lojas/Mentoria.
+### 3. Ajustes de Navegação e UX
+- Corrigir o redirecionamento da rota raiz (`/`) para garantir transição suave para o Dashboard.
+- Garantir que links de "Voltar" e navegação entre a Loja e o Dashboard funcionem conforme esperado.
 
-### 3. Financeiro e Comissões
-- Cálculo detalhado: Faturamento Bruto, Custos (Produto, Frete, Taxas, Descontos), Lucro Líquido e Margem.
-- **Influenciadores:** Repasse de 50% do lucro líquido.
-- **Afiliados:** Comissões configuráveis.
-- Resultado líquido final da PUB ECOM.
+## Detalhes Técnicos
+- **TanStack Start**: Utilizar loaders e `useSuspenseQuery` (onde aplicável com mock) para simular carregamentos reais.
+- **LocalStorage**: Implementar `useEffect` para hidratar o carrinho no cliente, evitando problemas de SSR.
+- **Mock Data**: Manter `src/data/mock.ts` como fonte de verdade.
 
-### 4. Audience Engine e Marketing
-- Públicos por níveis (L1: Page View a L4: Purchase).
-- Janelas temporais (1D a 30D) e exclusão automática de compradores.
-- Rastreamento UTM e dashboards de Ads.
-
-### 5. Storefront Pública
-- Experiência completa de compra: Home -> Produto -> Checkout Transparente -> Confirmação.
-
-## Detalhes Técnicos e Qualidade
-- **Mock Data Centralizado:** Uma venda simulada reflete em todos os módulos (Financeiro, Ranking, Live Shop, etc.).
-- **Interatividade:** Menus navegáveis, filtros em tabelas, estados realistas e uso de modais/drawers.
-- **Arquitetura:** Camada frontend sobre a estrutura do repositório oficial, sem alterações no backend ou banco.
-
-## Prioridade de Execução
-MASTER → LIVE SHOP → LOJAS → PEDIDOS → FINANCEIRO → TRACKING/AUDIENCE → ADS → AFILIADOS/INFLUENCERS → STORE → CHECKOUT.
-
-
-## Próximos Passos
-1. Configuração do layout principal (Dashboard Layout).
-2. Implementação das telas de Dashboard Master e Live Shop.
-3. Criação da listagem de Lojas e Pedidos.
-4. Desenvolvimento dos módulos financeiros e de marketing.
-5. Criação da Store pública de exemplo.
+O projeto continuará utilizando a arquitetura atual sem migrações para Next.js nesta fase.
