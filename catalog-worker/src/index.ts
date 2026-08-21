@@ -117,7 +117,7 @@ export default {
                 const getResp = await fetch(`https://shopee.com.br/api/v4/shop/get_shop_base?username=${uname}`);
                 results.get.status = getResp.status;
                 try {
-                  const getJson = await getResp.json();
+                  const getJson = await getResp.json() as any;
                   results.get.shopid = getJson.data?.shopid || getJson.shopid || null;
                   results.get.hasShopId = !!results.get.shopid;
                 } catch (e) {}
@@ -155,8 +155,8 @@ export default {
             if (!resolvedShopId) {
               // Strategy A: window.__PRELOADED_STATE__
               resolvedShopId = await page.evaluate(() => {
-                return (window as any).__PRELOADED_STATE__?.shop?.shopid || 
-                       (window as any).__PRELOADED_STATE__?.common?.shopid;
+                return (globalThis as any).__PRELOADED_STATE__?.shop?.shopid || 
+                       (globalThis as any).__PRELOADED_STATE__?.common?.shopid;
               });
               if (resolvedShopId) {
                 resolvedShopId = resolvedShopId.toString();
@@ -167,10 +167,10 @@ export default {
             if (!resolvedShopId) {
               // Strategy B: JSON-LD
               resolvedShopId = await page.evaluate(() => {
-                const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
+                const scripts = Array.from((globalThis as any).document.querySelectorAll('script[type="application/ld+json"]'));
                 for (const script of scripts) {
                   try {
-                    const data = JSON.parse(script.textContent || '{}');
+                    const data = JSON.parse((script as any).textContent || '{}');
                     if (data['@type'] === 'Store' && data['url']?.includes('shop/')) {
                       return data['url'].split('shop/')[1];
                     }
@@ -215,7 +215,7 @@ export default {
                   pageSize: 1
                 })
               });
-              const json = await resp.json();
+              const json = await resp.json() as any;
               return { status: resp.status, items: json.items || [] };
             } catch (e) {
               return { status: 0, error: String(e) };
