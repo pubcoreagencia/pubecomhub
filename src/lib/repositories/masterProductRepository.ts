@@ -27,7 +27,7 @@ export class MasterProductRepository implements IMasterProductRepository {
     if (this.useMock) return null;
 
     const { data, error } = await supabase
-      .from(' master_products')
+      .from('master_products')
       .select('*')
       .eq('id', id)
       .single();
