@@ -36,11 +36,11 @@ export class ShopeeAdapter implements CatalogSourceAdapter {
     // shopee.com.br/nome-da-loja (requires resolution)
     
     const shopIdMatch = url.match(/\/shop\/(\d+)/);
-    if (shopIdMatch) return shopIdMatch[1];
+    if (shopIdMatch) return shopIdMatch[1] || null;
     
     // Fallback for product URLs to get shop context
     const productMatch = url.match(/\/product\/(\d+)/);
-    if (productMatch) return productMatch[1];
+    if (productMatch) return productMatch[1] || null;
     
     return null;
   }
