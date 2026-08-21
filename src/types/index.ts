@@ -48,7 +48,7 @@ export interface Order {
   id: string;
   external_id?: string | null;
   storeId: string;
-  productId?: string; // Legacy compatibility
+  productId?: string | null; // Legacy compatibility
   supplierId?: string;
   customerId: string;
   influencerId?: string | null;
