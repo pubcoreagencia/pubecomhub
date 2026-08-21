@@ -36,6 +36,7 @@ import { Route as PrototypeBDashboardRankingRouteImport } from './routes/prototy
 import { Route as PrototypeBDashboardSettingsRouteImport } from './routes/prototype-b/dashboard/settings'
 import { Route as PrototypeBDashboardStoresRouteImport } from './routes/prototype-b/dashboard/stores'
 import { Route as PrototypeBDashboardSuppliersRouteImport } from './routes/prototype-b/dashboard/suppliers'
+import { Route as PrototypeBDashboardTrackingRouteImport } from './routes/prototype-b/dashboard/tracking'
 import { Route as PrototypeBStoreIndexRouteImport } from './routes/prototype-b/store/index'
 import { Route as PrototypeBStoreCartRouteImport } from './routes/prototype-b/store/cart'
 import { Route as PrototypeBStoreCheckoutRouteImport } from './routes/prototype-b/store/checkout'
@@ -188,6 +189,12 @@ const PrototypeBDashboardSuppliersRoute =
     path: '/suppliers',
     getParentRoute: () => PrototypeBDashboardRouteRoute,
   } as any)
+const PrototypeBDashboardTrackingRoute =
+  PrototypeBDashboardTrackingRouteImport.update({
+    id: '/tracking',
+    path: '/tracking',
+    getParentRoute: () => PrototypeBDashboardRouteRoute,
+  } as any)
 const PrototypeBStoreIndexRoute = PrototypeBStoreIndexRouteImport.update({
   id: '/prototype-b/store/',
   path: '/prototype-b/store/',
@@ -237,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/prototype-b/dashboard/settings': typeof PrototypeBDashboardSettingsRoute
   '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
   '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
+  '/prototype-b/dashboard/tracking': typeof PrototypeBDashboardTrackingRoute
   '/prototype-b/store/cart': typeof PrototypeBStoreCartRoute
   '/prototype-b/store/checkout': typeof PrototypeBStoreCheckoutRoute
   '/prototype-b/store/confirmation': typeof PrototypeBStoreConfirmationRoute
@@ -268,6 +276,7 @@ export interface FileRoutesByTo {
   '/prototype-b/dashboard/settings': typeof PrototypeBDashboardSettingsRoute
   '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
   '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
+  '/prototype-b/dashboard/tracking': typeof PrototypeBDashboardTrackingRoute
   '/prototype-b/store/cart': typeof PrototypeBStoreCartRoute
   '/prototype-b/store/checkout': typeof PrototypeBStoreCheckoutRoute
   '/prototype-b/store/confirmation': typeof PrototypeBStoreConfirmationRoute
@@ -302,6 +311,7 @@ export interface FileRoutesById {
   '/prototype-b/dashboard/settings': typeof PrototypeBDashboardSettingsRoute
   '/prototype-b/dashboard/stores': typeof PrototypeBDashboardStoresRoute
   '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
+  '/prototype-b/dashboard/tracking': typeof PrototypeBDashboardTrackingRoute
   '/prototype-b/store/cart': typeof PrototypeBStoreCartRoute
   '/prototype-b/store/checkout': typeof PrototypeBStoreCheckoutRoute
   '/prototype-b/store/confirmation': typeof PrototypeBStoreConfirmationRoute
@@ -337,6 +347,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/settings'
     | '/prototype-b/dashboard/stores'
     | '/prototype-b/dashboard/suppliers'
+    | '/prototype-b/dashboard/tracking'
     | '/prototype-b/store/cart'
     | '/prototype-b/store/checkout'
     | '/prototype-b/store/confirmation'
@@ -368,6 +379,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/settings'
     | '/prototype-b/dashboard/stores'
     | '/prototype-b/dashboard/suppliers'
+    | '/prototype-b/dashboard/tracking'
     | '/prototype-b/store/cart'
     | '/prototype-b/store/checkout'
     | '/prototype-b/store/confirmation'
@@ -401,6 +413,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/settings'
     | '/prototype-b/dashboard/stores'
     | '/prototype-b/dashboard/suppliers'
+    | '/prototype-b/dashboard/tracking'
     | '/prototype-b/store/cart'
     | '/prototype-b/store/checkout'
     | '/prototype-b/store/confirmation'
@@ -613,6 +626,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrototypeBDashboardSuppliersRouteImport
       parentRoute: typeof PrototypeBDashboardRouteRoute
     }
+    '/prototype-b/dashboard/tracking': {
+      id: '/prototype-b/dashboard/tracking'
+      path: '/tracking'
+      fullPath: '/prototype-b/dashboard/tracking'
+      preLoaderRoute: typeof PrototypeBDashboardTrackingRouteImport
+      parentRoute: typeof PrototypeBDashboardRouteRoute
+    }
     '/prototype-b/store/': {
       id: '/prototype-b/store/'
       path: '/prototype-b/store'
@@ -682,6 +702,7 @@ interface PrototypeBDashboardRouteRouteChildren {
   PrototypeBDashboardSettingsRoute: typeof PrototypeBDashboardSettingsRoute
   PrototypeBDashboardStoresRoute: typeof PrototypeBDashboardStoresRoute
   PrototypeBDashboardSuppliersRoute: typeof PrototypeBDashboardSuppliersRoute
+  PrototypeBDashboardTrackingRoute: typeof PrototypeBDashboardTrackingRoute
   PrototypeBDashboardIndexRoute: typeof PrototypeBDashboardIndexRoute
 }
 
@@ -698,6 +719,7 @@ const PrototypeBDashboardRouteRouteChildren: PrototypeBDashboardRouteRouteChildr
     PrototypeBDashboardSettingsRoute: PrototypeBDashboardSettingsRoute,
     PrototypeBDashboardStoresRoute: PrototypeBDashboardStoresRoute,
     PrototypeBDashboardSuppliersRoute: PrototypeBDashboardSuppliersRoute,
+    PrototypeBDashboardTrackingRoute: PrototypeBDashboardTrackingRoute,
     PrototypeBDashboardIndexRoute: PrototypeBDashboardIndexRoute,
   }
 
