@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ShellB } from '@/prototype-b/components/ShellB';
-import { CardMetric, AcquisitionFunnel, HubTable } from '@/prototype-b/components/ui-b';
+import { CardMetric, AcquisitionFunnel, HubTable } from '@/components/ui-b';
 import { cn } from '@/lib/utils';
 import { 
   TrendingUp, CircleDollarSign, Package, Store, 
