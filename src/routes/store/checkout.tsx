@@ -125,43 +125,49 @@ function CheckoutPage() {
 
           {/* Sidebar Summary */}
           <div className="flex-1 lg:sticky lg:top-32">
-            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-8">
-              <h2 className="text-lg font-black uppercase tracking-widest flex items-center gap-3">
-                <ShoppingBag className="h-5 w-5 text-primary" /> Carrinho
+            <div className="bg-white p-10 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 space-y-10">
+              <h2 className="text-xl font-black uppercase tracking-[0.2em] flex items-center gap-4 text-slate-900">
+                <div className="p-2 bg-primary/10 rounded-xl">
+                  <ShoppingBag className="h-6 w-6 text-primary" />
+                </div>
+                Resumo
               </h2>
-              <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
+              <div className="space-y-6 max-h-[450px] overflow-y-auto pr-2 scrollbar-hide">
                 {isHydrated && items.length > 0 ? (
                   items.map((item) => (
-                    <div key={item.id} className="flex gap-4 group">
-                      <div className="h-20 w-20 rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden shrink-0">
-                        <img src={item.image} className="object-cover h-full w-full group-hover:scale-110 transition-transform" alt={item.name} />
+                    <div key={item.id} className="flex gap-5 group">
+                      <div className="h-24 w-24 rounded-[2rem] bg-slate-50 border border-slate-100 overflow-hidden shrink-0 shadow-sm">
+                        <img src={item.image} className="object-cover h-full w-full group-hover:scale-110 transition-transform duration-500" alt={item.name} />
                       </div>
-                      <div className="flex-1 space-y-1">
-                        <p className="text-sm font-black text-slate-900 line-clamp-1 leading-tight">{item.name}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Qtd: {item.quantity}</p>
-                        <p className="text-sm font-black text-slate-900 mt-1">R$ {item.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      <div className="flex-1 space-y-1 py-1">
+                        <p className="text-base font-black text-slate-900 line-clamp-1 leading-tight tracking-tight">{item.name}</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Qtd: {item.quantity}</p>
+                        <p className="text-lg font-black text-slate-900 mt-2 tracking-tighter">R$ {item.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm font-medium text-slate-400 text-center py-8 italic">Seu carrinho está vazio.</p>
+                  <p className="text-sm font-bold text-slate-400 text-center py-10 uppercase tracking-widest">Seu carrinho está vazio.</p>
                 )}
               </div>
-              <div className="border-t border-slate-50 pt-8 space-y-4">
-                <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
+              <div className="border-t border-slate-100 pt-10 space-y-5">
+                <div className="flex justify-between text-[11px] font-black uppercase tracking-[0.2em]">
                   <span className="text-slate-400">Subtotal</span>
                   <span className="text-slate-900">R$ {isHydrated ? totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}</span>
                 </div>
-                <div className="flex justify-between text-xs font-bold uppercase tracking-widest">
+                <div className="flex justify-between text-[11px] font-black uppercase tracking-[0.2em]">
                   <span className="text-slate-400">Frete</span>
-                  <span className="text-emerald-500">Grátis</span>
+                  <span className="text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full">Grátis</span>
                 </div>
-                <div className="flex justify-between items-end pt-4 border-t border-slate-50">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total à pagar</span>
-                  <span className="text-3xl font-black text-slate-900 tracking-tighter">R$ {isHydrated ? totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}</span>
+                <div className="flex justify-between items-end pt-6 border-t border-slate-100">
+                  <div className="flex flex-col">
+                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">Total Final</span>
+                     <span className="text-4xl font-black text-slate-900 tracking-tighter leading-none">R$ {isHydrated ? totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}</span>
+                  </div>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
