@@ -67,7 +67,7 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
         // Try to find ShopID in window variables or meta tags
         const content = document.body.innerText;
         const match = content.match(/shopid["\s:]+(\d+)/);
-        return match ? match[1] : null;
+        return match ? (match[1] || null) : null;
       });
     }
 
