@@ -151,7 +151,7 @@ export const CatalogIngestion = () => {
         </Card>
       ) : status === 'preview' || status === 'importing' ? (
         <div className="space-y-6 animate-in fade-in duration-500">
-          {preview?.metadata?.errors?.length > 0 && (
+          {preview?.metadata?.errors && preview.metadata.errors.length > 0 && (
             <Card className="bg-red-950/20 border-red-500/20">
               <CardHeader className="pb-3">
                 <CardTitle className="text-red-400 text-sm flex items-center gap-2">
