@@ -81,8 +81,15 @@ export default {
             
             // 5.2 Strategy: API /api/v4/shop/get_shop_base_v2 (Context-based)
             const apiResult = await page.evaluate(async (uname) => {
+              const results: any = {
+                username: uname,
+                post: { status: 0, hasData: false, hasShopId: false, keys: [], error: null, size: 0 },
+                get: { status: 0, hasShopId: false }
+              };
+
               try {
-                const resp = await fetch('https://shopee.com.br/api/v4/shop/get_shop_base_v2', {
+                // POST Strategy
+                const postResp = await fetch('https://shopee.com.br/api/v4/shop/get_shop_base_v2', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
@@ -91,20 +98,58 @@ export default {
                     livestream_params: {}
                   })
                 });
-                const json = await resp.json();
-                return { 
-                  status: resp.status, 
-                  shopid: json.data?.shopid || json.shopid || null 
-                };
+                
+                results.post.status = postResp.status;
+                const text = await postResp.text();
+                results.post.size = text.length;
+                
+                try {
+                  const json = JSON.parse(text);
+                  results.post.keys = Object.keys(json);
+                  results.post.hasData = !!json.data;
+                  results.post.shopid = json.data?.shopid || json.shopid || null;
+                  results.post.hasShopId = !!results.post.shopid;
+                } catch (e) {
+                  results.post.error = "Invalid JSON";
+                }
+
+                // GET Strategy (Fallback documented)
+                const getResp = await fetch(`https://shopee.com.br/api/v4/shop/get_shop_base?username=${uname}`);
+                results.get.status = getResp.status;
+                try {
+                  const getJson = await getResp.json();
+                  results.get.shopid = getJson.data?.shopid || getJson.shopid || null;
+                  results.get.hasShopId = !!results.get.shopid;
+                } catch (e) {}
+
               } catch (e) {
-                return { status: 0, error: String(e) };
+                results.post.error = String(e);
               }
+              return results;
             }, username);
 
-            if (apiResult.shopid) {
-              resolvedShopId = apiResult.shopid.toString();
-              method = 'shop-base-username';
+            const diagMetadata = {
+              shopIdStrategy: apiResult.post.hasShopId ? 'shop-base-username' : 'shop-base-username-error',
+              shopBaseStatus: apiResult.post.status,
+              shopBaseHasData: apiResult.post.hasData,
+              shopBaseHasShopId: apiResult.post.hasShopId,
+              shopBasePostSize: apiResult.post.size,
+              shopBaseKeys: apiResult.post.keys,
+              shopBaseError: apiResult.post.error,
+              shopBaseGetStatus: apiResult.get.status,
+              shopBaseGetHasShopId: apiResult.get.hasShopId,
+              originalUrl: targetUrl,
+              finalUrl: page.url(),
+              extractedUsername: username
+            };
+
+            if (apiResult.post.shopid || apiResult.get.shopid) {
+              resolvedShopId = (apiResult.post.shopid || apiResult.get.shopid).toString();
+              method = apiResult.post.hasShopId ? 'shop-base-username' : 'shop-base-username-get';
             }
+
+            // Merge diagnostics into final response if failure occurs later or succeeds
+            (globalThis as any).diag = diagMetadata;
 
             // 5.3 Fallbacks if API fails
             if (!resolvedShopId) {
@@ -144,7 +189,12 @@ export default {
               source: 'shopee',
               shopId: null,
               items: [],
-              metadata: { provider: 'cloudflare-browser-run', method, strategy: method },
+              metadata: { 
+                provider: 'cloudflare-browser-run', 
+                method, 
+                strategy: method,
+                diagnostics: (globalThis as any).diag 
+              },
               errors: ['resolution-exhausted']
             }), { status: 404, headers: { 'Content-Type': 'application/json' } });
           }
@@ -182,7 +232,8 @@ export default {
             metadata: {
               provider: 'cloudflare-browser-run',
               method,
-              executionTimeMs: Date.now() - startTime
+              executionTimeMs: Date.now() - startTime,
+              diagnostics: (globalThis as any).diag
             },
             errors: []
           }), { headers: { 'Content-Type': 'application/json' } });
