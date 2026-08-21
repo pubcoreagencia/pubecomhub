@@ -3,12 +3,15 @@ import { ShoppingCart, Search, Menu, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { mockProducts } from '@/data/mock';
+import { useCart } from '@/hooks/useCart';
 
 export const Route = createFileRoute('/store/')({
   component: StoreHome,
 });
 
 function StoreHome() {
+  const { totalItems, isHydrated } = useCart();
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar */}
@@ -29,7 +32,11 @@ function StoreHome() {
             </div>
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">0</span>
+              {isHydrated && totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                  {totalItems}
+                </span>
+              )}
             </Button>
             <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="h-5 w-5" />

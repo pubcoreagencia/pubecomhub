@@ -3,6 +3,7 @@ import { ShoppingCart, Star, ShieldCheck, Truck, RefreshCcw, ChevronRight } from
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { mockProducts } from '@/data/mock';
+import { useCart } from '@/hooks/useCart';
 
 export const Route = createFileRoute('/store/product')({
   component: ProductPage,
@@ -10,6 +11,8 @@ export const Route = createFileRoute('/store/product')({
 
 function ProductPage() {
   const product = mockProducts[0];
+  const { addToCart } = useCart();
+
   
   if (!product) return <div>Produto não encontrado</div>;
 
@@ -69,12 +72,16 @@ function ProductPage() {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/store/checkout" className="flex-1">
+                <Link to="/store/checkout" className="flex-1" onClick={() => addToCart(product)}>
                   <Button className="w-full h-14 text-lg font-bold rounded-2xl shadow-xl shadow-primary/20">
                     Comprar Agora
                   </Button>
                 </Link>
-                <Button variant="outline" className="h-14 px-8 rounded-2xl">
+                <Button 
+                  variant="outline" 
+                  className="h-14 px-8 rounded-2xl"
+                  onClick={() => addToCart(product)}
+                >
                   <ShoppingCart className="h-5 w-5" />
                 </Button>
               </div>
