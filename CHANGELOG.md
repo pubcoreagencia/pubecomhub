@@ -1,5 +1,17 @@
 # Changelog - PUB ECOM HUB
 
+## [1.5.0] - 2026-08-21
+### Adicionado
+- **Fase 2D - Prova Operacional Real**: Teste de ponta a ponta com URL real da Shopee.
+- **Segurança de Hostname**: Refinamento da validação de URLs para prevenir SSRF e domínios maliciosos (rejeitando `evil-shopee.com.br`).
+- **Detecção de ShopID**: Algoritmo aprimorado com fallback via URL para garantir captura de IDs em lojas com URLs amigáveis.
+- **Logs de Worker**: Adição de logs de paginação ("page 1", "page 2") para monitoramento de progresso.
+- **Interface de Erro Real**: Exibição detalhada de bloqueios HTTP 403 no dashboard de ingestão.
+
+### Corrigido
+- Tipagem de `ImportPreview` para incluir metadados de execução.
+- Acesso seguro a `worker_metadata` nos repositórios para evitar erros de index signature.
+
 ## [1.4.0] - 2026-08-21
 ### Added
 - **Fase 2C - Execução Real do Shopee Ingestion**: Implementação do motor de descoberta dinâmica.

@@ -47,6 +47,9 @@ export class CatalogIngestionService {
       items.push(normalized);
     }
 
+    // Extract metadata from raw results if available
+    const firstRawMetadata = rawProducts[0]?.metadata?.['worker_metadata'];
+
     return {
       supplierName: "Fornecedor Detectado",
       sourceUrl: url,
@@ -55,7 +58,12 @@ export class CatalogIngestionService {
       updates: 0,
       duplicates: duplicatesCount,
       errors: 0,
-      items
+      items,
+      metadata: {
+        shopId: firstRawMetadata?.shopId || null,
+        executionTime: firstRawMetadata?.executionTime || 0,
+        errors: firstRawMetadata?.errors || []
+      }
     };
   }
 

@@ -18,13 +18,22 @@ interface WorkerResult {
 
 function validateUrl(url: string) {
   const parsed = new URL(url);
-  if (!parsed.hostname.endsWith('shopee.com.br')) {
-    throw new Error("Domínio não permitido.");
+  
+  // Accept only shopee.com.br and its legitimate subdomains
+  const hostname = parsed.hostname.toLowerCase();
+  const isLegitShopee = hostname === 'shopee.com.br' || hostname.endsWith('.shopee.com.br');
+  
+  if (!isLegitShopee) {
+    throw new Error("Domínio não permitido. Apenas shopee.com.br é aceito.");
   }
-  const blockedIps = ['127.0.0.1', '0.0.0.0', 'localhost', '169.254.169.254'];
-  if (blockedIps.includes(parsed.hostname.toLowerCase())) {
+
+  // Block local/private IPs and sensitive endpoints
+  const blockedHostnames = ['localhost', '127.0.0.1', '0.0.0.0', '169.254.169.254'];
+  if (blockedHostnames.includes(hostname)) {
     throw new Error("Origem inválida.");
   }
+
+  // Strict protocol check
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
     throw new Error("Protocolo não suportado.");
   }
@@ -66,16 +75,24 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
         if (!detectedShopId) {
-          detectedShopId = await page.evaluate(() => {
+          detectedShopId = await page.evaluate((currentUrl) => {
+            // Priority 1: URL format /shop/{id}
+            const urlMatch = currentUrl.match(/\/shop\/(\d+)/);
+            if (urlMatch && urlMatch[1]) return urlMatch[1];
+            
+            // Priority 2: Scripts
             const scripts = Array.from(document.querySelectorAll('script'));
             for (const script of scripts) {
               const match = script.innerHTML.match(/shopid["\s:]+(\d+)/);
               if (match && match[1] && match[1] !== '0') return match[1];
             }
-            const urlMatch = window.location.href.match(/\/shop\/(\d+)/);
-            if (urlMatch && urlMatch[1]) return urlMatch[1];
+            
+            // Priority 3: Product URL format /product/{shopid}/{itemid}
+            const productMatch = currentUrl.match(/\/product\/(\d+)/);
+            if (productMatch && productMatch[1]) return productMatch[1];
+            
             return null;
-          }) as string | null;
+          }, url) as string | null;
         }
 
         if (!detectedShopId) {
@@ -83,11 +100,25 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
         }
 
         let offset = 0;
+        let pageCount = 0;
+        
         while (items.length < limit) {
+          pageCount++;
+          console.log(`[ShopeeWorker] Processing page ${pageCount} (offset ${offset})...`);
+          
           const pageResults: any = await page.evaluate(async ({ shopId, offset }) => {
             try {
               const api = `https://shopee.com.br/api/v4/search/search_items?by=relevancy&limit=30&match_id=${shopId}&newest=${offset}&order=desc&page_type=shop&scenario=PAGE_SHOP&version=2`;
-              const response = await fetch(api);
+              const response = await fetch(api, {
+                headers: {
+                  'x-requested-with': 'XMLHttpRequest'
+                }
+              });
+              
+              if (response.status === 403) {
+                return { error: "HTTP 403 Forbidden - O acesso foi bloqueado pela Shopee." };
+              }
+              
               if (!response.ok) return { error: `HTTP ${response.status}` };
               const data = await response.json();
               return { items: data.items || [] };
@@ -97,15 +128,22 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
           }, { shopId: detectedShopId, offset });
 
           if (pageResults.error) {
-            errors.push(`Erro na página ${offset}: ${pageResults.error}`);
+            errors.push(`Erro na página ${pageCount}: ${pageResults.error}`);
             break;
           }
 
           const newItems = pageResults.items.map((i: any) => i.item_basic);
-          if (newItems.length === 0) break;
+          if (!newItems || newItems.length === 0) {
+            console.log(`[ShopeeWorker] No more items found at page ${pageCount}`);
+            break;
+          }
 
           items.push(...newItems);
+          console.log(`[ShopeeWorker] Found ${newItems.length} items on page ${pageCount}. Total so far: ${items.length}`);
+          
           offset += newItems.length;
+          
+          // Small delay to be polite
           await new Promise(r => setTimeout(r, 1000));
         }
       } finally {

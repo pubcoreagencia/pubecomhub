@@ -78,6 +78,12 @@ export interface ImportPreview {
   duplicates: number;
   errors: number;
   items: NormalizedProduct[];
+  metadata?: {
+    shopId?: string | null;
+    executionTime?: number;
+    errors?: string[];
+    [key: string]: any;
+  };
 }
 
 export interface CatalogSourceAdapter {
