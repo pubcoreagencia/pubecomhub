@@ -4,12 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ShoppingBag, CreditCard, Lock } from 'lucide-react';
+import { useCart } from '@/hooks/useCart';
 
 export const Route = createFileRoute('/store/checkout')({
   component: CheckoutPage,
 });
 
 function CheckoutPage() {
+  const { items, totalPrice, isHydrated, clearCart } = useCart();
+
   return (
     <div className="min-h-screen bg-slate-50 py-12">
       <div className="container px-4 mx-auto max-w-[1000px]">
@@ -80,7 +83,7 @@ function CheckoutPage() {
               </div>
             </div>
             
-            <Link to="/store/confirmation">
+            <Link to="/store/confirmation" onClick={() => clearCart()}>
               <Button className="w-full h-14 text-lg font-bold rounded-xl mt-4 shadow-lg shadow-primary/20">
                 Finalizar Compra
               </Button>
@@ -97,21 +100,27 @@ function CheckoutPage() {
                 <ShoppingBag className="h-4 w-4" /> Resumo do Pedido
               </h2>
               <div className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="h-16 w-16 rounded-lg bg-slate-100 border overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200" className="object-cover h-full w-full" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold line-clamp-1">Smartphone Pro 5G</p>
-                    <p className="text-xs text-muted-foreground">Qtd: 1</p>
-                    <p className="text-sm font-bold mt-1">R$ 2.999,00</p>
-                  </div>
-                </div>
+                {isHydrated && items.length > 0 ? (
+                  items.map((item) => (
+                    <div key={item.id} className="flex gap-3">
+                      <div className="h-16 w-16 rounded-lg bg-slate-100 border overflow-hidden">
+                        <img src={item.image} className="object-cover h-full w-full" alt={item.name} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold line-clamp-1">{item.name}</p>
+                        <p className="text-xs text-muted-foreground">Qtd: {item.quantity}</p>
+                        <p className="text-sm font-bold mt-1">R$ {item.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">Seu carrinho está vazio.</p>
+                )}
               </div>
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>R$ 2.999,00</span>
+                  <span>R$ {isHydrated ? totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Frete</span>
@@ -119,7 +128,7 @@ function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t mt-2">
                   <span>Total</span>
-                  <span className="text-primary">R$ 2.999,00</span>
+                  <span className="text-primary">R$ {isHydrated ? totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}</span>
                 </div>
               </div>
             </div>
