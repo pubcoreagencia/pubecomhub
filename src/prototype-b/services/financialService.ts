@@ -1,51 +1,43 @@
-import { Order, FinancialSummary } from '../types';
-import { orderRepository } from '../repositories/orderRepository';
-
-export class FinancialService {
-  async calculateSummary(orders: Order[]): Promise<FinancialSummary> {
-    const summary: FinancialSummary = {
-      totalRevenue: 0,
-      totalCost: 0,
-      totalShipping: 0,
-      totalTax: 0,
-      totalDiscount: 0,
-      netProfit: 0,
-      pubResult: 0,
-      commissions: {
-        influencers: 0,
-        afiliados: 0
-      }
-    };
-
-    orders.forEach(order => {
-      summary.totalRevenue += order.amount;
-      summary.totalCost += order.cost;
-      summary.totalShipping += order.shipping;
-      summary.totalTax += order.tax;
-      summary.totalDiscount += order.discount;
-
-      // Lucro Líquido = Venda - Custo - Frete - Taxas - Descontos
-      const orderNetProfit = order.amount - order.cost - order.shipping - order.tax - order.discount;
-      summary.netProfit += orderNetProfit;
-
-      // Regra Influencer: 50% do lucro líquido
-      if (order.influencerId) {
-        const influencerCommission = orderNetProfit * 0.5;
-        summary.commissions.influencers += influencerCommission;
-      }
-
-      // Regra Afiliado: Simulado 10% da venda (configurável)
-      if (order.afiliadoId) {
-        const afiliadoCommission = order.amount * 0.1;
-        summary.commissions.afiliados += afiliadoCommission;
-      }
-    });
-
-    // Resultado PUB = Lucro Líquido - Comissões
-    summary.pubResult = summary.netProfit - summary.commissions.influencers - summary.commissions.afiliados;
-
-    return summary;
-  }
+export interface SaleMetrics {
+  gross_revenue: number;
+  product_cost: number;
+  shipping_cost: number;
+  taxes: number;
+  discounts: number;
+  net_profit: number;
+  influencer_share: number;
+  operation_share: number;
 }
 
-export const financialService = new FinancialService();
+export const calculateSaleMargins = (gross: number, cost: number, shipping: number, taxRate: number = 0.05): SaleMetrics => {
+  const taxes = gross * taxRate;
+  const discounts = 0; // Simplified for prototype
+  const net_profit = gross - cost - shipping - taxes - discounts;
+  
+  // Rule: Influencer gets 50% of Net Profit
+  const influencer_share = Math.max(0, net_profit * 0.5);
+  const operation_share = net_profit - influencer_share;
+
+  return {
+    gross_revenue: gross,
+    product_cost: cost,
+    shipping_cost: shipping,
+    taxes,
+    discounts,
+    net_profit,
+    influencer_share,
+    operation_share
+  };
+};
+
+export const mockFinancialSummary = {
+  total_revenue: 1842900,
+  total_net_profit: 536800,
+  total_influencer_payout: 268400,
+  profit_margin: "29.1%",
+  top_stores: [
+    { name: "Titanium Dropshipping", revenue: 428900, profit: 124000 },
+    { name: "Glow Tech Hub", revenue: 312500, profit: 92400 },
+    { name: "Urban Style", revenue: 284000, profit: 81200 }
+  ]
+};
