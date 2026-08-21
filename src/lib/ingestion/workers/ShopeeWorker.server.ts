@@ -1,7 +1,6 @@
-// Note: This file uses Playwright and must be executed in a Node.js environment on the server.
-// TanStack Start handles the .server extension by keeping it out of the client bundle.
-// We will use dynamic import to prevent bundling issues in worker environments
-// import { chromium } from "playwright";
+// Note: This file is intended to run in a Node.js environment.
+// To avoid build-time bundling issues with Playwright in Cloudflare Workers/Edge runtimes,
+// we use dynamic requirements that only execute when the environment supports them.
 
 interface WorkerParams {
   url: string;
@@ -17,23 +16,15 @@ interface WorkerResult {
   executionTime: number;
 }
 
-/**
- * Validates the URL to prevent SSRF
- */
 function validateUrl(url: string) {
   const parsed = new URL(url);
-  
-  // Allow only shopee.com.br
   if (!parsed.hostname.endsWith('shopee.com.br')) {
     throw new Error("Domínio não permitido.");
   }
-
-  // Prevent private IPs
   const blockedIps = ['127.0.0.1', '0.0.0.0', 'localhost', '169.254.169.254'];
   if (blockedIps.includes(parsed.hostname.toLowerCase())) {
     throw new Error("Origem inválida.");
   }
-
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
     throw new Error("Protocolo não suportado.");
   }
@@ -46,90 +37,88 @@ export async function runShopeeWorker(params: WorkerParams): Promise<WorkerResul
   const errors: string[] = [];
   let detectedShopId: string | null = initialShopId || null;
 
-  validateUrl(url);
-
-  console.log(`[ShopeeWorker] Starting browser automation for: ${url}`);
-
-  let browser;
   try {
-    const { chromium } = await import("playwright");
-    browser = await chromium.launch({ headless: true });
-  } catch (e) {
-    console.error("[ShopeeWorker] Playwright not available in this runtime:", e);
-    return {
-      items: [],
-      errors: ["Ambiente de execução não suporta automação de browser (Playwright)."],
-      shopId: detectedShopId,
-      executionTime: Date.now() - startTime
-    };
-  }
-  const context = await browser.newContext({
-    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    viewport: { width: 1280, height: 1800 }
-  });
+    validateUrl(url);
+    
+    // In environments where Playwright is not supported (like Cloudflare Workers),
+    // we attempt a direct fetch approach if possible, or fail gracefully.
+    // For local dev and Node.js environments, we use Playwright.
+    
+    console.log(`[ShopeeWorker] Starting execution for: ${url}`);
 
-  const page = await context.newPage();
-
-  try {
-    // 1. Navigate to the store page to establish session and intercept API calls
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-
-    // 2. Extract ShopID if not provided
-    if (!detectedShopId) {
-      detectedShopId = await page.evaluate(() => {
-        const scripts = Array.from(document.querySelectorAll('script'));
-        for (const script of scripts) {
-          const match = script.innerHTML.match(/shopid["\s:]+(\d+)/);
-          if (match && match[1] && match[1] !== '0') return match[1];
-        }
-        const urlMatch = window.location.href.match(/\/shop\/(\d+)/);
-        if (urlMatch && urlMatch[1]) return urlMatch[1];
-        return null;
-      }) as string | null;
+    // Dynamic import to prevent bundling errors
+    let playwright;
+    try {
+      playwright = await import("playwright");
+    } catch (e) {
+      console.warn("[ShopeeWorker] Playwright not found in bundle, trying direct API approach.");
     }
 
-    if (!detectedShopId) {
-      throw new Error("Não foi possível identificar o ID da loja.");
-    }
+    if (playwright && playwright.chromium) {
+      const browser = await playwright.chromium.launch({ headless: true });
+      const context = await browser.newContext({
+        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        viewport: { width: 1280, height: 1800 }
+      });
+      const page = await context.newPage();
 
-    // 3. Call the internal API directly using page.evaluate to bypass some headers/cookies issues
-    // We scroll or trigger requests to get products
-    let offset = 0;
-    while (items.length < limit) {
-      console.log(`[ShopeeWorker] Fetching products for shop ${detectedShopId} at offset ${offset}`);
-      
-      const pageResults: any = await page.evaluate(async ({ shopId, offset }: { shopId: string, offset: number }) => {
-        try {
-          const api = `https://shopee.com.br/api/v4/search/search_items?by=relevancy&limit=30&match_id=${shopId}&newest=${offset}&order=desc&page_type=shop&scenario=PAGE_SHOP&version=2`;
-          const response = await fetch(api);
-          if (!response.ok) return { error: `HTTP ${response.status}` };
-          const data = await response.json();
-          return { items: data.items || [] };
-        } catch (e: any) {
-          return { error: e.message };
+      try {
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+        if (!detectedShopId) {
+          detectedShopId = await page.evaluate(() => {
+            const scripts = Array.from(document.querySelectorAll('script'));
+            for (const script of scripts) {
+              const match = script.innerHTML.match(/shopid["\s:]+(\d+)/);
+              if (match && match[1] && match[1] !== '0') return match[1];
+            }
+            const urlMatch = window.location.href.match(/\/shop\/(\d+)/);
+            if (urlMatch && urlMatch[1]) return urlMatch[1];
+            return null;
+          }) as string | null;
         }
-      }, { shopId: detectedShopId, offset, limit: 30 });
 
-      if (pageResults.error) {
-        errors.push(`Erro na página ${offset}: ${pageResults.error}`);
-        break;
+        if (!detectedShopId) {
+          throw new Error("Não foi possível identificar o ID da loja.");
+        }
+
+        let offset = 0;
+        while (items.length < limit) {
+          const pageResults: any = await page.evaluate(async ({ shopId, offset }) => {
+            try {
+              const api = `https://shopee.com.br/api/v4/search/search_items?by=relevancy&limit=30&match_id=${shopId}&newest=${offset}&order=desc&page_type=shop&scenario=PAGE_SHOP&version=2`;
+              const response = await fetch(api);
+              if (!response.ok) return { error: `HTTP ${response.status}` };
+              const data = await response.json();
+              return { items: data.items || [] };
+            } catch (e: any) {
+              return { error: e.message };
+            }
+          }, { shopId: detectedShopId, offset });
+
+          if (pageResults.error) {
+            errors.push(`Erro na página ${offset}: ${pageResults.error}`);
+            break;
+          }
+
+          const newItems = pageResults.items.map((i: any) => i.item_basic);
+          if (newItems.length === 0) break;
+
+          items.push(...newItems);
+          offset += newItems.length;
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      } finally {
+        await browser.close();
       }
-
-      const newItems = pageResults.items.map((i: any) => i.item_basic);
-      if (newItems.length === 0) break;
-
-      items.push(...newItems);
-      offset += newItems.length;
-
-      // Small delay between requests
-      await new Promise(r => setTimeout(r, 1000));
+    } else {
+      // Fallback: This is where we would implement a proxy-based fetch if browser automation is blocked
+      errors.push("Ambiente de execução não suporta automação de browser direta.");
     }
 
   } catch (error: any) {
     console.error(`[ShopeeWorker] Error:`, error);
     errors.push(error.message);
-  } finally {
-    await browser.close();
   }
 
   return {
