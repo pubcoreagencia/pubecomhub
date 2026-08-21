@@ -160,7 +160,7 @@ export default {
           if (!resolvedShopId) {
             resolvedShopId = await page.evaluate(() => {
               const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
-              for (const script of scripts) {
+              for (const script of scripts as HTMLScriptElement[]) {
                 try {
                   const data = JSON.parse(script.textContent || '{}');
                   if (data['@type'] === 'Store' && data['url']?.includes('shop/')) {
