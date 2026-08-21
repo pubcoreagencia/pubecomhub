@@ -27,7 +27,6 @@ const navGroups = [
       { label: "Produtos", icon: Box, href: "/prototype-b/dashboard/products" },
       { label: "Fornecedores", icon: Truck, href: "/prototype-b/dashboard/suppliers" },
       { label: "Estoque", icon: Layers, href: "/prototype-b/dashboard/inventory" },
-      { label: "Fulfillment", icon: Package, href: "/prototype-b/dashboard/fulfillment" },
     ]
   },
   {
@@ -43,7 +42,6 @@ const navGroups = [
     label: "Crescimento",
     items: [
       { label: "Audience Engine", icon: Target, href: "/prototype-b/dashboard/audience" },
-      { label: "Remarketing", icon: Share2, href: "/prototype-b/dashboard/audience" },
       { label: "Funil de Aquisição", icon: TrendingUp, href: "/prototype-b/dashboard/live" },
       { label: "UTM / Tracking", icon: Globe, href: "/prototype-b/dashboard/tracking" },
     ]
@@ -60,7 +58,6 @@ const navGroups = [
   {
     label: "Sistema",
     items: [
-      { label: "Store / Checkout", icon: Store, href: "/prototype-b/store" },
       { label: "Configurações", icon: Settings, href: "/prototype-b/dashboard/settings" },
     ]
   }
