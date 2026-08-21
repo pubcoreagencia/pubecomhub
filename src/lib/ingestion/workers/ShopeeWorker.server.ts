@@ -1,6 +1,7 @@
 // Note: This file uses Playwright and must be executed in a Node.js environment on the server.
 // TanStack Start handles the .server extension by keeping it out of the client bundle.
-import { chromium } from "playwright";
+// We will use dynamic import to prevent bundling issues in worker environments
+// import { chromium } from "playwright";
 
 interface WorkerParams {
   url: string;
