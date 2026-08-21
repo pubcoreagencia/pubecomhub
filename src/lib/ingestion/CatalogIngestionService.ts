@@ -48,7 +48,7 @@ export class CatalogIngestionService {
     }
 
     // Extract metadata from raw results if available
-    const firstRawMetadata = rawProducts[0]?.metadata?.worker_metadata;
+    const firstRawMetadata = rawProducts[0]?.metadata?.['worker_metadata'];
 
     return {
       supplierName: "Fornecedor Detectado",
