@@ -105,10 +105,12 @@ export default function DashboardLayout() {
                         "aria-[current]:bg-primary/5 aria-[current]:text-primary"
                       )}
                     >
-                      <item.icon className={cn(
-                        "h-5 w-5 shrink-0 transition-colors",
-                        "group-hover:text-primary"
-                      )} />
+                      {React.createElement(item.icon, {
+                        className: cn(
+                          "h-5 w-5 shrink-0 transition-colors",
+                          "group-hover:text-primary"
+                        )
+                      })}
                       {isSidebarOpen && (
                         <span className="flex-1 truncate">{item.label}</span>
                       )}
