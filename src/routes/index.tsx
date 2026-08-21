@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/")({
   component: () => (
     <div className="p-8 font-mono text-sm whitespace-pre-wrap bg-background text-foreground">
-      {`FASE 2F.4 — AUTENTICAÇÃO CLOUDFLARE E DEPLOY REAL
+      {`FASE 2F.4 — HEALTH CHECK DO PUB ECOM CATALOG WORKER
 
 REPOSITÓRIO:
 
@@ -11,52 +11,82 @@ https://github.com/pubcoreagencia/pub-ecom-catalog-worker
 
 OBJETIVO
 
-Desbloquear o deploy real do Catalog Worker na Cloudflare.
+Adicionar somente um health check ao Worker já deployado.
 
 NÃO alterar:
 
-* lógica de scraping;
-* endpoint \`/ingestion/shopee\`;
-* contratos;
+* lógica de ingestão Shopee;
+* Playwright;
 * Browser Run;
-* arquitetura;
-* \`pubecomhub\`.
+* endpoint \`/ingestion/shopee\`;
+* autenticação existente;
+* contratos de \`RawProduct\`;
+* arquitetura.
 
-Nesta etapa, apenas autenticar o Wrangler e realizar o deploy.
+## IMPLEMENTAÇÃO
 
-## 1. DETECTAR MÉTODO DE AUTENTICAÇÃO
+Adicionar:
 
-Verificar primeiro se o ambiente possui autenticação Cloudflare disponível.
+\`GET /health\`
 
-Executar:
+Resposta HTTP 200:
 
-\`\`\`bash
-npx wrangler whoami
+\`\`\`json
+{
+  "ok": true,
+  "service": "pub-ecom-catalog-worker"
+}
 \`\`\`
 
-Status Atual: You are not authenticated.
+Content-Type:
 
-## 2. FALLBACK NÃO INTERATIVO
+\`application/json\`
 
-Se login interativo não funcionar, preparar o ambiente para autenticação por token.
+O endpoint \`/health\` deve funcionar sem Bearer Token.
 
-BLOCKER:
-Cloudflare authentication credentials (CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID) are not configured in this environment.
+Manter:
 
-## 3. VALIDAR PROJETO (SUCESSO)
+\`POST /ingestion/shopee\`
 
-npm run build: SUCESSO (esbuild + custom bundle)
-npm run typecheck: SUCESSO
-npx wrangler deploy --dry-run: SUCESSO
+protegido por:
 
-## 4. DEPLOY REAL (BLOQUEADO)
+\`Authorization: Bearer <CATALOG_WORKER_TOKEN>\`
 
-STATUS: BLOCKED
-Cloudflare authentication credentials are not configured in this environment.
+## TESTES
 
-## 5. DOCUMENTAÇÃO
+Executar localmente:
 
-README.md, PROJECT_CONTEXT.md e CHANGELOG.md atualizados.
+* typecheck;
+* build;
+* wrangler dry-run.
+
+Depois atualizar o repositório.
+
+NÃO alterar secrets.
+
+NÃO criar novos secrets.
+
+## GIT
+
+Commit:
+
+\`fix: add catalog worker health endpoint\`
+
+Push para:
+
+\`pubcoreagencia/pub-ecom-catalog-worker\`
+
+## RESULTADO
+
+Ao terminar, informar somente:
+
+* arquivo alterado;
+* typecheck;
+* build;
+* commit;
+* branch.
+
+Não fazer o teste real Shopee nesta etapa.
 `}
     </div>
   ),
