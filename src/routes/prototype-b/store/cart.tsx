@@ -25,7 +25,7 @@ function StorefrontCartB() {
     { ...mockProducts[1], quantity: 2 }
   ];
 
-  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce((acc, item) => acc + ((item.price ?? 0) * item.quantity), 0);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-primary/10 selection:text-primary">

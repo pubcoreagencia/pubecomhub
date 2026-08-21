@@ -39,6 +39,7 @@ import { Route as PrototypeBDashboardSuppliersRouteImport } from './routes/proto
 import { Route as PrototypeBStoreIndexRouteImport } from './routes/prototype-b/store/index'
 import { Route as PrototypeBStoreCartRouteImport } from './routes/prototype-b/store/cart'
 import { Route as PrototypeBStoreCheckoutRouteImport } from './routes/prototype-b/store/checkout'
+import { Route as PrototypeBStoreConfirmationRouteImport } from './routes/prototype-b/store/confirmation'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -202,6 +203,12 @@ const PrototypeBStoreCheckoutRoute = PrototypeBStoreCheckoutRouteImport.update({
   path: '/prototype-b/store/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrototypeBStoreConfirmationRoute =
+  PrototypeBStoreConfirmationRouteImport.update({
+    id: '/prototype-b/store/confirmation',
+    path: '/prototype-b/store/confirmation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -232,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
   '/prototype-b/store/cart': typeof PrototypeBStoreCartRoute
   '/prototype-b/store/checkout': typeof PrototypeBStoreCheckoutRoute
+  '/prototype-b/store/confirmation': typeof PrototypeBStoreConfirmationRoute
   '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
   '/prototype-b/store/': typeof PrototypeBStoreIndexRoute
 }
@@ -262,6 +270,7 @@ export interface FileRoutesByTo {
   '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
   '/prototype-b/store/cart': typeof PrototypeBStoreCartRoute
   '/prototype-b/store/checkout': typeof PrototypeBStoreCheckoutRoute
+  '/prototype-b/store/confirmation': typeof PrototypeBStoreConfirmationRoute
   '/prototype-b/dashboard': typeof PrototypeBDashboardIndexRoute
   '/prototype-b/store': typeof PrototypeBStoreIndexRoute
 }
@@ -295,6 +304,7 @@ export interface FileRoutesById {
   '/prototype-b/dashboard/suppliers': typeof PrototypeBDashboardSuppliersRoute
   '/prototype-b/store/cart': typeof PrototypeBStoreCartRoute
   '/prototype-b/store/checkout': typeof PrototypeBStoreCheckoutRoute
+  '/prototype-b/store/confirmation': typeof PrototypeBStoreConfirmationRoute
   '/prototype-b/dashboard/': typeof PrototypeBDashboardIndexRoute
   '/prototype-b/store/': typeof PrototypeBStoreIndexRoute
 }
@@ -329,6 +339,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/suppliers'
     | '/prototype-b/store/cart'
     | '/prototype-b/store/checkout'
+    | '/prototype-b/store/confirmation'
     | '/prototype-b/dashboard/'
     | '/prototype-b/store/'
   fileRoutesByTo: FileRoutesByTo
@@ -359,6 +370,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/suppliers'
     | '/prototype-b/store/cart'
     | '/prototype-b/store/checkout'
+    | '/prototype-b/store/confirmation'
     | '/prototype-b/dashboard'
     | '/prototype-b/store'
   id:
@@ -391,6 +403,7 @@ export interface FileRouteTypes {
     | '/prototype-b/dashboard/suppliers'
     | '/prototype-b/store/cart'
     | '/prototype-b/store/checkout'
+    | '/prototype-b/store/confirmation'
     | '/prototype-b/dashboard/'
     | '/prototype-b/store/'
   fileRoutesById: FileRoutesById
@@ -405,6 +418,7 @@ export interface RootRouteChildren {
   StoreIndexRoute: typeof StoreIndexRoute
   PrototypeBStoreCartRoute: typeof PrototypeBStoreCartRoute
   PrototypeBStoreCheckoutRoute: typeof PrototypeBStoreCheckoutRoute
+  PrototypeBStoreConfirmationRoute: typeof PrototypeBStoreConfirmationRoute
   PrototypeBStoreIndexRoute: typeof PrototypeBStoreIndexRoute
 }
 
@@ -620,6 +634,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrototypeBStoreCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prototype-b/store/confirmation': {
+      id: '/prototype-b/store/confirmation'
+      path: '/prototype-b/store/confirmation'
+      fullPath: '/prototype-b/store/confirmation'
+      preLoaderRoute: typeof PrototypeBStoreConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -695,6 +716,7 @@ const rootRouteChildren: RootRouteChildren = {
   StoreIndexRoute: StoreIndexRoute,
   PrototypeBStoreCartRoute: PrototypeBStoreCartRoute,
   PrototypeBStoreCheckoutRoute: PrototypeBStoreCheckoutRoute,
+  PrototypeBStoreConfirmationRoute: PrototypeBStoreConfirmationRoute,
   PrototypeBStoreIndexRoute: PrototypeBStoreIndexRoute,
 }
 export const routeTree = rootRouteImport
