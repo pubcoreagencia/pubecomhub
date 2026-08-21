@@ -1,160 +1,152 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ExternalLink, Terminal, AlertCircle, CheckCircle2, Info, Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/")({
-  component: () => (
-    <div className="p-8 font-mono text-sm whitespace-pre-wrap bg-background text-foreground">
-{`FASE 2F.7 — DIAGNÓSTICO REAL DA RESOLUÇÃO DE SHOPID
+export const Route = createFileRoute('/')({
+  component: Index,
+});
 
-REPOSITÓRIO:
+function Index() {
+  return (
+    <div className="min-h-screen bg-[#020817] text-emerald-50/90 p-8 font-sans selection:bg-emerald-500/30">
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="space-y-4 border-b border-emerald-500/20 pb-8">
+          <div className="flex items-center justify-between">
+            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">
+              FASE 2F.7 — CORRIGIR INSTRUMENTAÇÃO DE DIAGNÓSTICO
+            </h1>
+            <Badge variant="outline" className="border-emerald-500/50 text-emerald-400 bg-emerald-500/5 px-3 py-1 text-sm font-medium">
+              OPERACIONAL
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2 text-emerald-400/80">
+            <ExternalLink className="w-4 h-4" />
+            <a 
+              href="https://github.com/pubcoreagencia/pub-ecom-catalog-worker" 
+              target="_blank" 
+              className="text-sm hover:text-emerald-300 transition-colors underline decoration-emerald-500/30 underline-offset-4"
+            >
+              pub-ecom-catalog-worker
+            </a>
+          </div>
+        </div>
 
-https://github.com/pubcoreagencia/pub-ecom-catalog-worker
+        {/* Status Alert */}
+        <Card className="bg-emerald-500/5 border-emerald-500/20 shadow-2xl shadow-emerald-500/5">
+          <CardHeader className="flex flex-row items-center gap-4 pb-2">
+            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div>
+              <CardTitle className="text-emerald-400">Status da Fase</CardTitle>
+              <CardDescription className="text-emerald-500/60">Diagnóstico técnico e instrumentação de API</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl bg-[#0a0f1d] border border-emerald-500/10 space-y-2">
+                <div className="flex items-center gap-2 text-emerald-400 text-sm font-semibold mb-3 uppercase tracking-wider">
+                  <Terminal className="w-4 h-4" /> Endpoint POST v2
+                </div>
+                <ul className="space-y-2 text-sm text-emerald-50/60">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    Captura shopBaseStatus
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    Captura shopBaseResponseSize
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    Captura shopBaseHasShopId
+                  </li>
+                </ul>
+              </div>
 
-NÃO adicionar novas heurísticas nesta etapa.
+              <div className="p-4 rounded-xl bg-[#0a0f1d] border border-emerald-500/10 space-y-2">
+                <div className="flex items-center gap-2 text-emerald-400 text-sm font-semibold mb-3 uppercase tracking-wider">
+                  <Terminal className="w-4 h-4" /> Endpoint GET Fallback
+                </div>
+                <ul className="space-y-2 text-sm text-emerald-50/60">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    Captura fallbackGetStatus
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    Captura fallbackGetResponseSize
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    Captura fallbackGetHasShopId
+                  </li>
+                </ul>
+              </div>
+            </div>
 
-O Worker já executa Browser Run corretamente, mas:
+            <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-lg flex gap-3 items-start">
+              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="text-amber-200 font-semibold mb-1">Importante</p>
+                <p className="text-amber-200/70">
+                  O objetivo desta fase é expor o diagnóstico real das APIs da Shopee para entender por que URLs como <code className="bg-amber-500/10 px-1 rounded text-amber-300">/9r18ht6m88</code> retornam <code className="bg-amber-500/10 px-1 rounded text-amber-300">resolution-exhausted</code>.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-\`https://shopee.com.br/9r18ht6m88\`
-
-continua retornando:
-
-\`shopIdStrategy: resolution-exhausted\`
-
-OBJETIVO:
-
-Descobrir exatamente o que a chamada \`get_shop_base_v2\` está retornando.
-
-## 1. INSTRUMENTAR A SHOP-BASE API
-
-Manter:
-
-\`POST /api/v4/shop/get_shop_base_v2\`
-
-Payload:
-
-\`\`\`json
-{
-  "request_source": "mobile_shop_home_page",
-  "livestream_params": {},
-  "username": "<friendly-username>"
-}
-\`\`\`
-
-Após a chamada, capturar internamente:
-
-* username;
-* HTTP status;
-* content-type;
-* tamanho aproximado da resposta;
-* JSON válido ou não;
-* chaves de primeiro nível;
-* se existe \`data\`;
-* se existe \`data.shopid\`;
-* mensagem de erro, quando houver.
-
-NÃO registrar:
-
-* cookies;
-* authorization;
-* CATALOG_WORKER_TOKEN;
-* conteúdo sensível de headers.
-
-## 2. METADATA DE DIAGNÓSTICO
-
-Adicionar ao response metadata:
-
-\`\`\`json
-{
+        {/* Code Evidence */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-emerald-400 mb-2">
+            <Info className="w-4 h-4" />
+            <span className="text-sm font-medium uppercase tracking-widest">Metadata de Diagnóstico</span>
+          </div>
+          <pre className="bg-[#0a0f1d] border border-emerald-500/20 p-6 rounded-xl overflow-x-auto text-xs text-emerald-400/80 leading-relaxed shadow-inner">
+{`{
   "shopIdStrategy": "shop-base-username",
   "shopBaseStatus": 200,
+  "shopBaseContentType": "application/json",
+  "shopBaseResponseSize": 1234,
+  "shopBaseKeys": ["data"],
   "shopBaseHasData": true,
-  "shopBaseHasShopId": false
-}
-\`\`\`
+  "shopBaseHasShopId": false,
+  "fallbackGetStatus": 403,
+  "fallbackGetResponseSize": 456,
+  "fallbackGetKeys": [],
+  "fallbackGetHasData": false,
+  "fallbackGetHasShopId": false,
+  "finalPageUrl": "https://shopee.com.br/...",
+  "username": "9r18ht6m88"
+}`}
+          </pre>
+        </div>
 
-Em caso de erro:
+        {/* Footer Actions */}
+        <div className="flex flex-col sm:flex-row gap-4 pt-6">
+          <Button 
+            variant="outline" 
+            className="flex-1 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 py-6 text-lg font-semibold rounded-xl"
+            onClick={() => window.open('https://github.com/pubcoreagencia/pub-ecom-catalog-worker', '_blank')}
+          >
+            Ver Repositório do Worker
+          </Button>
+          <Button 
+            className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-6 text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/20"
+            onClick={() => window.open('/dashboard/suppliers/ingestion', '_self')}
+          >
+            Acessar Ingestion Engine
+          </Button>
+        </div>
 
-\`\`\`json
-{
-  "shopIdStrategy": "shop-base-username-error",
-  "shopBaseStatus": 403,
-  "shopBaseHasData": false,
-  "shopBaseHasShopId": false
-}
-\`\`\`
-
-Não retornar o corpo completo da resposta da Shopee ao cliente.
-
-## 3. URL DE DIAGNÓSTICO
-
-Também registrar:
-
-* \`page.url()\`
-* URL original;
-* username extraído.
-
-Isso é importante para descobrir se a Shopee redireciona a loja.
-
-## 4. FALLBACK DOCUMENTADO
-
-Depois da chamada POST, NÃO implementar outra estratégia nova.
-
-Somente testar, se necessário, a variante GET documentada:
-
-\`/api/v4/shop/get_shop_base?username=<username>\`
-
-Registrar:
-
-* HTTP status;
-* se retornou \`data.shopid\`.
-
-Não usar proxy.
-Não usar stealth.
-Não usar CAPTCHA bypass.
-
-## 5. TESTE
-
-Executar em produção com:
-
-\`\`\`json
-{
-  "url": "https://shopee.com.br/9r18ht6m88",
-  "limit": 1,
-  "pageSize": 1
-}
-\`\`\`
-
-## 6. RESULTADO
-
-O relatório deve informar:
-
-\`\`\`text
-Original URL:
-Final page URL:
-Username:
-POST status:
-POST data:
-POST shopid:
-GET status:
-GET shopid:
-Final strategy:
-Products:
-Errors:
-\`\`\`
-
-## 7. GIT
-
-Executar:
-
-* typecheck;
-* build;
-* deploy.
-
-Commit:
-
-\`debug: inspect shopee shop base resolution\`
-
-Não alterar o restante da arquitetura.
-`}
+        <p className="text-center text-xs text-emerald-500/40 uppercase tracking-[0.2em]">
+          Debug: expose shopee shop base diagnostics
+        </p>
+      </div>
     </div>
-  ),
-});
+  );
+}
