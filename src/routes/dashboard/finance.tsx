@@ -3,13 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { mockOrders, calculateFinance } from '@/data/mock';
 import { Wallet, ArrowDownRight, ArrowUpRight, TrendingUp, Percent } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const Route = createFileRoute('/dashboard/finance')({
   component: FinancePage,
 });
 
 function FinancePage() {
+  const [loading, setLoading] = useState(true);
   const finance = calculateFinance(mockOrders);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 700);
+    return () => clearTimeout(timer);
+  }, []);
+
 
   const metrics = [
     { label: 'Faturamento Bruto', value: finance.grossRevenue, icon: Wallet, color: 'text-slate-900' },
@@ -31,19 +40,33 @@ function FinancePage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {metrics.map((m, i) => (
-          <Card key={i} className={cn(i === metrics.length - 1 ? "border-primary bg-primary/5 shadow-md" : "")}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs font-medium uppercase text-muted-foreground">{m.label}</CardTitle>
-              <m.icon className={cn("h-4 w-4", m.color)} />
-            </CardHeader>
-            <CardContent>
-              <div className={cn("text-2xl font-bold", m.color)}>
-                R$ {m.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {loading ? (
+          [...Array(9)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-32" />
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          metrics.map((m, i) => (
+            <Card key={i} className={cn(i === metrics.length - 1 ? "border-primary bg-primary/5 shadow-md" : "")}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xs font-medium uppercase text-muted-foreground">{m.label}</CardTitle>
+                <m.icon className={cn("h-4 w-4", m.color)} />
+              </CardHeader>
+              <CardContent>
+                <div className={cn("text-2xl font-bold", m.color)}>
+                  R$ {m.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       <Card>
