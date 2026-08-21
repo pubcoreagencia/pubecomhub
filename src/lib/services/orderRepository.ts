@@ -1,5 +1,5 @@
-import { Order } from @/types/hub-types';
-import { mockOrders } from @/data/mock';
+import { Order } from '@/types';
+import { mockOrders } from '@/data/mock';
 
 export class OrderRepository {
   async getAll(): Promise<Order[]> {
