@@ -30,7 +30,7 @@ function MarketingB() {
                 <div key={ad.name} className="flex items-center justify-between p-4 bg-black/20 border border-[var(--hub-border)] rounded">
                   <div className="flex items-center gap-4">
                     <div className={cn("p-2 rounded", ad.color)}>
-                      {React.cloneElement(ad.icon as React.ReactElement, { className: "h-4 w-4 text-white" })}
+                      {React.cloneElement(ad.icon as React.ReactElement<any>, { className: "h-4 w-4 text-white" })}
                     </div>
                     <div>
                       <p className="text-xs font-bold text-white uppercase">{ad.name}</p>
