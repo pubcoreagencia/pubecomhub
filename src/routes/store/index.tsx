@@ -8,6 +8,16 @@ import { useCart } from '@/hooks/useCart';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/store/')({
+  head: () => ({
+    meta: [
+      { title: "Tech Store | PUB ECOM" },
+      { name: "description", content: "A melhor curadoria de tecnologia do Brasil." },
+      { property: "og:title", content: "Tech Store | PUB ECOM" },
+      { property: "og:description", content: "A melhor curadoria de tecnologia do Brasil." },
+      { property: "og:image", content: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1200" },
+      { name: "twitter:image", content: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1200" },
+    ],
+  }),
   component: StoreHome,
 });
 

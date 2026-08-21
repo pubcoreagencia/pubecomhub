@@ -8,6 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/dashboard/')({
+  head: () => ({
+    meta: [
+      { title: "Dashboard Master | PUB ECOM" },
+      { name: "description", content: "Visão geral da sua operação de e-commerce em tempo real." },
+      { property: "og:title", content: "Dashboard Master | PUB ECOM" },
+      { property: "og:description", content: "Visão geral da sua operação de e-commerce em tempo real." },
+    ],
+  }),
   component: DashboardPage,
 });
 
