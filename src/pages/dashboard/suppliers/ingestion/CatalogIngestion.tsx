@@ -282,13 +282,15 @@ export const CatalogIngestion = () => {
               <CardContent className="pt-6">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[10px] font-bold text-emerald-50/40 uppercase tracking-widest">Novos</p>
-                    <h3 className="text-2xl font-bold text-emerald-50 text-emerald-400">{preview.newItems}</h3>
+                    <p className="text-[10px] font-bold text-emerald-50/40 uppercase tracking-widest">Novos / Válidos</p>
+                    <h3 className="text-2xl font-bold text-emerald-50 text-emerald-400">
+                      {preview.newItems} / {preview.items.length}
+                    </h3>
                   </div>
                   <CheckCircle2 className="w-5 h-5 text-emerald-500/40" />
                 </div>
                 <div className="mt-2 text-[10px] text-emerald-50/40 italic">
-                  {preview.duplicates} já existentes
+                  {preview.duplicates} duplicados
                 </div>
               </CardContent>
             </Card>
@@ -297,13 +299,15 @@ export const CatalogIngestion = () => {
               <CardContent className="pt-6">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-[10px] font-bold text-emerald-50/40 uppercase tracking-widest">Seleção</p>
-                    <h3 className="text-2xl font-bold text-emerald-50">{selectedItems.size}</h3>
+                    <p className="text-[10px] font-bold text-emerald-50/40 uppercase tracking-widest">Erros / Bloqueios</p>
+                    <h3 className="text-2xl font-bold text-emerald-50 text-red-400">
+                      {preview.metadata?.errors?.length || 0}
+                    </h3>
                   </div>
-                  <Database className="w-5 h-5 text-emerald-500/40" />
+                  <AlertCircle className="w-5 h-5 text-red-500/40" />
                 </div>
-                <div className="mt-2 text-[10px] text-emerald-50/40">
-                  Prontos para Master
+                <div className="mt-2 text-[10px] text-red-200/40 truncate">
+                  {preview.metadata?.errors?.[0] || 'Nenhum erro reportado'}
                 </div>
               </CardContent>
             </Card>
@@ -320,7 +324,7 @@ export const CatalogIngestion = () => {
                   <Clock className="w-5 h-5 text-emerald-500/40" />
                 </div>
                 <div className="mt-2 text-[10px] text-emerald-50/40">
-                  Tempo de resposta
+                  Tempo total de análise
                 </div>
               </CardContent>
             </Card>
