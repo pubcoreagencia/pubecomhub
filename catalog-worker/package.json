@@ -11,6 +11,7 @@
     "@cloudflare/workers-types": "^4.20240821.0",
     "esbuild": "^0.28.2",
     "typescript": "^5.5.4",
+    "vitest": "^4.1.11",
     "wrangler": "^3.72.0"
   },
   "dependencies": {
