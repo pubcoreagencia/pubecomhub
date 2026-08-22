@@ -50,7 +50,8 @@ export const Route = createFileRoute('/api/catalog/stores/$storeId/refresh')({
         }
 
         // 4. Chamar proxy
-        return await handleCatalogProxy(request);
+        const response = await handleCatalogProxy(request);
+        return response;
       }
     }
   }

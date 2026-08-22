@@ -1,4 +1,4 @@
-﻿export async function handleCatalogProxy(request: Request, env?: unknown): Promise<Response | null> {
+﻿export async function handleCatalogProxy(request: Request, env?: unknown): Promise<Response> {
   const url = new URL(request.url);
   const pathname = url.pathname;
 
@@ -15,7 +15,7 @@
   }
 
   if (!targetPath) {
-    return null;
+    return new Response(JSON.stringify({ error: 'Not Found: Invalid catalog route' }), { status: 404 });
   }
 
   const envObj = (typeof env === 'object' && env !== null ? env : {}) as Record<string, any>;

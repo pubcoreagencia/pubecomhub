@@ -42,7 +42,8 @@ export const Route = createFileRoute('/api/ingestion/shopee')({
 
         // 5. O proxy só deve chamar o catalog-worker DEPOIS da autorização
         // Passamos o request original para o proxy que injetará o token server-side
-        return await handleCatalogProxy(request);
+        const response = await handleCatalogProxy(request);
+        return response;
       }
     }
   }
