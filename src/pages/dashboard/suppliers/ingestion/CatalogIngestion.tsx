@@ -14,7 +14,8 @@ import {
   Clock,
   Globe,
   Info,
-  History
+  History,
+  Database
 } from 'lucide-react';
 import { Shell } from '@/components/layout/Shell';
 import { toast } from 'sonner';
