@@ -1,5 +1,6 @@
 import { chromium } from '@cloudflare/playwright';
 import { getCorsHeaders, handleOptions } from './cors';
+import { isAllowedTargetUrl } from './security';
 
 export interface Env {
   BROWSER: any;
@@ -202,6 +203,11 @@ export default {
 
           if (!targetUrl) {
             return new Response(JSON.stringify({ success: false, errors: ['URL is required'] }), { status: 400 });
+          }
+
+          // SSRF Protection: enforce strict hostname allow-list BEFORE any browser navigation
+          if (!isAllowedTargetUrl(targetUrl)) {
+            return new Response(JSON.stringify({ success: false, errors: ['Forbidden: URL is not an allowed Shopee target'] }), { status: 400 });
           }
 
           const browser = await chromium.launch(env.BROWSER);

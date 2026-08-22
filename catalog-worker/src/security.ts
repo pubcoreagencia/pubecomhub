@@ -34,7 +34,7 @@ function isPrivateIp(ip: string): boolean {
   }
   if (parts[0] === 127) return true; // Loopback
   if (parts[0] === 10) return true; // Private
-  if (parts[0] === 172 && parts[1]! >= 16 && parts[1]! <= 31) return true; // Private
+  if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true; // Private
   if (parts[0] === 192 && parts[1] === 168) return true; // Private
   if (parts[0] === 169 && parts[1] === 254) return true; // Link-local / metadata
   if (parts[0] === 0) return true;
