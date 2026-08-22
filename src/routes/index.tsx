@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Database, Globe, Search, ShoppingBag, RefreshCw, AlertCircle, CheckCircle2, LayoutDashboard, Store, Package } from "lucide-react";
+import { ExternalLink, Database, Globe, Search, ShoppingBag, RefreshCw, AlertCircle, CheckCircle2, LayoutDashboard, Store, Package, Activity, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute('/')({
