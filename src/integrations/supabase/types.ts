@@ -667,6 +667,25 @@ export type Database = {
         }
         Relationships: []
       }
+      influencer_orders: {
+        Row: {
+          id: string
+          external_id: string | null
+          store_id: string
+          customer_id: string
+          influencer_id: string | null
+          affiliate_id: string | null
+          amount: number
+          shipping: number
+          tax: number
+          discount: number
+          status: string
+          fulfillment_status: string | null
+          tracking_code: string | null
+          created_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

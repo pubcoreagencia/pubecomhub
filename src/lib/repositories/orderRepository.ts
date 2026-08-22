@@ -1,4 +1,4 @@
-﻿import { Order, IOrderRepository } from '@/types';
+import { Order, IOrderRepository } from '@/types';
 import { mockOrders } from '@/data/mock';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -35,20 +35,21 @@ export class OrderRepository implements IOrderRepository {
   }
 
   /**
-   * Influencer order query: strictly omits store cost and net_profit
+   * Influencer order query: queries the secure influencer_orders view, strictly omitting store cost and net_profit
    */
   async getByInfluencer(influencerId: string): Promise<Order[]> {
     if (this.useMock) {
-      return mockOrders.filter((o: Order) => o.influencerId === influencerId).map(o => ({
-        ...o,
-        cost: 0,
-        net_profit: undefined,
-        financialMetadata: undefined,
-      }));
+      return mockOrders.filter((o: Order) => o.influencerId === influencerId).map(o => {
+        const { cost, net_profit, financialMetadata, ...safeOrder } = o;
+        return {
+          ...safeOrder,
+          cost: 0,
+        };
+      });
     }
 
     const { data, error } = await supabase
-      .from('orders')
+      .from('influencer_orders')
       .select('id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, shipping, tax, discount, status, fulfillment_status, tracking_code, created_at')
       .eq('influencer_id', influencerId)
       .order('created_at', { ascending: false });

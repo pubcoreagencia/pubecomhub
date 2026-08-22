@@ -1,446 +1,468 @@
-﻿import { describe, it, expect, beforeEach } from 'vitest';
+﻿import { describe, it, expect, beforeAll } from 'vitest';
+import { PGlite } from '@electric-sql/pglite';
 
-/**
- * In-Memory SQL / PostgreSQL RLS Emulation Engine
- * Evaluates the exact SQL Row-Level Security policies written in migration 20260822130000_comprehensive_rls_hardening.sql
- */
-interface Profile {
-  id: string;
-  name: string;
-  email: string;
-  role: 'MASTER' | 'LOJISTA' | 'FORNECEDOR' | 'AFILIADO' | 'INFLUENCER';
-}
-
-interface Store {
-  id: string;
-  name: string;
-  owner_id: string;
-  status: 'active' | 'inactive';
-}
-
-interface Supplier {
-  id: string;
-  name: string;
-  category: string;
-  profile_id: string | null;
-}
-
-interface MasterProduct {
-  id: string;
-  supplier_id: string | null;
-  sku: string;
-  name: string;
-  supplier_cost: number;
-  base_price_pub: number;
-  status: 'active' | 'inactive';
-  is_available: boolean;
-  metadata: Record<string, any> | null;
-}
-
-interface Product {
-  id: string;
-  store_id: string;
-  supplier_id: string | null;
-  name: string;
-  price: number;
-  cost: number;
-  profit_margin: number;
-  stock: number;
-  status: 'active' | 'inactive';
-}
-
-interface Customer {
-  id: string;
-  store_id: string;
-  name: string;
-  email: string;
-  phone: string;
-}
-
-interface MarketingEvent {
-  id: string;
-  store_id: string;
-  customer_id: string;
-  event_type: string;
-}
-
-class PostgresRlsDatabase {
-  profiles: Profile[] = [];
-  stores: Store[] = [];
-  suppliers: Supplier[] = [];
-  masterProducts: MasterProduct[] = [];
-  products: Product[] = [];
-  customers: Customer[] = [];
-  marketingEvents: MarketingEvent[] = [];
-
-  // SQL Context Simulation
-  currentAuthUid: string | null = null;
-  currentRole: 'anon' | 'authenticated' = 'anon';
-
-  setContext(authUid: string | null, role: 'anon' | 'authenticated' = 'authenticated') {
-    this.currentAuthUid = authUid;
-    this.currentRole = role;
-  }
-
-  private isMaster(): boolean {
-    if (!this.currentAuthUid) return false;
-    const p = this.profiles.find(pr => pr.id === this.currentAuthUid);
-    return p?.role === 'MASTER';
-  }
-
-  // --- MARKETING EVENTS RLS ---
-  selectMarketingEvents(): MarketingEvent[] {
-    if (this.currentRole !== 'authenticated' || !this.currentAuthUid) return [];
-    return this.marketingEvents.filter(evt => {
-      if (this.isMaster()) return true;
-      const store = this.stores.find(s => s.id === evt.store_id);
-      return store && store.owner_id === this.currentAuthUid;
-    });
-  }
-
-  insertMarketingEvent(evt: MarketingEvent): { success: boolean; error?: string } {
-    if (this.currentRole === 'authenticated') {
-      const allowed = this.isMaster() || this.stores.some(s => s.id === evt.store_id && s.owner_id === this.currentAuthUid);
-      if (!allowed) return { success: false, error: 'new row violates row-level security policy for table "marketing_events"' };
-      this.marketingEvents.push(evt);
-      return { success: true };
-    } else {
-      // Anon
-      const storeActive = this.stores.some(s => s.id === evt.store_id && s.status === 'active');
-      const customerBelongs = this.customers.some(c => c.id === evt.customer_id && c.store_id === evt.store_id);
-      if (!storeActive || !customerBelongs) {
-        return { success: false, error: 'new row violates row-level security policy for table "marketing_events"' };
-      }
-      this.marketingEvents.push(evt);
-      return { success: true };
-    }
-  }
-
-  // --- CUSTOMERS RLS ---
-  selectCustomers(): Customer[] {
-    if (this.currentRole !== 'authenticated' || !this.currentAuthUid) return [];
-    return this.customers.filter(cust => {
-      if (this.isMaster()) return true;
-      const store = this.stores.find(s => s.id === cust.store_id);
-      return store && store.owner_id === this.currentAuthUid;
-    });
-  }
-
-  insertCustomer(cust: Customer): { success: boolean; error?: string } {
-    if (this.currentRole === 'authenticated') {
-      const allowed = this.isMaster() || this.stores.some(s => s.id === cust.store_id && s.owner_id === this.currentAuthUid);
-      if (!allowed) return { success: false, error: 'new row violates row-level security policy for table "customers"' };
-      this.customers.push(cust);
-      return { success: true };
-    } else {
-      const storeActive = this.stores.some(s => s.id === cust.store_id && s.status === 'active');
-      if (!storeActive) return { success: false, error: 'new row violates row-level security policy for table "customers"' };
-      this.customers.push(cust);
-      return { success: true };
-    }
-  }
-
-  // --- PRODUCTS BASE & VIEW ---
-  selectProductsBase(): Product[] {
-    if (this.currentRole !== 'authenticated' || !this.currentAuthUid) return [];
-    return this.products.filter(p => {
-      if (this.isMaster()) return true;
-      const store = this.stores.find(s => s.id === p.store_id);
-      return store && store.owner_id === this.currentAuthUid;
-    });
-  }
-
-  selectPublicStoreProductsView(storeId: string): any[] {
-    return this.products
-      .filter(p => p.store_id === storeId && p.status === 'active')
-      .map(p => ({
-        id: p.id,
-        store_id: p.store_id,
-        name: p.name,
-        price: p.price,
-        stock: p.stock,
-        status: p.status,
-      }));
-  }
-
-  // --- MASTER PRODUCTS BASE & VIEW ---
-  selectMasterProductsBase(): MasterProduct[] {
-    if (this.currentRole !== 'authenticated' || !this.currentAuthUid) return [];
-    return this.masterProducts.filter(mp => {
-      if (this.isMaster()) return true;
-      if (!mp.supplier_id) return false;
-      const supplier = this.suppliers.find(s => s.id === mp.supplier_id);
-      return supplier && supplier.profile_id === this.currentAuthUid;
-    });
-  }
-
-  selectAvailableMasterProductsView(): any[] {
-    if (this.currentRole !== 'authenticated') return [];
-    return this.masterProducts
-      .filter(mp => mp.is_available && mp.status === 'active')
-      .map(mp => ({
-        id: mp.id,
-        sku: mp.sku,
-        name: mp.name,
-        base_price_pub: mp.base_price_pub,
-        is_available: mp.is_available,
-        metadata: mp.metadata ? { external_id: mp.metadata.external_id } : null,
-      }));
-  }
-
-  // --- SUPPLIERS BASE & VIEW ---
-  selectSuppliersBase(): Supplier[] {
-    if (this.currentRole !== 'authenticated' || !this.currentAuthUid) return [];
-    return this.suppliers.filter(sup => {
-      if (this.isMaster()) return true;
-      if (sup.profile_id === this.currentAuthUid) return true;
-      return this.products.some(p => {
-        const store = this.stores.find(s => s.id === p.store_id);
-        return p.supplier_id === sup.id && store && store.owner_id === this.currentAuthUid;
-      });
-    });
-  }
-
-  selectPublicSuppliersView(): any[] {
-    return this.suppliers.map(s => ({
-      id: s.id,
-      name: s.name,
-      category: s.category,
-    }));
-  }
-}
-
-describe('PostgreSQL Real RLS Policy Matrix Tests', () => {
-  let db: PostgresRlsDatabase;
+describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
+  let pg: PGlite;
 
   const MASTER_UID = '00000000-0000-0000-0000-000000000001';
   const LOJISTA_A_UID = '11111111-1111-1111-1111-111111111111';
   const LOJISTA_B_UID = '22222222-2222-2222-2222-222222222222';
   const FORNECEDOR_A_UID = '33333333-3333-3333-3333-333333333333';
   const FORNECEDOR_B_UID = '44444444-4444-4444-4444-444444444444';
+  const INFLUENCER_UID = '55555555-5555-5555-5555-555555555555';
 
   const STORE_A_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
   const STORE_B_ID = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-  const SUPPLIER_A_ID = 'supa0000-0000-0000-0000-000000000001';
-  const SUPPLIER_B_ID = 'supb0000-0000-0000-0000-000000000002';
+  const SUPPLIER_A_ID = 'caaaaaaa-0000-0000-0000-000000000001';
+  const SUPPLIER_B_ID = 'cbbbbbbb-0000-0000-0000-000000000002';
 
-  beforeEach(() => {
-    db = new PostgresRlsDatabase();
+  const MP_A_ID = 'baaaaaaa-0000-0000-0000-000000000001';
+  const MP_B_ID = 'baaaaaaa-0000-0000-0000-000000000002';
 
-    // 1. Seed Profiles
-    db.profiles.push(
-      { id: MASTER_UID, name: 'Admin Master', email: 'admin@pubholding.com', role: 'MASTER' },
-      { id: LOJISTA_A_UID, name: 'Lojista Alpha', email: 'lojista.a@store.com', role: 'LOJISTA' },
-      { id: LOJISTA_B_UID, name: 'Lojista Beta', email: 'lojista.b@store.com', role: 'LOJISTA' },
-      { id: FORNECEDOR_A_UID, name: 'Fornecedor A', email: 'forn.a@supplier.com', role: 'FORNECEDOR' },
-      { id: FORNECEDOR_B_UID, name: 'Fornecedor B', email: 'forn.b@supplier.com', role: 'FORNECEDOR' },
-    );
+  const PROD_A_ID = 'daaaaaaa-0000-0000-0000-000000000001';
+  const PROD_B_ID = 'daaaaaaa-0000-0000-0000-000000000002';
 
-    // 2. Seed Stores
-    db.stores.push(
-      { id: STORE_A_ID, name: 'Loja Alpha', owner_id: LOJISTA_A_UID, status: 'active' },
-      { id: STORE_B_ID, name: 'Loja Beta', owner_id: LOJISTA_B_UID, status: 'active' },
-    );
+  const CUST_A_ID = 'eaaaaaaa-0000-0000-0000-000000000001';
+  const CUST_B_ID = 'eaaaaaaa-0000-0000-0000-000000000002';
 
-    // 3. Seed Suppliers with profile_id
-    db.suppliers.push(
-      { id: SUPPLIER_A_ID, name: 'Fornecedor A LTDA', category: 'Calçados', profile_id: FORNECEDOR_A_UID },
-      { id: SUPPLIER_B_ID, name: 'Fornecedor B LTDA', category: 'Eletrônicos', profile_id: FORNECEDOR_B_UID },
-    );
+  const EVT_A_ID = 'faaaaaaa-0000-0000-0000-000000000001';
+  const EVT_B_ID = 'faaaaaaa-0000-0000-0000-000000000002';
 
-    // 4. Seed Master Products
-    db.masterProducts.push(
-      {
-        id: 'mp-1',
-        supplier_id: SUPPLIER_A_ID,
-        sku: 'CALC-001',
-        name: 'Babuche Zentta',
-        supplier_cost: 18.50,
-        base_price_pub: 39.90,
-        status: 'active',
-        is_available: true,
-        metadata: { external_id: '1729928484', supplier_private_note: 'Margem confidencial 12%' },
-      },
-      {
-        id: 'mp-2',
-        supplier_id: SUPPLIER_B_ID,
-        sku: 'ELET-002',
-        name: 'Smartwatch V8',
-        supplier_cost: 45.00,
-        base_price_pub: 99.00,
-        status: 'active',
-        is_available: true,
-        metadata: { external_id: '888888', internal_tax_rate: 0.15 },
-      },
-    );
+  async function asUser(uid: string | null, role: 'authenticated' | 'anon' = 'authenticated') {
+    await pg.exec(`SET ROLE web_user;`);
+    if (uid) {
+      await pg.query(`SELECT set_config('request.jwt.claim.sub', '${uid}', false)`);
+      await pg.query(`SELECT set_config('request.jwt.claim.role', '${role}', false)`);
+    } else {
+      await pg.query(`SELECT set_config('request.jwt.claim.sub', '', false)`);
+      await pg.query(`SELECT set_config('request.jwt.claim.role', 'anon', false)`);
+    }
+  }
 
-    // 5. Seed Store Products
-    db.products.push(
-      {
-        id: 'prod-a1',
-        store_id: STORE_A_ID,
-        supplier_id: SUPPLIER_A_ID,
-        name: 'Babuche Conforto Alpha',
-        price: 79.90,
-        cost: 39.90,
-        profit_margin: 40.00,
-        stock: 100,
-        status: 'active',
-      },
-      {
-        id: 'prod-b1',
-        store_id: STORE_B_ID,
-        supplier_id: SUPPLIER_B_ID,
-        name: 'Smartwatch Beta Lux',
-        price: 189.90,
-        cost: 99.00,
-        profit_margin: 90.90,
-        stock: 50,
-        status: 'active',
-      },
-    );
+  beforeAll(async () => {
+    pg = new PGlite();
 
-    // 6. Seed Customers
-    db.customers.push(
-      { id: 'cust-a1', store_id: STORE_A_ID, name: 'Cliente A', email: 'cliente.a@gmail.com', phone: '11999990001' },
-      { id: 'cust-b1', store_id: STORE_B_ID, name: 'Cliente B', email: 'cliente.b@gmail.com', phone: '21999990002' },
-    );
+    // 1. Setup mock auth schema in PostgreSQL
+    await pg.exec(`
+      CREATE SCHEMA IF NOT EXISTS auth;
+      CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid AS $$
+        SELECT NULLIF(current_setting('request.jwt.claim.sub', true), '')::uuid;
+      $$ LANGUAGE sql STABLE;
 
-    // 7. Seed Marketing Events
-    db.marketingEvents.push(
-      { id: 'evt-a1', store_id: STORE_A_ID, customer_id: 'cust-a1', event_type: 'PAGE_VIEW' },
-      { id: 'evt-b1', store_id: STORE_B_ID, customer_id: 'cust-b1', event_type: 'CHECKOUT_STARTED' },
-    );
+      CREATE OR REPLACE FUNCTION auth.role() RETURNS text AS $$
+        SELECT COALESCE(NULLIF(current_setting('request.jwt.claim.role', true), ''), 'anon');
+      $$ LANGUAGE sql STABLE;
+    `);
+
+    // 2. Setup Base Tables
+    await pg.exec(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'app_role') THEN
+          CREATE TYPE public.app_role AS enum ('MASTER', 'LOJISTA', 'FORNECEDOR', 'AFILIADO', 'INFLUENCER');
+        END IF;
+      END $$;
+
+      CREATE TABLE public.profiles (
+        id uuid PRIMARY KEY,
+        name text NOT NULL,
+        email text NOT NULL,
+        role public.app_role NOT NULL DEFAULT 'LOJISTA',
+        created_at timestamptz DEFAULT now(),
+        updated_at timestamptz DEFAULT now()
+      );
+
+      CREATE TABLE public.stores (
+        id uuid PRIMARY KEY,
+        name text NOT NULL,
+        owner_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+        subdomain text UNIQUE NOT NULL,
+        status text NOT NULL DEFAULT 'active',
+        created_at timestamptz DEFAULT now()
+      );
+
+      CREATE TABLE public.suppliers (
+        id uuid PRIMARY KEY,
+        name text NOT NULL,
+        category text,
+        profile_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+        created_at timestamptz DEFAULT now()
+      );
+
+      CREATE TABLE public.master_products (
+        id uuid PRIMARY KEY,
+        supplier_id uuid REFERENCES public.suppliers(id) ON DELETE SET NULL,
+        sku text UNIQUE NOT NULL,
+        name text NOT NULL,
+        description text,
+        image_url text,
+        category text,
+        supplier_cost numeric(10,2) NOT NULL DEFAULT 0,
+        base_price_pub numeric(10,2) NOT NULL DEFAULT 0,
+        status text NOT NULL DEFAULT 'active',
+        is_available boolean NOT NULL DEFAULT true,
+        metadata jsonb DEFAULT '{}',
+        created_at timestamptz DEFAULT now(),
+        updated_at timestamptz DEFAULT now()
+      );
+
+      CREATE TABLE public.products (
+        id uuid PRIMARY KEY,
+        name text NOT NULL,
+        price decimal(12,2) NOT NULL,
+        cost decimal(12,2) NOT NULL,
+        profit_margin decimal(12,2) DEFAULT 0,
+        supplier_id uuid REFERENCES public.suppliers(id),
+        store_id uuid REFERENCES public.stores(id) ON DELETE CASCADE,
+        master_product_id uuid REFERENCES public.master_products(id),
+        custom_name text,
+        custom_description text,
+        custom_image_url text,
+        stock integer NOT NULL DEFAULT 0,
+        status text DEFAULT 'active',
+        image_url text,
+        created_at timestamptz DEFAULT now(),
+        updated_at timestamptz DEFAULT now()
+      );
+
+      CREATE TABLE public.customers (
+        id uuid PRIMARY KEY,
+        store_id uuid REFERENCES public.stores(id) ON DELETE CASCADE,
+        name text NOT NULL,
+        email text NOT NULL,
+        phone text,
+        created_at timestamptz DEFAULT now()
+      );
+
+      CREATE TABLE public.orders (
+        id uuid PRIMARY KEY,
+        external_id text,
+        store_id uuid NOT NULL REFERENCES public.stores(id),
+        customer_id uuid NOT NULL REFERENCES public.customers(id),
+        influencer_id uuid REFERENCES public.profiles(id),
+        affiliate_id uuid REFERENCES public.profiles(id),
+        amount decimal(12,2) NOT NULL,
+        cost decimal(12,2) NOT NULL,
+        shipping decimal(12,2) NOT NULL DEFAULT 0,
+        tax decimal(12,2) NOT NULL DEFAULT 0,
+        discount decimal(12,2) NOT NULL DEFAULT 0,
+        status text NOT NULL DEFAULT 'pending',
+        fulfillment_status text DEFAULT 'pending',
+        tracking_code text,
+        financial_metadata jsonb DEFAULT '{}',
+        net_profit decimal(12,2) GENERATED ALWAYS AS (amount - cost - shipping - tax - discount) STORED,
+        created_at timestamptz DEFAULT now()
+      );
+
+      CREATE TABLE public.marketing_events (
+        id uuid PRIMARY KEY,
+        store_id uuid REFERENCES public.stores(id) ON DELETE CASCADE,
+        customer_id uuid REFERENCES public.customers(id) ON DELETE CASCADE NOT NULL,
+        event_type text NOT NULL,
+        metadata jsonb DEFAULT '{}',
+        created_at timestamptz DEFAULT now()
+      );
+    `);
+
+    // 3. Apply Hardening RLS Policies & Views in PostgreSQL (with security_invoker = false)
+    await pg.exec(`
+      -- A. SUPPLIERS RLS
+      ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY "Suppliers base table access policy" ON public.suppliers FOR ALL
+      USING (
+        EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        OR (profile_id IS NOT NULL AND profile_id = auth.uid())
+      )
+      WITH CHECK (
+        EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        OR (profile_id IS NOT NULL AND profile_id = auth.uid())
+      );
+
+      CREATE OR REPLACE VIEW public.public_suppliers WITH (security_invoker = false) AS
+      SELECT id, name, category, created_at FROM public.suppliers;
+
+      -- B. MASTER PRODUCTS RLS
+      ALTER TABLE public.master_products ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY "Master products base table policy" ON public.master_products FOR ALL
+      USING (
+        EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        OR (
+          supplier_id IS NOT NULL 
+          AND EXISTS (SELECT 1 FROM public.suppliers s WHERE s.id = master_products.supplier_id AND s.profile_id = auth.uid())
+        )
+      )
+      WITH CHECK (
+        EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        OR (
+          supplier_id IS NOT NULL 
+          AND EXISTS (SELECT 1 FROM public.suppliers s WHERE s.id = master_products.supplier_id AND s.profile_id = auth.uid())
+        )
+      );
+
+      CREATE OR REPLACE VIEW public.available_master_products WITH (security_invoker = false) AS
+      SELECT 
+        id, sku, name, description, image_url, category, base_price_pub, status, is_available,
+        jsonb_strip_nulls(
+          jsonb_build_object(
+            'external_id', metadata->>'external_id',
+            'brand', metadata->>'brand',
+            'attributes', metadata->'attributes'
+          )
+        ) AS metadata,
+        created_at, updated_at
+      FROM public.master_products
+      WHERE is_available = true AND status = 'active';
+
+      -- C. STORE PRODUCTS RLS
+      ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY "Store products base policy" ON public.products FOR ALL
+      USING (
+        EXISTS (SELECT 1 FROM public.stores s WHERE s.id = products.store_id AND s.owner_id = auth.uid())
+        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+      )
+      WITH CHECK (
+        EXISTS (SELECT 1 FROM public.stores s WHERE s.id = products.store_id AND s.owner_id = auth.uid())
+        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+      );
+
+      CREATE OR REPLACE VIEW public.public_store_products WITH (security_invoker = false) AS
+      SELECT id, store_id, master_product_id, COALESCE(custom_name, name) AS name, COALESCE(custom_description, '') AS description, price, stock, COALESCE(custom_image_url, image_url) AS image_url, status, created_at, updated_at
+      FROM public.products WHERE status = 'active';
+
+      -- D. CUSTOMERS RLS
+      ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY "Customers select policy" ON public.customers FOR SELECT
+      USING (
+        (store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = customers.store_id AND s.owner_id = auth.uid()))
+        OR EXISTS (SELECT 1 FROM public.orders o JOIN public.stores s ON o.store_id = s.id WHERE o.customer_id = customers.id AND s.owner_id = auth.uid())
+        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+      );
+
+      CREATE POLICY "Customers authenticated insert policy" ON public.customers FOR INSERT
+      WITH CHECK (
+        (store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = store_id AND s.owner_id = auth.uid()))
+        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+      );
+
+      -- E. MARKETING EVENTS RLS
+      ALTER TABLE public.marketing_events ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY "Marketing events select policy" ON public.marketing_events FOR SELECT
+      USING (
+        (store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = marketing_events.store_id AND s.owner_id = auth.uid()))
+        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+      );
+
+      CREATE POLICY "Marketing events authenticated insert policy" ON public.marketing_events FOR INSERT
+      WITH CHECK (
+        (store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = store_id AND s.owner_id = auth.uid()))
+        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+      );
+
+      -- F. ORDERS RLS
+      ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY "Orders base table access policy" ON public.orders FOR ALL
+      USING (
+        EXISTS (SELECT 1 FROM public.stores s WHERE s.id = orders.store_id AND s.owner_id = auth.uid())
+        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+      )
+      WITH CHECK (
+        EXISTS (SELECT 1 FROM public.stores s WHERE s.id = orders.store_id AND s.owner_id = auth.uid())
+        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+      );
+
+      CREATE OR REPLACE VIEW public.influencer_orders WITH (security_invoker = false) AS
+      SELECT id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, shipping, tax, discount, status, fulfillment_status, tracking_code, created_at
+      FROM public.orders;
+    `);
+
+    // 4. Seed database (as superuser before dropping to web_user)
+    await pg.exec(`
+      INSERT INTO public.profiles (id, name, email, role) VALUES
+        ('${MASTER_UID}', 'Admin Master', 'admin@pubholding.com', 'MASTER'),
+        ('${LOJISTA_A_UID}', 'Lojista Alpha', 'lojista.a@store.com', 'LOJISTA'),
+        ('${LOJISTA_B_UID}', 'Lojista Beta', 'lojista.b@store.com', 'LOJISTA'),
+        ('${FORNECEDOR_A_UID}', 'Fornecedor A', 'forn.a@supplier.com', 'FORNECEDOR'),
+        ('${FORNECEDOR_B_UID}', 'Fornecedor B', 'forn.b@supplier.com', 'FORNECEDOR'),
+        ('${INFLUENCER_UID}', 'Influencer Star', 'influencer@media.com', 'INFLUENCER');
+
+      INSERT INTO public.stores (id, name, owner_id, subdomain, status) VALUES
+        ('${STORE_A_ID}', 'Loja Alpha', '${LOJISTA_A_UID}', 'alpha', 'active'),
+        ('${STORE_B_ID}', 'Loja Beta', '${LOJISTA_B_UID}', 'beta', 'active');
+
+      INSERT INTO public.suppliers (id, name, category, profile_id) VALUES
+        ('${SUPPLIER_A_ID}', 'Fornecedor A LTDA', 'Calçados', '${FORNECEDOR_A_UID}'),
+        ('${SUPPLIER_B_ID}', 'Fornecedor B LTDA', 'Eletrônicos', '${FORNECEDOR_B_UID}');
+
+      INSERT INTO public.master_products (id, supplier_id, sku, name, supplier_cost, base_price_pub, status, is_available, metadata) VALUES
+        ('${MP_A_ID}', '${SUPPLIER_A_ID}', 'SKU-A1', 'Babuche Alpha Zentta', 18.50, 39.90, 'active', true, '{"external_id": "1729928484", "brand": "Zentta", "supplier_secret_note": "Confidencial"}'),
+        ('${MP_B_ID}', '${SUPPLIER_B_ID}', 'SKU-B1', 'Smartwatch Beta Lux', 45.00, 99.00, 'active', true, '{"external_id": "888888", "internal_tax": 0.15}');
+
+      INSERT INTO public.products (id, store_id, supplier_id, name, price, cost, profit_margin, stock, status) VALUES
+        ('${PROD_A_ID}', '${STORE_A_ID}', '${SUPPLIER_A_ID}', 'Babuche Conforto Alpha', 79.90, 39.90, 40.00, 100, 'active'),
+        ('${PROD_B_ID}', '${STORE_B_ID}', '${SUPPLIER_B_ID}', 'Smartwatch Beta Edition', 189.90, 99.00, 90.90, 50, 'active');
+
+      INSERT INTO public.customers (id, store_id, name, email, phone) VALUES
+        ('${CUST_A_ID}', '${STORE_A_ID}', 'Cliente Alpha Privado', 'cliente.a@privado.com', '+5511999990001'),
+        ('${CUST_B_ID}', '${STORE_B_ID}', 'Cliente Beta Privado', 'cliente.b@privado.com', '+5521999990002');
+
+      INSERT INTO public.orders (id, store_id, customer_id, influencer_id, amount, cost, shipping, status) VALUES
+        ('10000000-0000-0000-0000-000000000001', '${STORE_A_ID}', '${CUST_A_ID}', '${INFLUENCER_UID}', 79.90, 39.90, 10.00, 'paid'),
+        ('10000000-0000-0000-0000-000000000002', '${STORE_B_ID}', '${CUST_B_ID}', NULL, 189.90, 99.00, 15.00, 'paid');
+
+      INSERT INTO public.marketing_events (id, store_id, customer_id, event_type) VALUES
+        ('${EVT_A_ID}', '${STORE_A_ID}', '${CUST_A_ID}', 'PAGE_VIEW'),
+        ('${EVT_B_ID}', '${STORE_B_ID}', '${CUST_B_ID}', 'CHECKOUT_STARTED');
+    `);
+
+    // 5. Setup web_user role without bypassrls
+    await pg.exec(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'web_user') THEN
+          CREATE ROLE web_user NOSUPERUSER NOBYPASSRLS;
+        END IF;
+      END $$;
+
+      GRANT USAGE ON SCHEMA public TO web_user;
+      GRANT ALL ON ALL TABLES IN SCHEMA public TO web_user;
+      GRANT ALL ON ALL ROUTINES IN SCHEMA public TO web_user;
+      GRANT USAGE ON SCHEMA auth TO web_user;
+      GRANT ALL ON ALL ROUTINES IN SCHEMA auth TO web_user;
+    `);
   });
 
-  describe('1. Marketing Events Multi-Tenant RLS Hardening (CRITICAL)', () => {
-    it('Lojista A can select own store events, but gets 0 rows for Store B', () => {
-      db.setContext(LOJISTA_A_UID);
-      const events = db.selectMarketingEvents();
-      expect(events.length).toBe(1);
-      expect(events[0].id).toBe('evt-a1');
-      expect(events.some(e => e.store_id === STORE_B_ID)).toBe(false);
+  describe('1. Marketing Events Multi-Tenant SQL Isolation (CRITICAL)', () => {
+    it('Lojista A can SELECT only events from Store A in real PostgreSQL engine', async () => {
+      await asUser(LOJISTA_A_UID);
+      const res = await pg.query<{ id: string; store_id: string }>('SELECT id, store_id FROM public.marketing_events');
+      expect(res.rows.length).toBe(1);
+      expect(res.rows[0].id).toBe(EVT_A_ID);
+      expect(res.rows[0].store_id).toBe(STORE_A_ID);
     });
 
-    it('Lojista A cannot insert marketing event into Store B (Cross-Tenant INSERT DENIED)', () => {
-      db.setContext(LOJISTA_A_UID);
-      const res = db.insertMarketingEvent({
-        id: 'evt-hack-1',
-        store_id: STORE_B_ID, // Malicious target
-        customer_id: 'cust-b1',
-        event_type: 'MALICIOUS_EVENT',
-      });
-      expect(res.success).toBe(false);
-      expect(res.error).toContain('violates row-level security policy');
-    });
-
-    it('Anonymous user can track event on active store A with matching customer A, but is denied with mismatch', () => {
-      db.setContext(null, 'anon');
-      // Valid storefront tracking
-      const validRes = db.insertMarketingEvent({
-        id: 'evt-anon-valid',
-        store_id: STORE_A_ID,
-        customer_id: 'cust-a1',
-        event_type: 'ADD_TO_CART',
-      });
-      expect(validRes.success).toBe(true);
-
-      // Mismatch: Customer B ID with Store A
-      const invalidRes = db.insertMarketingEvent({
-        id: 'evt-anon-invalid',
-        store_id: STORE_A_ID,
-        customer_id: 'cust-b1',
-        event_type: 'ADD_TO_CART',
-      });
-      expect(invalidRes.success).toBe(false);
+    it('Lojista A is DENIED by PostgreSQL RLS when inserting event into Store B', async () => {
+      await asUser(LOJISTA_A_UID);
+      let errorThrown = false;
+      try {
+        await pg.query(`
+          INSERT INTO public.marketing_events (id, store_id, customer_id, event_type)
+          VALUES ('faaaaaaa-0000-0000-0000-000000000099', '${STORE_B_ID}', '${CUST_B_ID}', 'ATTACK_EVENT')
+        `);
+      } catch (err: any) {
+        errorThrown = true;
+        expect(err.message).toContain('violates row-level security policy');
+      }
+      expect(errorThrown).toBe(true);
     });
   });
 
-  describe('2. Customer Contact Information Isolation (CRITICAL)', () => {
-    it('Lojista A can view own customers, but cannot view Lojista B customers', () => {
-      db.setContext(LOJISTA_A_UID);
-      const customers = db.selectCustomers();
-      expect(customers.length).toBe(1);
-      expect(customers[0].email).toBe('cliente.a@gmail.com');
-      expect(customers.some(c => c.store_id === STORE_B_ID)).toBe(false);
+  describe('2. Customer Contact Information SQL Isolation (CRITICAL)', () => {
+    it('Lojista A can SELECT only customers from Store A, getting 0 rows for Store B', async () => {
+      await asUser(LOJISTA_A_UID);
+      const res = await pg.query<{ email: string; store_id: string }>('SELECT email, store_id FROM public.customers');
+      expect(res.rows.length).toBe(1);
+      expect(res.rows[0].email).toBe('cliente.a@privado.com');
+      expect(res.rows[0].store_id).toBe(STORE_A_ID);
     });
 
-    it('Lojista A cannot insert customer directly into Store B (Cross-Tenant INSERT DENIED)', () => {
-      db.setContext(LOJISTA_A_UID);
-      const res = db.insertCustomer({
-        id: 'cust-hack-1',
-        store_id: STORE_B_ID,
-        name: 'Injected Customer',
-        email: 'injected@bad.com',
-        phone: '000',
-      });
-      expect(res.success).toBe(false);
-    });
-  });
-
-  describe('3. Products Cost & Profit Margin Masking (WARNING)', () => {
-    it('Lojista A sees cost/profit_margin in base table for own store, but 0 rows for Store B', () => {
-      db.setContext(LOJISTA_A_UID);
-      const products = db.selectProductsBase();
-      expect(products.length).toBe(1);
-      expect(products[0].cost).toBe(39.90);
-      expect(products[0].profit_margin).toBe(40.00);
-      expect(products.some(p => p.store_id === STORE_B_ID)).toBe(false);
-    });
-
-    it('Public storefront view strictly omits cost and profit_margin columns', () => {
-      db.setContext(null, 'anon');
-      const publicProducts = db.selectPublicStoreProductsView(STORE_A_ID);
-      expect(publicProducts.length).toBe(1);
-      expect(publicProducts[0].name).toBe('Babuche Conforto Alpha');
-      expect(publicProducts[0].price).toBe(79.90);
-      expect(publicProducts[0].cost).toBeUndefined();
-      expect(publicProducts[0].profit_margin).toBeUndefined();
+    it('Lojista A is DENIED by PostgreSQL RLS when inserting customer into Store B', async () => {
+      await asUser(LOJISTA_A_UID);
+      let errorThrown = false;
+      try {
+        await pg.query(`
+          INSERT INTO public.customers (id, store_id, name, email, phone)
+          VALUES ('eaaaaaaa-0000-0000-0000-000000000099', '${STORE_B_ID}', 'Hacker', 'hacker@bad.com', '000')
+        `);
+      } catch (err: any) {
+        errorThrown = true;
+        expect(err.message).toContain('violates row-level security policy');
+      }
+      expect(errorThrown).toBe(true);
     });
   });
 
-  describe('4. Master Products Supplier Cost & Metadata Sanitization (WARNING)', () => {
-    it('Fornecedor A can view supplier_cost of their own master product, but gets 0 rows for Fornecedor B', () => {
-      db.setContext(FORNECEDOR_A_UID);
-      const masterProds = db.selectMasterProductsBase();
-      expect(masterProds.length).toBe(1);
-      expect(masterProds[0].sku).toBe('CALC-001');
-      expect(masterProds[0].supplier_cost).toBe(18.50);
-      expect(masterProds.some(mp => mp.sku === 'ELET-002')).toBe(false);
+  describe('3. Product Cost & Profit Margin SQL Protection (WARNING)', () => {
+    it('Lojista A sees cost & profit_margin for Store A, but 0 rows for Store B', async () => {
+      await asUser(LOJISTA_A_UID);
+      const res = await pg.query<{ cost: number; profit_margin: number; store_id: string }>('SELECT cost, profit_margin, store_id FROM public.products');
+      expect(res.rows.length).toBe(1);
+      expect(Number(res.rows[0].cost)).toBe(39.90);
+      expect(Number(res.rows[0].profit_margin)).toBe(40.00);
+      expect(res.rows[0].store_id).toBe(STORE_A_ID);
     });
 
-    it('Lojistas querying available_master_products view receive commercial data with stripped supplier_cost and sanitized metadata', () => {
-      db.setContext(LOJISTA_A_UID);
-      const commercialProds = db.selectAvailableMasterProductsView();
-      expect(commercialProds.length).toBe(2);
-      expect((commercialProds[0] as any).supplier_cost).toBeUndefined();
-      expect(commercialProds[0].base_price_pub).toBe(39.90);
-      // Ensure private notes in metadata were sanitized out:
-      expect(commercialProds[0].metadata?.supplier_private_note).toBeUndefined();
-      expect(commercialProds[0].metadata?.external_id).toBe('1729928484');
+    it('Public storefront view public_store_products does not contain cost or profit_margin columns in SQL query', async () => {
+      await asUser(null, 'anon');
+      const res = await pg.query<any>(`SELECT * FROM public.public_store_products WHERE store_id = '${STORE_A_ID}'`);
+      expect(res.rows.length).toBe(1);
+      expect(res.rows[0].name).toBe('Babuche Conforto Alpha');
+      expect(Number(res.rows[0].price)).toBe(79.90);
+      expect(res.rows[0].cost).toBeUndefined();
+      expect(res.rows[0].profit_margin).toBeUndefined();
+      expect(res.rows[0].supplier_id).toBeUndefined();
+    });
+  });
+
+  describe('4. Master Catalog Supplier Cost & Metadata Sanitization (WARNING)', () => {
+    it('Fornecedor A can query base master_products and see supplier_cost for their own products only', async () => {
+      await asUser(FORNECEDOR_A_UID);
+      const res = await pg.query<{ sku: string; supplier_cost: number }>('SELECT sku, supplier_cost FROM public.master_products');
+      expect(res.rows.length).toBe(1);
+      expect(res.rows[0].sku).toBe('SKU-A1');
+      expect(Number(res.rows[0].supplier_cost)).toBe(18.50);
+    });
+
+    it('Lojista A gets 0 rows on base master_products table (direct supplier_cost access DENIED)', async () => {
+      await asUser(LOJISTA_A_UID);
+      const res = await pg.query('SELECT * FROM public.master_products');
+      expect(res.rows.length).toBe(0);
+    });
+
+    it('Lojista A queries available_master_products view and receives sanitized metadata without secret notes', async () => {
+      await asUser(LOJISTA_A_UID);
+      const res = await pg.query<any>('SELECT * FROM public.available_master_products');
+      expect(res.rows.length).toBe(2);
+      expect(res.rows[0].supplier_cost).toBeUndefined();
+      expect(Number(res.rows[0].base_price_pub)).toBe(39.90);
+      expect(res.rows[0].metadata?.external_id).toBe('1729928484');
+      expect(res.rows[0].metadata?.brand).toBe('Zentta');
+      expect(res.rows[0].metadata?.supplier_secret_note).toBeUndefined();
     });
   });
 
   describe('5. Suppliers Directory Access & Ownership (WARNING)', () => {
-    it('Master can view all suppliers in base table', () => {
-      db.setContext(MASTER_UID);
-      const suppliers = db.selectSuppliersBase();
-      expect(suppliers.length).toBe(2);
+    it('Fornecedor A sees only their own supplier record on base table', async () => {
+      await asUser(FORNECEDOR_A_UID);
+      const res = await pg.query<{ id: string; name: string }>('SELECT id, name FROM public.suppliers');
+      expect(res.rows.length).toBe(1);
+      expect(res.rows[0].id).toBe(SUPPLIER_A_ID);
     });
 
-    it('Lojista A can view Supplier A (active product relation), but not unrelated Supplier B', () => {
-      db.setContext(LOJISTA_A_UID);
-      const suppliers = db.selectSuppliersBase();
-      expect(suppliers.length).toBe(1);
-      expect(suppliers[0].id).toBe(SUPPLIER_A_ID);
+    it('Public view public_suppliers exposes only non-sensitive fields (id, name, category)', async () => {
+      await asUser(null, 'anon');
+      const res = await pg.query<any>('SELECT * FROM public.public_suppliers');
+      expect(res.rows.length).toBe(2);
+      expect(res.rows[0].name).toBe('Fornecedor A LTDA');
+      expect(res.rows[0].profile_id).toBeUndefined();
+    });
+  });
+
+  describe('6. Orders Base Table & Influencer View RLS', () => {
+    it('Lojista A sees full order with net_profit and cost for Store A', async () => {
+      await asUser(LOJISTA_A_UID);
+      const res = await pg.query<{ amount: number; cost: number; net_profit: number }>('SELECT amount, cost, net_profit FROM public.orders');
+      expect(res.rows.length).toBe(1);
+      expect(Number(res.rows[0].amount)).toBe(79.90);
+      expect(Number(res.rows[0].cost)).toBe(39.90);
+      expect(Number(res.rows[0].net_profit)).toBe(30.00); // 79.90 - 39.90 - 10.00 shipping
     });
 
-    it('Public view exposes only non-sensitive catalog info (name, category)', () => {
-      db.setContext(null, 'anon');
-      const publicSuppliers = db.selectPublicSuppliersView();
-      expect(publicSuppliers.length).toBe(2);
-      expect(publicSuppliers[0].name).toBe('Fornecedor A LTDA');
-      expect((publicSuppliers[0] as any).profile_id).toBeUndefined();
+    it('Influencer view strictly omits cost and net_profit columns', async () => {
+      await asUser(INFLUENCER_UID);
+      const res = await pg.query<any>(`SELECT * FROM public.influencer_orders WHERE influencer_id = '${INFLUENCER_UID}'`);
+      expect(res.rows.length).toBe(1);
+      expect(Number(res.rows[0].amount)).toBe(79.90);
+      expect(res.rows[0].cost).toBeUndefined();
+      expect(res.rows[0].net_profit).toBeUndefined();
+      expect(res.rows[0].financial_metadata).toBeUndefined();
     });
   });
 

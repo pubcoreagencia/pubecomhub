@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -79,17 +79,7 @@ export const CatalogIngestion = () => {
       setErrorMessage(msg);
       setStatus('error');
       if (error.status === 401 || error.isAuthError) {
-        toast.error(
-          <div className="flex flex-col gap-2">
-            <p className="font-bold">Catalog API: autenticação não configurada.</p>
-            <div className="bg-black/40 p-2 rounded text-[10px] font-mono break-all select-all">
-              VITE_CATALOG_API_URL=https://pub-ecom-catalog-worker.contato-pubcore.workers.dev
-              <br />
-              VITE_CATALOG_API_TOKEN=&lt;mesmo CATALOG_WORKER_TOKEN do Cloudflare Worker&gt;
-            </div>
-          </div>,
-          { duration: 10000 }
-        );
+        toast.error('Falha na autenticação da API de Catálogo. Verifique as configurações do servidor.');
       } else {
         toast.error(msg);
       }
