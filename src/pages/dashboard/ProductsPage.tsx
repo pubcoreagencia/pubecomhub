@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Shell } from '@/components/layout/Shell';
 import { HubTable, CardMetric } from '@/components/ui-b';
-import { Box, Package, AlertTriangle, Search, Filter, Plus, Truck, TrendingUp, RefreshCw, ExternalLink } from 'lucide-react';
+import { Box, Package, Search, RefreshCw, ExternalLink, Truck, TrendingUp, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { catalogApi } from '@/lib/api/catalog';
@@ -19,7 +19,11 @@ export default function ProductsPage() {
       .then(setProducts)
       .catch((e) => {
         console.error(e);
-        toast.error('Erro ao carregar catálogo global');
+        if (e.status === 401 || e.isAuthError) {
+          toast.error('Catalog API: autenticação não configurada ou inválida no Preview.');
+        } else {
+          toast.error('Erro ao carregar catálogo global');
+        }
       })
       .finally(() => setLoading(false));
   };

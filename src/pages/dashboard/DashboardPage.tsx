@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Shell } from '@/components/layout/Shell';
-import { CardMetric, AcquisitionFunnel, HubTable } from '@/components/ui-b';
+import { CardMetric, AcquisitionFunnel } from '@/components/ui-b';
 import { cn } from '@/lib/utils';
 import { 
-  TrendingUp, CircleDollarSign, Package, Store as StoreIcon, 
-  Users, Activity, MousePointer2, Zap, LayoutDashboard, Clock, RefreshCw
+  Package, Store as StoreIcon, Activity, Zap, LayoutDashboard, RefreshCw
 } from 'lucide-react';
 import { catalogApi } from '@/lib/api/catalog';
 import { CatalogStats } from '@/lib/api/types';
@@ -20,7 +19,11 @@ export default function DashboardPage() {
       .then(setStats)
       .catch((e) => {
         console.error(e);
-        toast.error('Falha ao conectar com o backend real');
+        if (e.status === 401 || e.isAuthError) {
+          toast.error('Catalog API: autenticação não configurada ou inválida no Preview.');
+        } else {
+          toast.error('Falha ao conectar com o backend real');
+        }
       })
       .finally(() => setLoading(false));
   };

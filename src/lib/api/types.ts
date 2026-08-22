@@ -1,5 +1,4 @@
-
-export interface CatalogStats {
+﻿export interface CatalogStats {
   success: boolean;
   stats: {
     products: number;
@@ -24,7 +23,7 @@ export interface Store {
   source: 'shopee' | string;
   shopId: string;
   status: 'active' | 'inactive' | 'error';
-  syncState: 'idle' | 'running' | 'success' | 'partial' | 'failed';
+  syncState: 'idle' | 'running' | 'success' | 'partial' | 'failed' | 'error';
   productCount: number;
   lastSyncAt: string | null;
   lastSyncStatus: string | null;
@@ -49,8 +48,8 @@ export interface Product {
 
 export interface SyncResponse {
   success: boolean;
-  syncRunId: string;
-  message: string;
+  syncRunId?: string;
+  message?: string;
   results?: {
     productsFound: number;
     created: number;
@@ -59,7 +58,32 @@ export interface SyncResponse {
     failed: number;
     provider: string;
     duration: number;
+    syncRunId?: string;
   };
+}
+
+export interface IngestionApiResponse {
+  success: boolean;
+  source?: string;
+  shopId?: string;
+  items?: any[];
+  masterCatalog?: {
+    total: number;
+    created: number;
+    updated: number;
+    unchanged: number;
+    failed: number;
+    storageProvider?: string;
+    importDurationMs?: number;
+  };
+  metadata?: {
+    totalFound?: number;
+    executionTimeMs?: number;
+    provider?: string;
+    requestId?: string;
+    syncRunId?: string;
+  };
+  errors?: string[];
 }
 
 export interface ApiError {

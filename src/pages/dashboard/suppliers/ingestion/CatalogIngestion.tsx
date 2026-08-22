@@ -1,24 +1,19 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Search, 
   Loader2, 
-  CheckCircle2, 
   AlertCircle, 
-  ArrowRight,
-  Package,
-  RefreshCw,
-  Clock,
-  Globe,
-  Info,
-  History,
-  Database
+  ArrowRight, 
+  RefreshCw, 
+  History, 
+  Database 
 } from 'lucide-react';
 import { Shell } from '@/components/layout/Shell';
 import { toast } from 'sonner';
+import { catalogApi } from '@/lib/api/catalog';
 
 type IngestionStatus = 'idle' | 'running' | 'success' | 'error';
 
@@ -50,31 +45,44 @@ export const CatalogIngestion = () => {
     setResult(null);
 
     try {
-      const apiUrl = import.meta.env['VITE_CATALOG_API_URL'] || 'https://pub-ecom-catalog-worker.contato-pubcore.workers.dev';
-      const response = await fetch(`${apiUrl}/ingestion/shopee`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env['VITE_CATALOG_API_TOKEN'] || ''}`
-        },
-        body: JSON.stringify({ url, limit })
-      });
+      const data = await catalogApi.ingestShopee(url, limit);
 
-      const data = await response.json();
+      const syncStats = data.masterCatalog || {
+        total: data.items?.length || 0,
+        created: 0,
+        updated: 0,
+        unchanged: 0,
+        failed: 0,
+        importDurationMs: 0,
+      };
 
-      if (!response.ok) {
-        throw new Error(data.message || `Erro HTTP ${response.status}`);
-      }
+      const meta = data.metadata || {};
 
-      setResult(data.results);
-      setHistory(prev => [data.results, ...prev.slice(0, 4)]);
+      const resultObj: IngestionResult = {
+        productsFound: syncStats.total || data.items?.length || 0,
+        created: syncStats.created || 0,
+        updated: syncStats.updated || 0,
+        unchanged: syncStats.unchanged || 0,
+        failed: syncStats.failed || 0,
+        provider: meta.provider || 'apify',
+        duration: syncStats.importDurationMs || meta.executionTimeMs || 0,
+        syncRunId: meta.requestId || meta.syncRunId || 'ingest_run',
+      };
+
+      setResult(resultObj);
+      setHistory(prev => [resultObj, ...prev.slice(0, 4)]);
       setStatus('success');
       toast.success('Ingestão concluída com sucesso!');
     } catch (error: any) {
       console.error(error);
-      setErrorMessage(error.message || 'Erro inesperado na ingestão');
+      const msg = error.message || 'Erro inesperado na ingestão';
+      setErrorMessage(msg);
       setStatus('error');
-      toast.error('Falha na ingestão');
+      if (error.status === 401 || error.isAuthError) {
+        toast.error('Catalog API: autenticação não configurada ou inválida no Preview.');
+      } else {
+        toast.error(msg);
+      }
     }
   };
 

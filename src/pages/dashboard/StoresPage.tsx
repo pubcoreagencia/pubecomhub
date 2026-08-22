@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Shell } from '@/components/layout/Shell';
 import { HubTable } from '@/components/ui-b';
 import { Link } from '@tanstack/react-router';
@@ -17,7 +17,11 @@ export default function StoresPage() {
       .then(setStores)
       .catch((e) => {
         console.error(e);
-        toast.error('Falha ao carregar lojas');
+        if (e.status === 401 || e.isAuthError) {
+          toast.error('Catalog API: autenticação não configurada ou inválida no Preview.');
+        } else {
+          toast.error('Falha ao carregar lojas');
+        }
       })
       .finally(() => setLoading(false));
   }, []);
