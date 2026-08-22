@@ -8,7 +8,7 @@ export class MasterProductRepository {
    */
   async findCommercial(): Promise<MasterProduct[]> {
     const { data, error } = await supabase
-      .from('available_master_products')
+      .from('available_master_products' as any)
       .select('id, sku, name, description, image_url, category, base_price_pub, status, is_available, metadata, created_at, updated_at')
       .order('created_at', { ascending: false });
 
@@ -32,9 +32,9 @@ export class MasterProductRepository {
 
   async findBySku(sku: string): Promise<MasterProduct | null> {
     const { data, error } = await supabase
-      .from('available_master_products')
+      .from('available_master_products' as any)
       .select('id, sku, name, description, image_url, category, base_price_pub, status, is_available, metadata, created_at, updated_at')
-      .eq('sku', sku)
+      .eq('sku' as any, sku)
       .maybeSingle();
 
     if (error) throw error;
