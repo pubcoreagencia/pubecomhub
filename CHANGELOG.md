@@ -1,5 +1,10 @@
 # Changelog - PUB ECOM HUB
 
+## [1.7.1] - 2026-08-22
+### Segurança
+- **Correção de Vulnerabilidade CVE-2026-59870**: Atualizado `@tanstack/react-start` de `1.168.32` para `1.168.48` e dependências relacionadas (`react-router`, `router-plugin`) para mitigar vulnerabilidade de DoS no `js-yaml`.
+- **Lockfile**: Gerado `bun.lock` em formato texto para melhor auditabilidade de segurança.
+
 ## [1.7.0] - 2026-08-22
 ### Adicionado
 - **Melhoria UX de Diagnóstico**: Adicionada exibição literal das variáveis de ambiente necessárias (`VITE_CATALOG_API_URL`, `VITE_CATALOG_API_TOKEN`) no toast de erro 401 da `CatalogIngestion`.
