@@ -17,7 +17,14 @@ export class ShopeeAdapter implements CatalogSourceAdapter {
   }
 
   canHandle(url: string): boolean {
-    return url.includes('shopee.com.br');
+    // Strict hostname validation — substring matching (url.includes) is
+    // spoofable via URLs like https://evil.com/?ref=shopee.com.br
+    try {
+      const hostname = new URL(url).hostname.toLowerCase();
+      return /^([a-z0-9-]+\.)*shopee\.com\.br$/.test(hostname);
+    } catch {
+      return false;
+    }
   }
 
   private extractShopId(url: string): string | null {

@@ -1,5 +1,15 @@
 # Changelog - PUB ECOM HUB
 
+## [1.7.2] - 2026-08-22
+### Segurança
+- **Correção de 10 findings de segurança selecionados**:
+  - **Escalonamento de papel (profiles)**: Triggers `prevent_role_escalation` e `enforce_profile_insert_role` + helper `is_master()` impedem que usuários comuns se promovam a MASTER.
+  - **RLS endurecido**: Policies permissivas removidas de `customers`, `marketing_events`, `master_products`, `products` e `suppliers`; acesso agora restrito a MASTER, donos de loja/fornecedor e relacionamentos via pedidos.
+  - **Views seguras**: `public_store_products`, `available_master_products` e `public_suppliers` expõem apenas colunas seguras para browsing público/autenticado.
+  - **SSRF no Catalog Worker**: Validação estrita de hostname (allow-list Shopee) no `ShopeeAdapter` e dentro do worker antes de qualquer navegação do browser headless.
+  - **Verificado**: Proxy de catálogo autenticado via JWT, server functions com `requireSupabaseAuth`, e rotas de API sem import privilegiado em top-level.
+  - Suite de testes de segurança: 69/69 passando.
+
 ## [1.7.1] - 2026-08-22
 ### Segurança
 - **Correção de Vulnerabilidade CVE-2026-59870**: Atualizado `@tanstack/react-start` de `1.168.32` para `1.168.48` e dependências relacionadas (`react-router`, `router-plugin`) para mitigar vulnerabilidade de DoS no `js-yaml`.
