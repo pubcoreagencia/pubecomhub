@@ -66,7 +66,6 @@ export type Database = {
           id: string
           name: string
           phone: string | null
-          store_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -74,7 +73,6 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
-          store_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -82,17 +80,8 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
-          store_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "customers_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       financial_transactions: {
         Row: {
@@ -146,7 +135,6 @@ export type Database = {
           event_type: string
           id: string
           metadata: Json | null
-          store_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -154,7 +142,6 @@ export type Database = {
           event_type: string
           id?: string
           metadata?: Json | null
-          store_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -162,7 +149,6 @@ export type Database = {
           event_type?: string
           id?: string
           metadata?: Json | null
-          store_id?: string | null
         }
         Relationships: [
           {
@@ -170,13 +156,6 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "marketing_events_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
@@ -524,31 +503,20 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
-          profile_id: string | null
         }
         Insert: {
           category?: string | null
           created_at?: string | null
           id?: string
           name: string
-          profile_id?: string | null
         }
         Update: {
           category?: string | null
           created_at?: string | null
           id?: string
           name?: string
-          profile_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "suppliers_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       wallet_transactions: {
         Row: {
@@ -625,67 +593,7 @@ export type Database = {
       }
     }
     Views: {
-      public_store_products: {
-        Row: {
-          id: string
-          store_id: string | null
-          master_product_id: string | null
-          name: string
-          description: string | null
-          price: number
-          stock: number
-          image_url: string | null
-          status: string | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
-      available_master_products: {
-        Row: {
-          id: string
-          sku: string
-          name: string
-          description: string | null
-          image_url: string | null
-          category: string | null
-          base_price_pub: number
-          status: string
-          is_available: boolean
-          metadata: Json | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
-      public_suppliers: {
-        Row: {
-          id: string
-          name: string
-          category: string | null
-          created_at: string | null
-        }
-        Relationships: []
-      }
-      influencer_orders: {
-        Row: {
-          id: string
-          external_id: string | null
-          store_id: string
-          customer_id: string
-          influencer_id: string | null
-          affiliate_id: string | null
-          amount: number
-          shipping: number
-          tax: number
-          discount: number
-          status: string
-          fulfillment_status: string | null
-          tracking_code: string | null
-          created_at: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       [_ in never]: never
