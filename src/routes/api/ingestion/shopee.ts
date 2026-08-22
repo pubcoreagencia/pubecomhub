@@ -32,7 +32,8 @@ export const Route = createFileRoute('/api/ingestion/shopee')({
           return new Response(JSON.stringify({ error: 'Forbidden: Only MASTER can ingest into catalog' }), { status: 403 });
         }
 
-        return await handleCatalogProxy(request);
+        const response = await handleCatalogProxy(request);
+        return response || new Response(JSON.stringify({ error: 'Endpoint proxy não encontrado' }), { status: 404 });
       }
     }
   }

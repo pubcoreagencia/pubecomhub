@@ -44,7 +44,8 @@ export const Route = createFileRoute('/api/catalog/stores/$storeId/refresh')({
           return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
         }
 
-        return await handleCatalogProxy(request);
+        const response = await handleCatalogProxy(request);
+        return response || new Response(JSON.stringify({ error: 'Endpoint proxy não encontrado' }), { status: 404 });
       }
     }
   }
