@@ -524,20 +524,31 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          profile_id: string | null
         }
         Insert: {
           category?: string | null
           created_at?: string | null
           id?: string
           name: string
+          profile_id?: string | null
         }
         Update: {
           category?: string | null
           created_at?: string | null
           id?: string
           name?: string
+          profile_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wallet_transactions: {
         Row: {
@@ -644,6 +655,15 @@ export type Database = {
           metadata: Json | null
           created_at: string | null
           updated_at: string | null
+        }
+        Relationships: []
+      }
+      public_suppliers: {
+        Row: {
+          id: string
+          name: string
+          category: string | null
+          created_at: string | null
         }
         Relationships: []
       }

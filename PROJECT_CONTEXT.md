@@ -6,10 +6,13 @@
 - **Scraper Authority:** `pub-shopee-scraper` (Apify / Browser Run).
 - **Database:** Supabase PostgreSQL com Row Level Security (RLS) e isolamento multi-tenant.
 
-## Baseline de Segurança e Autorização (Fase Atual)
-- **RLS Rigoroso:** Todas as tabelas sensíveis (`marketing_events`, `customers`, `products`, `master_products`, `suppliers`, `orders`, `wallets`) possuem RLS habilitado e políticas específicas sem `USING (true)` para dados de negócio.
+## Baseline de Segurança e Autorização (Hardening Completo)
+- **RLS Rigoroso & Multi-Tenant:**
+  - `marketing_events` e `customers` isolados por `store_id` e validados contra `stores.owner_id = auth.uid()`.
+  - Inserções cross-tenant autenticadas são bloqueadas mesmo para lojas com status ativo.
+  - Tracking anônimo valida consistência relacional entre `customer_id` e `store_id`.
 - **Isolamento de Custos e Margens:**
   - `cost` e `profit_margin` em `products` acessíveis somente pelo dono da loja e `MASTER`.
-  - `supplier_cost` em `master_products` acessível somente por `MASTER` e fornecedor.
-  - Visões públicas (`public_store_products` e `available_master_products`) para navegação comercial segura.
+  - `supplier_cost` em `master_products` acessível somente por `MASTER` e fornecedor proprietário (`suppliers.profile_id = auth.uid()`).
+  - Views seguras: `public_store_products`, `available_master_products` (com sanitização de metadata) e `public_suppliers`.
 - **BFF / Proxy Server-Side:** Comunicação com o Catalog Worker através de proxy server-side autenticado com `CATALOG_WORKER_TOKEN`, sem exposição de tokens no browser.
