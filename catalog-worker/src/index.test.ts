@@ -1,4 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Mock chromium from @cloudflare/playwright
+vi.mock('@cloudflare/playwright', () => ({
+  chromium: {
+    launch: vi.fn(),
+    sessions: vi.fn(),
+    history: vi.fn(),
+    limits: vi.fn(),
+  }
+}));
+
 import worker from './index';
 
 const env = {
