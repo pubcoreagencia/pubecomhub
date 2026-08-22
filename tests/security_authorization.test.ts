@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { handleCatalogProxy } from '../src/server/catalogProxy';
 
 describe('Security Authorization & Tenant Isolation Rules', () => {
@@ -127,19 +127,19 @@ describe('Security Authorization & Tenant Isolation Rules', () => {
   });
 
   describe('6. Server-Side Catalog Proxy Authentication Hardening', () => {
-    it('should return 401 with clear auth error message when CATALOG_WORKER_TOKEN is missing', async () => {
+    it('should return 401 with clear auth error message when caller is unauthenticated', async () => {
       const request = new Request('http://localhost:3000/api/catalog/stats', {
         method: 'GET',
       });
 
-      // Execute proxy with empty env
+      // Execute proxy without user auth
       const response = await handleCatalogProxy(request, { CATALOG_WORKER_TOKEN: '' });
       expect(response).not.toBeNull();
       expect(response?.status).toBe(401);
 
       const body = await response?.json();
       expect(body.isAuthError).toBe(true);
-      expect(body.error).toContain('CATALOG_WORKER_TOKEN');
+      expect(body.error).toContain('Unauthorized');
     });
   });
 

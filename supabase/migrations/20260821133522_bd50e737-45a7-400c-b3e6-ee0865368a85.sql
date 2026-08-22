@@ -67,7 +67,9 @@ GRANT ALL ON public.suppliers TO service_role;
 ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authenticated users can view suppliers') THEN
-        CREATE POLICY "Authenticated users can view suppliers" ON public.suppliers FOR SELECT TO authenticated USING (true);
+        CREATE POLICY "Authenticated users can view suppliers" ON public.suppliers FOR SELECT TO authenticated USING (
+            EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        );
     END IF;
 END $$;
 
@@ -85,22 +87,22 @@ CREATE TABLE IF NOT EXISTS public.products (
 );
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.products TO authenticated;
-GRANT SELECT ON public.products TO anon;
 GRANT ALL ON public.products TO service_role;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Store owners can manage products') THEN
-        CREATE POLICY "Store owners can manage products" ON public.products FOR ALL TO authenticated USING (EXISTS (SELECT 1 FROM public.stores WHERE id = store_id AND owner_id = auth.uid()));
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public can view products') THEN
-        CREATE POLICY "Public can view products" ON public.products FOR SELECT TO anon, authenticated USING (true);
+        CREATE POLICY "Store owners can manage products" ON public.products FOR ALL TO authenticated USING (
+            EXISTS (SELECT 1 FROM public.stores WHERE id = store_id AND owner_id = auth.uid())
+            OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        );
     END IF;
 END $$;
 
 -- 6. Customers Table
 CREATE TABLE IF NOT EXISTS public.customers (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id uuid REFERENCES public.stores(id) ON DELETE CASCADE,
     name text NOT NULL,
     email text NOT NULL,
     phone text,
@@ -112,7 +114,10 @@ GRANT ALL ON public.customers TO service_role;
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authenticated users can view customers') THEN
-        CREATE POLICY "Authenticated users can view customers" ON public.customers FOR SELECT TO authenticated USING (true);
+        CREATE POLICY "Authenticated users can view customers" ON public.customers FOR SELECT TO authenticated USING (
+            (store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = customers.store_id AND s.owner_id = auth.uid()))
+            OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        );
     END IF;
 END $$;
 

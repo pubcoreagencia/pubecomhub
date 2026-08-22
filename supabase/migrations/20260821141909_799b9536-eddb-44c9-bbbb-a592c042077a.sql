@@ -20,7 +20,16 @@ CREATE TABLE public.master_products (
 GRANT SELECT ON public.master_products TO authenticated;
 GRANT ALL ON public.master_products TO service_role;
 ALTER TABLE public.master_products ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Master products are viewable by all authenticated users" ON public.master_products FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Master products are viewable by all authenticated users" ON public.master_products FOR SELECT TO authenticated USING (
+    EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+    OR (
+        supplier_id IS NOT NULL 
+        AND EXISTS (
+            SELECT 1 FROM public.suppliers s 
+            WHERE s.id = master_products.supplier_id AND s.profile_id = auth.uid()
+        )
+    )
+);
 
 -- 2. Store Products (Produtos das Lojas)
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS master_product_id uuid REFERENCES public.master_products(id) ON DELETE CASCADE;
@@ -81,6 +90,7 @@ USING (EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND (store_id IN 
 -- 5. Marketing Events (CRM / Audience)
 CREATE TABLE public.marketing_events (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id uuid REFERENCES public.stores(id) ON DELETE CASCADE,
     customer_id uuid REFERENCES public.customers(id) ON DELETE CASCADE NOT NULL,
     event_type text NOT NULL, -- PAGE_VIEW, ADD_TO_CART, etc.
     metadata jsonb DEFAULT '{}',
@@ -90,7 +100,10 @@ CREATE TABLE public.marketing_events (
 GRANT SELECT, INSERT ON public.marketing_events TO authenticated;
 GRANT ALL ON public.marketing_events TO service_role;
 ALTER TABLE public.marketing_events ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Authenticated users can manage marketing events" ON public.marketing_events FOR ALL TO authenticated USING (true);
+CREATE POLICY "Authenticated users can manage marketing events" ON public.marketing_events FOR ALL TO authenticated USING (
+    (store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = marketing_events.store_id AND s.owner_id = auth.uid()))
+    OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+);
 
 -- 6. Ajustes Adicionais em Orders
 ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS master_product_id uuid REFERENCES public.master_products(id);

@@ -1,4 +1,86 @@
-﻿export async function handleCatalogProxy(request: Request, env?: unknown): Promise<Response> {
+import { createClient } from '@supabase/supabase-js';
+
+export interface ProxyAuthResult {
+  authenticated: boolean;
+  userId?: string;
+  role?: string;
+  error?: string;
+  statusCode?: number;
+}
+
+/**
+ * Validates the caller's Supabase Bearer JWT token and retrieves their role from profiles
+ */
+export async function validateSupabaseCaller(request: Request, envObj: Record<string, any>): Promise<ProxyAuthResult> {
+  const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return {
+      authenticated: false,
+      error: 'Unauthorized: Cabeçalho Authorization com token Bearer ausente.',
+      statusCode: 401,
+    };
+  }
+
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  if (!token) {
+    return {
+      authenticated: false,
+      error: 'Unauthorized: Token Bearer vazio.',
+      statusCode: 401,
+    };
+  }
+
+  const supabaseUrl = envObj['SUPABASE_URL'] || process.env['SUPABASE_URL'] || '';
+  const supabaseKey = envObj['SUPABASE_SERVICE_ROLE_KEY'] || process.env['SUPABASE_SERVICE_ROLE_KEY'] || envObj['SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'] || '';
+
+  if (!supabaseUrl || !supabaseKey) {
+    return {
+      authenticated: false,
+      error: 'Configuração do Supabase incompleta no servidor.',
+      statusCode: 500,
+    };
+  }
+
+  try {
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !userData?.user) {
+      return {
+        authenticated: false,
+        error: 'Unauthorized: Token de autenticação inválido ou expirado.',
+        statusCode: 401,
+      };
+    }
+
+    const userId = userData.user.id;
+
+    // Fetch user profile role
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const role = profileData?.role || 'LOJISTA';
+
+    return {
+      authenticated: true,
+      userId,
+      role,
+    };
+  } catch (err: any) {
+    return {
+      authenticated: false,
+      error: `Falha na verificação de autenticação: ${err?.message || String(err)}`,
+      statusCode: 401,
+    };
+  }
+}
+
+export async function handleCatalogProxy(request: Request, env?: unknown): Promise<Response | null> {
   const url = new URL(request.url);
   const pathname = url.pathname;
 
@@ -15,10 +97,51 @@
   }
 
   if (!targetPath) {
-    return new Response(JSON.stringify({ error: 'Not Found: Invalid catalog route' }), { status: 404 });
+    return null;
   }
 
   const envObj = (typeof env === 'object' && env !== null ? env : {}) as Record<string, any>;
+
+  // 1. Authenticate caller with Supabase
+  const auth = await validateSupabaseCaller(request, envObj);
+  if (!auth.authenticated) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: auth.error || 'Unauthorized',
+        isAuthError: true,
+      }),
+      {
+        status: auth.statusCode || 401,
+        headers: { 'content-type': 'application/json; charset=utf-8' },
+      }
+    );
+  }
+
+  // 2. Authorize based on route sensitivity
+  const isPaidScrapingOrIngestion =
+    targetPath.startsWith('/ingestion') ||
+    targetPath.includes('/refresh');
+
+  if (isPaidScrapingOrIngestion) {
+    // Only MASTER is authorized to trigger paid scraping/ingestion credits
+    if (auth.role !== 'MASTER') {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Forbidden: Apenas administradores MASTER podem disparar operações de scraping e ingestão.',
+          requiredRole: 'MASTER',
+          currentRole: auth.role,
+        }),
+        {
+          status: 403,
+          headers: { 'content-type': 'application/json; charset=utf-8' },
+        }
+      );
+    }
+  }
+
+  // 3. Load server-side Catalog Worker Token
   const workerUrl = (
     envObj['CATALOG_WORKER_URL'] ||
     process.env['CATALOG_WORKER_URL'] ||
@@ -30,6 +153,8 @@
   const workerToken = (
     envObj['CATALOG_WORKER_TOKEN'] ||
     process.env['CATALOG_WORKER_TOKEN'] ||
+    envObj['VITE_CATALOG_API_TOKEN'] ||
+    process.env['VITE_CATALOG_API_TOKEN'] ||
     ''
   ).trim();
 
@@ -37,11 +162,11 @@
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Catalog API: CATALOG_WORKER_TOKEN não configurado no servidor do Preview.',
+        error: 'Catalog API: CATALOG_WORKER_TOKEN não configurado no servidor.',
         isAuthError: true,
       }),
       {
-        status: 401,
+        status: 500,
         headers: { 'content-type': 'application/json; charset=utf-8' },
       }
     );
@@ -56,6 +181,7 @@
   const accept = request.headers.get('accept');
   if (accept) forwardHeaders.set('accept', accept);
 
+  // Attach server-side token for upstream worker
   forwardHeaders.set('authorization', `Bearer ${workerToken}`);
 
   let body: BodyInit | null = null;
