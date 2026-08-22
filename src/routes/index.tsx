@@ -1,23 +1,39 @@
 import { createFileRoute } from '@tanstack/react-router';
-// Load the security issues from the scan results and fix the selected issues.
-// Update the "@tanstack/react-start" dependency (currently 1.168.48) to a version that fixes its known security vulnerability: JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported (via js-yaml) (high). Update package.json and the lockfile, then verify the project still builds. If the project's only lockfile is the binary bun.lockb, regenerate it as a text lockfile by running `bun install --save-text-lockfile` so the dependency scanner can verify the fix.
-// Load the security issues from the scan results and fix the selected issues.
-// For the code present, I get the error below.
+// ATENÇÃO: ESTA É UMA OPERAÇÃO ADMINISTRATIVA, NÃO UMA TAREFA DE DESENVOLVIMENTO.
 // 
-// Please think step-by-step in order to resolve it.
-// ```
-// Error: aborted
+// NÃO crie, edite, remova ou acrescente absolutamente nenhum arquivo no repositório.
+// NÃO escreva nada em src/, supabase/, package.json, rotas ou componentes.
+// NÃO faça commit.
+// NÃO faça deploy.
 // 
-// {
-//   "timestamp": 1787420660140,
-//   "error_type": "RUNTIME_ERROR",
-//   "filename": "Unknown file",
-//   "lineno": 0,
-//   "colno": 0,
-//   "stack": "Error: aborted\n    at abortIncoming (node:_http_server:838:17)\n    at socketOnClose (node:_http_server:832:3)\n    at Socket.emit (node:events:531:35)\n    at TCP.<anonymous> (node:net:346:12)\n    at TCP.callbackTrampoline (node:internal/async_hooks:130:17)",
-//   "has_blank_screen": true
-// }
-// ```
+// Preciso apenas recuperar o acesso administrativo da conta existente no Supabase Auth do projeto PUB ECOM.
+// 
+// USUÁRIO:
+// email: contato.pubcore@gmail.com
+// 
+// Execute, usando os privilégios administrativos internos do Lovable Cloud/Supabase Managed:
+// 
+// 1. Localize o usuário auth `contato.pubcore@gmail.com`.
+// 2. Confirme que o usuário existe e está ativo/confirmado.
+// 3. Confirme que o perfil correspondente possui:
+//    role = MASTER
+// 4. Defina uma nova senha temporária para esse usuário através da API administrativa do Supabase Auth.
+// 5. NÃO crie outro usuário.
+// 6. NÃO altere o role.
+// 7. NÃO exponha nenhuma service_role key, token administrativo ou credencial interna.
+// 8. NÃO escreva a senha em arquivos ou Git.
+// 
+// Se você NÃO tiver permissão para executar a alteração diretamente, NÃO tente criar código para resolver isso.
+// 
+// Nesse caso, informe apenas:
+// - se o usuário foi encontrado;
+// - se ele está confirmado;
+// - se role = MASTER;
+// - qual ação administrativa/interface do Lovable preciso usar para redefinir a senha.
+// 
+// IMPORTANTE:
+// Esta solicitação NÃO é para modificar o aplicativo.
+// É exclusivamente uma operação administrativa no usuário existente do Supabase Auth.
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Database, Globe, LayoutDashboard, Store, RefreshCw, Activity, Terminal } from "lucide-react";
