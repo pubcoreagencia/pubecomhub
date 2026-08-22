@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+// Load the security issues from the scan results and fix the selected issues.
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Database, Globe, LayoutDashboard, Store, RefreshCw, Activity, Terminal } from "lucide-react";
