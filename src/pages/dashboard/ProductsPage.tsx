@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Shell } from '@/components/layout/Shell';
 import { HubTable, CardMetric } from '@/components/ui-b';
 import { Box, Package, Search, RefreshCw, ExternalLink, Truck, TrendingUp, Filter } from 'lucide-react';
@@ -20,9 +20,9 @@ export default function ProductsPage() {
       .catch((e) => {
         console.error(e);
         if (e.status === 401 || e.isAuthError) {
-          toast.error('Catalog API: autenticação não configurada ou inválida no Preview.');
+          toast.error(e.message || 'Usuário não autenticado. Faça login no Supabase para acessar o catálogo.');
         } else {
-          toast.error('Erro ao carregar catálogo global');
+          toast.error(e.message || 'Erro ao carregar catálogo global');
         }
       })
       .finally(() => setLoading(false));

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Shell } from '@/components/layout/Shell';
 import { CardMetric, AcquisitionFunnel } from '@/components/ui-b';
 import { cn } from '@/lib/utils';
@@ -20,9 +20,9 @@ export default function DashboardPage() {
       .catch((e) => {
         console.error(e);
         if (e.status === 401 || e.isAuthError) {
-          toast.error('Catalog API: autenticação não configurada ou inválida no Preview.');
+          toast.error(e.message || 'Usuário não autenticado. Faça login no Supabase para acessar o catálogo.');
         } else {
-          toast.error('Falha ao conectar com o backend real');
+          toast.error(e.message || 'Falha ao conectar com o backend real');
         }
       })
       .finally(() => setLoading(false));

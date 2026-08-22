@@ -1,4 +1,5 @@
-﻿import { CatalogStats, Store, Product, SyncResponse, IngestionApiResponse } from './types';
+import { CatalogStats, Store, Product, SyncResponse, IngestionApiResponse } from './types';
+import { supabase } from '@/integrations/supabase/client';
 
 function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
@@ -55,6 +56,29 @@ export class CatalogApi {
       headers.set('Content-Type', 'application/json');
     }
 
+    // Automatically obtain and inject the authenticated Supabase session access token
+    if (!headers.has('Authorization') && !headers.has('authorization')) {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const token = data?.session?.access_token;
+
+        if (token) {
+          headers.set('Authorization', `Bearer ${token}`);
+        } else if (typeof window !== 'undefined') {
+          // If in browser and not authenticated, fail early with a clear message
+          const error = new Error('Usuário não autenticado. Faça login no Supabase para acessar o catálogo.') as any;
+          error.status = 401;
+          error.isAuthError = true;
+          throw error;
+        }
+      } catch (authErr: any) {
+        if (authErr?.isAuthError) {
+          throw authErr;
+        }
+        console.warn('[CatalogApi] Não foi possível carregar a sessão Supabase:', authErr);
+      }
+    }
+
     let response: Response;
     try {
       response = await fetch(url, { ...options, headers });
@@ -66,10 +90,19 @@ export class CatalogApi {
       const errorData = await response.json().catch(() => ({}));
       if (response.status === 401 || errorData.isAuthError) {
         const error = new Error(
-          errorData.error || 'Catalog API: autenticação não configurada ou inválida no Preview.'
+          errorData.error || 'Catalog API: autenticação não configurada ou sessão expirada no Preview.'
         ) as any;
         error.status = 401;
         error.isAuthError = true;
+        error.data = errorData;
+        throw error;
+      }
+
+      if (response.status === 403) {
+        const error = new Error(
+          errorData.error || 'Acesso negado: você não tem permissão para realizar esta operação.'
+        ) as any;
+        error.status = 403;
         error.data = errorData;
         throw error;
       }

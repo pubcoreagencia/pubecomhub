@@ -79,7 +79,9 @@ export const CatalogIngestion = () => {
       setErrorMessage(msg);
       setStatus('error');
       if (error.status === 401 || error.isAuthError) {
-        toast.error('Falha na autenticação da API de Catálogo. Verifique as configurações do servidor.');
+        toast.error(error.message || 'Usuário não autenticado. Faça login no Supabase para executar a ingestão.');
+      } else if (error.status === 403) {
+        toast.error(error.message || 'Apenas administradores MASTER podem disparar operações de scraping e ingestão.');
       } else {
         toast.error(msg);
       }

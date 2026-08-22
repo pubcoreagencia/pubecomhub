@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Shell } from '@/components/layout/Shell';
 import { HubTable } from '@/components/ui-b';
 import { Link } from '@tanstack/react-router';
@@ -18,9 +18,9 @@ export default function StoresPage() {
       .catch((e) => {
         console.error(e);
         if (e.status === 401 || e.isAuthError) {
-          toast.error('Catalog API: autenticação não configurada ou inválida no Preview.');
+          toast.error(e.message || 'Usuário não autenticado. Faça login no Supabase para acessar o catálogo.');
         } else {
-          toast.error('Falha ao carregar lojas');
+          toast.error(e.message || 'Falha ao carregar lojas');
         }
       })
       .finally(() => setLoading(false));

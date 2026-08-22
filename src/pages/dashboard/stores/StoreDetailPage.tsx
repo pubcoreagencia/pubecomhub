@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from '@tanstack/react-router';
 import { Shell } from '@/components/layout/Shell';
 import { HubTable } from '@/components/ui-b';
@@ -37,9 +37,11 @@ export default function StoreDetailPage() {
     } catch (e: any) {
       console.error(e);
       if (e.status === 401 || e.isAuthError) {
-        toast.error('Catalog API: autenticação não configurada ou inválida no Preview.');
+        toast.error(e.message || 'Usuário não autenticado. Faça login no Supabase para acessar o catálogo.');
+      } else if (e.status === 403) {
+        toast.error(e.message || 'Acesso negado: você não tem permissão para visualizar esta loja.');
       } else {
-        toast.error('Erro ao carregar dados da loja');
+        toast.error(e.message || 'Erro ao carregar dados da loja');
       }
     } finally {
       setLoading(false);
@@ -68,7 +70,9 @@ export default function StoreDetailPage() {
       if (error.status === 409) {
         toast.warning('Sincronização já está em andamento no servidor');
       } else if (error.status === 401 || error.isAuthError) {
-        toast.error('Catalog API: autenticação não configurada ou inválida no Preview.');
+        toast.error(error.message || 'Usuário não autenticado. Faça login no Supabase para acessar o catálogo.');
+      } else if (error.status === 403) {
+        toast.error(error.message || 'Acesso negado: você não é o proprietário desta loja para atualizar o catálogo.');
       } else {
         toast.error(`Falha ao sincronizar: ${error.data?.message || error.message}`);
       }
