@@ -63,6 +63,7 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - **Fase 2F.4 - Health Check**: Ponto de verificação operacional concluído com endpoint `/health`.
 - **Fase 2F.9 - Diagnóstico de Limites**: Implementado endpoint `/debug/browser` para investigar erros HTTP 429 (Rate Limit) através das APIs de telemetria da Cloudflare (`playwright.limits()`).
 - **Fase 2G - Camada CORS Central**: Resolvido erro `Failed to fetch` no Preview do Lovable através da implementação de suporte total a Preflight `OPTIONS` e headers CORS em todos os endpoints e códigos de resposta (2xx a 5xx).
+- **v1.7.1 - Segurança**: Atualizadas dependências do TanStack e gerado lockfile textual para mitigar vulnerabilidade CVE-2026-59870 (`js-yaml`).
 - **v1.7.0 - Diagnóstico UX**: Implementado feedback visual direto no toast de erro 401 para facilitar a configuração do ambiente de preview com as variáveis `VITE_CATALOG_API_URL` e `VITE_CATALOG_API_TOKEN`.
 - **Integração Planejada**: 
   - **URL**: `https://pub-ecom-catalog-worker.contato-pubcore.workers.dev`
