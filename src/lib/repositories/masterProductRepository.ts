@@ -7,9 +7,9 @@ export class MasterProductRepository {
    * Queries the secure available_master_products view where supplier_cost is omitted.
    */
   async findCommercial(): Promise<MasterProduct[]> {
-    const { data, error } = await supabase
-      .from('available_master_products' as any)
-      .select('id, sku, name, description, image_url, category, base_price_pub, status, is_available, metadata, created_at, updated_at')
+    const { data, error } = await (supabase
+      .from('available_master_products' as any) as any)
+      .select('id, sku, name, description, image_url, category, base_price_pub, status, is_available, metadata, created_at, updated_at' as any)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -31,9 +31,9 @@ export class MasterProductRepository {
   }
 
   async findBySku(sku: string): Promise<MasterProduct | null> {
-    const { data, error } = await supabase
-      .from('available_master_products' as any)
-      .select('id, sku, name, description, image_url, category, base_price_pub, status, is_available, metadata, created_at, updated_at')
+    const { data, error } = await (supabase
+      .from('available_master_products' as any) as any)
+      .select('id, sku, name, description, image_url, category, base_price_pub, status, is_available, metadata, created_at, updated_at' as any)
       .eq('sku' as any, sku)
       .maybeSingle();
 
