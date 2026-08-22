@@ -33,10 +33,8 @@ import { Route as StoreIndexRouteImport } from './routes/store/index'
 import { Route as StoreCartRouteImport } from './routes/store/cart'
 import { Route as StoreCheckoutRouteImport } from './routes/store/checkout'
 import { Route as StoreConfirmationRouteImport } from './routes/store/confirmation'
-import { Route as ApiIngestionShopeeRouteImport } from './routes/api/ingestion/shopee'
 import { Route as DashboardStoresStoreIdRouteImport } from './routes/dashboard/stores.$storeId'
 import { Route as DashboardSuppliersIngestionRouteImport } from './routes/dashboard/suppliers/ingestion'
-import { Route as ApiCatalogStoresStoreIdRefreshRouteImport } from './routes/api/catalog/stores/$storeId.refresh'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -158,11 +156,6 @@ const StoreConfirmationRoute = StoreConfirmationRouteImport.update({
   path: '/store/confirmation',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiIngestionShopeeRoute = ApiIngestionShopeeRouteImport.update({
-  id: '/api/ingestion/shopee',
-  path: '/api/ingestion/shopee',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DashboardStoresStoreIdRoute = DashboardStoresStoreIdRouteImport.update({
   id: '/$storeId',
   path: '/$storeId',
@@ -173,12 +166,6 @@ const DashboardSuppliersIngestionRoute =
     id: '/ingestion',
     path: '/ingestion',
     getParentRoute: () => DashboardSuppliersRoute,
-  } as any)
-const ApiCatalogStoresStoreIdRefreshRoute =
-  ApiCatalogStoresStoreIdRefreshRouteImport.update({
-    id: '/api/catalog/stores/$storeId/refresh',
-    path: '/api/catalog/stores/$storeId/refresh',
-    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -206,10 +193,8 @@ export interface FileRoutesByFullPath {
   '/store/confirmation': typeof StoreConfirmationRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
-  '/api/ingestion/shopee': typeof ApiIngestionShopeeRoute
   '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
-  '/api/catalog/stores/$storeId/refresh': typeof ApiCatalogStoresStoreIdRefreshRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -235,10 +220,8 @@ export interface FileRoutesByTo {
   '/store/confirmation': typeof StoreConfirmationRoute
   '/dashboard': typeof DashboardIndexRoute
   '/store': typeof StoreIndexRoute
-  '/api/ingestion/shopee': typeof ApiIngestionShopeeRoute
   '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
-  '/api/catalog/stores/$storeId/refresh': typeof ApiCatalogStoresStoreIdRefreshRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -266,10 +249,8 @@ export interface FileRoutesById {
   '/store/confirmation': typeof StoreConfirmationRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
-  '/api/ingestion/shopee': typeof ApiIngestionShopeeRoute
   '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
-  '/api/catalog/stores/$storeId/refresh': typeof ApiCatalogStoresStoreIdRefreshRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -298,10 +279,8 @@ export interface FileRouteTypes {
     | '/store/confirmation'
     | '/dashboard/'
     | '/store/'
-    | '/api/ingestion/shopee'
     | '/dashboard/stores/$storeId'
     | '/dashboard/suppliers/ingestion'
-    | '/api/catalog/stores/$storeId/refresh'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -327,10 +306,8 @@ export interface FileRouteTypes {
     | '/store/confirmation'
     | '/dashboard'
     | '/store'
-    | '/api/ingestion/shopee'
     | '/dashboard/stores/$storeId'
     | '/dashboard/suppliers/ingestion'
-    | '/api/catalog/stores/$storeId/refresh'
   id:
     | '__root__'
     | '/'
@@ -357,10 +334,8 @@ export interface FileRouteTypes {
     | '/store/confirmation'
     | '/dashboard/'
     | '/store/'
-    | '/api/ingestion/shopee'
     | '/dashboard/stores/$storeId'
     | '/dashboard/suppliers/ingestion'
-    | '/api/catalog/stores/$storeId/refresh'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -370,8 +345,6 @@ export interface RootRouteChildren {
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreConfirmationRoute: typeof StoreConfirmationRoute
   StoreIndexRoute: typeof StoreIndexRoute
-  ApiIngestionShopeeRoute: typeof ApiIngestionShopeeRoute
-  ApiCatalogStoresStoreIdRefreshRoute: typeof ApiCatalogStoresStoreIdRefreshRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -544,13 +517,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreConfirmationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/ingestion/shopee': {
-      id: '/api/ingestion/shopee'
-      path: '/api/ingestion/shopee'
-      fullPath: '/api/ingestion/shopee'
-      preLoaderRoute: typeof ApiIngestionShopeeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/dashboard/stores/$storeId': {
       id: '/dashboard/stores/$storeId'
       path: '/$storeId'
@@ -564,13 +530,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/suppliers/ingestion'
       preLoaderRoute: typeof DashboardSuppliersIngestionRouteImport
       parentRoute: typeof DashboardSuppliersRoute
-    }
-    '/api/catalog/stores/$storeId/refresh': {
-      id: '/api/catalog/stores/$storeId/refresh'
-      path: '/api/catalog/stores/$storeId/refresh'
-      fullPath: '/api/catalog/stores/$storeId/refresh'
-      preLoaderRoute: typeof ApiCatalogStoresStoreIdRefreshRouteImport
-      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -651,8 +610,6 @@ const rootRouteChildren: RootRouteChildren = {
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreConfirmationRoute: StoreConfirmationRoute,
   StoreIndexRoute: StoreIndexRoute,
-  ApiIngestionShopeeRoute: ApiIngestionShopeeRoute,
-  ApiCatalogStoresStoreIdRefreshRoute: ApiCatalogStoresStoreIdRefreshRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
