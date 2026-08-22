@@ -63,7 +63,14 @@ export default function StoresPage() {
                     </div>
                 </td>
                 <td className="px-5 py-4 text-right">
-                    <Button variant="ghost" size="sm" className="text-[var(--hub-primary)] hover:bg-[var(--hub-primary)]/10 text-[9px] font-black uppercase tracking-widest">Gerenciar</Button>
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-[var(--hub-primary)] hover:bg-[var(--hub-primary)]/10 text-[9px] font-black uppercase tracking-widest"
+                        onClick={() => window.location.href = `/dashboard/stores/${loja.id}`}
+                    >
+                        Gerenciar
+                    </Button>
                 </td>
                 </tr>
             ))}
