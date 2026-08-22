@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 
 describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
@@ -9,7 +9,9 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
   const LOJISTA_B_UID = '22222222-2222-2222-2222-222222222222';
   const FORNECEDOR_A_UID = '33333333-3333-3333-3333-333333333333';
   const FORNECEDOR_B_UID = '44444444-4444-4444-4444-444444444444';
-  const INFLUENCER_UID = '55555555-5555-5555-5555-555555555555';
+  const INFLUENCER_A_UID = '55555555-5555-5555-5555-555555555555';
+  const INFLUENCER_B_UID = '66666666-6666-6666-6666-666666666666';
+  const AFFILIATE_A_UID = '77777777-7777-7777-7777-777777777777';
 
   const STORE_A_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
   const STORE_B_ID = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
@@ -54,7 +56,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
       $$ LANGUAGE sql STABLE;
     `);
 
-    // 2. Setup Base Tables
+    // 2. Setup All 11 Business Tables
     await pg.exec(`
       DO $$ BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'app_role') THEN
@@ -62,6 +64,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         END IF;
       END $$;
 
+      -- 1. profiles
       CREATE TABLE public.profiles (
         id uuid PRIMARY KEY,
         name text NOT NULL,
@@ -71,6 +74,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         updated_at timestamptz DEFAULT now()
       );
 
+      -- 2. stores
       CREATE TABLE public.stores (
         id uuid PRIMARY KEY,
         name text NOT NULL,
@@ -80,6 +84,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         created_at timestamptz DEFAULT now()
       );
 
+      -- 3. suppliers
       CREATE TABLE public.suppliers (
         id uuid PRIMARY KEY,
         name text NOT NULL,
@@ -88,6 +93,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         created_at timestamptz DEFAULT now()
       );
 
+      -- 4. master_products
       CREATE TABLE public.master_products (
         id uuid PRIMARY KEY,
         supplier_id uuid REFERENCES public.suppliers(id) ON DELETE SET NULL,
@@ -105,6 +111,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         updated_at timestamptz DEFAULT now()
       );
 
+      -- 5. products
       CREATE TABLE public.products (
         id uuid PRIMARY KEY,
         name text NOT NULL,
@@ -124,6 +131,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         updated_at timestamptz DEFAULT now()
       );
 
+      -- 6. customers
       CREATE TABLE public.customers (
         id uuid PRIMARY KEY,
         store_id uuid REFERENCES public.stores(id) ON DELETE CASCADE,
@@ -133,6 +141,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         created_at timestamptz DEFAULT now()
       );
 
+      -- 7. orders
       CREATE TABLE public.orders (
         id uuid PRIMARY KEY,
         external_id text,
@@ -153,6 +162,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         created_at timestamptz DEFAULT now()
       );
 
+      -- 8. marketing_events
       CREATE TABLE public.marketing_events (
         id uuid PRIMARY KEY,
         store_id uuid REFERENCES public.stores(id) ON DELETE CASCADE,
@@ -162,41 +172,101 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         created_at timestamptz DEFAULT now()
       );
 
+      -- 9. commissions
+      CREATE TABLE public.commissions (
+        id uuid PRIMARY KEY,
+        order_id uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+        profile_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+        amount decimal(12,2) NOT NULL,
+        type text NOT NULL,
+        status text NOT NULL DEFAULT 'pending',
+        created_at timestamptz DEFAULT now()
+      );
+
+      -- 10. wallets
+      CREATE TABLE public.wallets (
+        id uuid PRIMARY KEY,
+        profile_id uuid UNIQUE NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+        balance decimal(12,2) NOT NULL DEFAULT 0,
+        currency text NOT NULL DEFAULT 'BRL',
+        updated_at timestamptz DEFAULT now()
+      );
+
+      -- 11. wallet_transactions
+      CREATE TABLE public.wallet_transactions (
+        id uuid PRIMARY KEY,
+        wallet_id uuid NOT NULL REFERENCES public.wallets(id) ON DELETE CASCADE,
+        type text NOT NULL,
+        amount decimal(12,2) NOT NULL,
+        description text,
+        created_at timestamptz DEFAULT now()
+      );
+
+      CREATE OR REPLACE FUNCTION public.is_master()
+      RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE AS $$
+        SELECT EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'MASTER');
+      $$;
+
       CREATE OR REPLACE FUNCTION public.check_customer_store_match(p_customer_id uuid, p_store_id uuid)
       RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE AS $$
         SELECT EXISTS (SELECT 1 FROM public.customers WHERE id = p_customer_id AND store_id = p_store_id);
       $$;
     `);
 
-    // 3. Apply Hardening RLS Policies & Views in PostgreSQL
+    // 3. Apply Hardening RLS Policies & Views across all 11 Tables
     await pg.exec(`
-      -- A. SUPPLIERS RLS
+      -- 1. profiles RLS
+      ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY "Profiles select policy" ON public.profiles FOR SELECT
+      USING (
+        id = auth.uid() 
+        OR public.is_master()
+      );
+
+      -- 2. stores RLS
+      ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY "Stores select policy" ON public.stores FOR SELECT
+      USING (
+        status = 'active'
+        OR owner_id = auth.uid()
+        OR public.is_master()
+      );
+      CREATE POLICY "Stores modify policy" ON public.stores FOR ALL
+      USING (
+        owner_id = auth.uid()
+        OR public.is_master()
+      );
+
+      -- 3. suppliers RLS & Commercial View
       ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
       CREATE POLICY "Suppliers base table access policy" ON public.suppliers FOR ALL
       USING (
-        EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        public.is_master()
         OR (profile_id IS NOT NULL AND profile_id = auth.uid())
       )
       WITH CHECK (
-        EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        public.is_master()
         OR (profile_id IS NOT NULL AND profile_id = auth.uid())
       );
 
       CREATE OR REPLACE VIEW public.public_suppliers WITH (security_invoker = false) AS
-      SELECT id, name, category, created_at FROM public.suppliers;
+      SELECT DISTINCT s.id, s.name, s.category, s.created_at
+      FROM public.suppliers s
+      JOIN public.master_products mp ON mp.supplier_id = s.id
+      WHERE mp.is_available = true AND mp.status = 'active';
 
-      -- B. MASTER PRODUCTS RLS
+      -- 4. master_products RLS & Commercial View
       ALTER TABLE public.master_products ENABLE ROW LEVEL SECURITY;
       CREATE POLICY "Master products base table policy" ON public.master_products FOR ALL
       USING (
-        EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        public.is_master()
         OR (
           supplier_id IS NOT NULL 
           AND EXISTS (SELECT 1 FROM public.suppliers s WHERE s.id = master_products.supplier_id AND s.profile_id = auth.uid())
         )
       )
       WITH CHECK (
-        EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        public.is_master()
         OR (
           supplier_id IS NOT NULL 
           AND EXISTS (SELECT 1 FROM public.suppliers s WHERE s.id = master_products.supplier_id AND s.profile_id = auth.uid())
@@ -217,35 +287,35 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
       FROM public.master_products
       WHERE is_available = true AND status = 'active';
 
-      -- C. STORE PRODUCTS RLS
+      -- 5. products RLS & Storefront View
       ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
       CREATE POLICY "Store products base policy" ON public.products FOR ALL
       USING (
         EXISTS (SELECT 1 FROM public.stores s WHERE s.id = products.store_id AND s.owner_id = auth.uid())
-        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        OR public.is_master()
       )
       WITH CHECK (
         EXISTS (SELECT 1 FROM public.stores s WHERE s.id = products.store_id AND s.owner_id = auth.uid())
-        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        OR public.is_master()
       );
 
       CREATE OR REPLACE VIEW public.public_store_products WITH (security_invoker = false) AS
       SELECT id, store_id, master_product_id, COALESCE(custom_name, name) AS name, COALESCE(custom_description, '') AS description, price, stock, COALESCE(custom_image_url, image_url) AS image_url, status, created_at, updated_at
       FROM public.products WHERE status = 'active';
 
-      -- D. CUSTOMERS RLS
+      -- 6. customers RLS
       ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
       CREATE POLICY "Customers select policy" ON public.customers FOR SELECT
       USING (
         (store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = customers.store_id AND s.owner_id = auth.uid()))
         OR EXISTS (SELECT 1 FROM public.orders o JOIN public.stores s ON o.store_id = s.id WHERE o.customer_id = customers.id AND s.owner_id = auth.uid())
-        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        OR public.is_master()
       );
 
       CREATE POLICY "Customers authenticated insert policy" ON public.customers FOR INSERT
       WITH CHECK (
         (auth.role() = 'authenticated' AND store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = store_id AND s.owner_id = auth.uid()))
-        OR (auth.role() = 'authenticated' AND EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER'))
+        OR (auth.role() = 'authenticated' AND public.is_master())
       );
 
       CREATE POLICY "Customers anonymous checkout insert policy" ON public.customers FOR INSERT
@@ -253,18 +323,38 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         auth.role() = 'anon' AND store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = store_id AND s.status = 'active')
       );
 
-      -- E. MARKETING EVENTS RLS
+      -- 7. orders RLS & influencer_orders View
+      ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY "Orders base table access policy" ON public.orders FOR ALL
+      USING (
+        EXISTS (SELECT 1 FROM public.stores s WHERE s.id = orders.store_id AND s.owner_id = auth.uid())
+        OR public.is_master()
+      )
+      WITH CHECK (
+        EXISTS (SELECT 1 FROM public.stores s WHERE s.id = orders.store_id AND s.owner_id = auth.uid())
+        OR public.is_master()
+      );
+
+      CREATE OR REPLACE VIEW public.influencer_orders WITH (security_invoker = false) AS
+      SELECT id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, shipping, tax, discount, status, fulfillment_status, tracking_code, created_at
+      FROM public.orders
+      WHERE 
+        (auth.role() = 'authenticated' AND influencer_id IS NOT NULL AND influencer_id = auth.uid())
+        OR (auth.role() = 'authenticated' AND affiliate_id IS NOT NULL AND affiliate_id = auth.uid())
+        OR public.is_master();
+
+      -- 8. marketing_events RLS
       ALTER TABLE public.marketing_events ENABLE ROW LEVEL SECURITY;
       CREATE POLICY "Marketing events select policy" ON public.marketing_events FOR SELECT
       USING (
         (store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = marketing_events.store_id AND s.owner_id = auth.uid()))
-        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        OR public.is_master()
       );
 
       CREATE POLICY "Marketing events authenticated insert policy" ON public.marketing_events FOR INSERT
       WITH CHECK (
         (auth.role() = 'authenticated' AND store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = store_id AND s.owner_id = auth.uid()))
-        OR (auth.role() = 'authenticated' AND EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER'))
+        OR (auth.role() = 'authenticated' AND public.is_master())
       );
 
       CREATE POLICY "Marketing events anonymous tracking insert policy" ON public.marketing_events FOR INSERT
@@ -275,21 +365,28 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         AND public.check_customer_store_match(customer_id, store_id)
       );
 
-      -- F. ORDERS RLS
-      ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
-      CREATE POLICY "Orders base table access policy" ON public.orders FOR ALL
+      -- 9. commissions RLS
+      ALTER TABLE public.commissions ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY "Commissions access policy" ON public.commissions FOR ALL
       USING (
-        EXISTS (SELECT 1 FROM public.stores s WHERE s.id = orders.store_id AND s.owner_id = auth.uid())
-        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
-      )
-      WITH CHECK (
-        EXISTS (SELECT 1 FROM public.stores s WHERE s.id = orders.store_id AND s.owner_id = auth.uid())
-        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        profile_id = auth.uid()
+        OR public.is_master()
       );
 
-      CREATE OR REPLACE VIEW public.influencer_orders WITH (security_invoker = false) AS
-      SELECT id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, shipping, tax, discount, status, fulfillment_status, tracking_code, created_at
-      FROM public.orders;
+      -- 10. wallets RLS & 11. wallet_transactions RLS
+      ALTER TABLE public.wallets ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY "Wallets access policy" ON public.wallets FOR ALL
+      USING (
+        profile_id = auth.uid()
+        OR public.is_master()
+      );
+
+      ALTER TABLE public.wallet_transactions ENABLE ROW LEVEL SECURITY;
+      CREATE POLICY "Wallet transactions access policy" ON public.wallet_transactions FOR ALL
+      USING (
+        EXISTS (SELECT 1 FROM public.wallets w WHERE w.id = wallet_transactions.wallet_id AND w.profile_id = auth.uid())
+        OR public.is_master()
+      );
     `);
 
     // 4. Seed database
@@ -300,7 +397,9 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         ('${LOJISTA_B_UID}', 'Lojista Beta', 'lojista.b@store.com', 'LOJISTA'),
         ('${FORNECEDOR_A_UID}', 'Fornecedor A', 'forn.a@supplier.com', 'FORNECEDOR'),
         ('${FORNECEDOR_B_UID}', 'Fornecedor B', 'forn.b@supplier.com', 'FORNECEDOR'),
-        ('${INFLUENCER_UID}', 'Influencer Star', 'influencer@media.com', 'INFLUENCER');
+        ('${INFLUENCER_A_UID}', 'Influencer Star A', 'influencer.a@media.com', 'INFLUENCER'),
+        ('${INFLUENCER_B_UID}', 'Influencer Star B', 'influencer.b@media.com', 'INFLUENCER'),
+        ('${AFFILIATE_A_UID}', 'Affiliate Pro A', 'affiliate.a@media.com', 'AFILIADO');
 
       INSERT INTO public.stores (id, name, owner_id, subdomain, status) VALUES
         ('${STORE_A_ID}', 'Loja Alpha', '${LOJISTA_A_UID}', 'alpha', 'active'),
@@ -322,13 +421,22 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         ('${CUST_A_ID}', '${STORE_A_ID}', 'Cliente Alpha Privado', 'cliente.a@privado.com', '+5511999990001'),
         ('${CUST_B_ID}', '${STORE_B_ID}', 'Cliente Beta Privado', 'cliente.b@privado.com', '+5521999990002');
 
-      INSERT INTO public.orders (id, store_id, customer_id, influencer_id, amount, cost, shipping, status) VALUES
-        ('10000000-0000-0000-0000-000000000001', '${STORE_A_ID}', '${CUST_A_ID}', '${INFLUENCER_UID}', 79.90, 39.90, 10.00, 'paid'),
-        ('10000000-0000-0000-0000-000000000002', '${STORE_B_ID}', '${CUST_B_ID}', NULL, 189.90, 99.00, 15.00, 'paid');
+      INSERT INTO public.orders (id, store_id, customer_id, influencer_id, affiliate_id, amount, cost, shipping, status) VALUES
+        ('10000000-0000-0000-0000-000000000001', '${STORE_A_ID}', '${CUST_A_ID}', '${INFLUENCER_A_UID}', NULL, 79.90, 39.90, 10.00, 'paid'),
+        ('10000000-0000-0000-0000-000000000002', '${STORE_B_ID}', '${CUST_B_ID}', NULL, '${AFFILIATE_A_UID}', 189.90, 99.00, 15.00, 'paid');
 
       INSERT INTO public.marketing_events (id, store_id, customer_id, event_type) VALUES
         ('${EVT_A_ID}', '${STORE_A_ID}', '${CUST_A_ID}', 'PAGE_VIEW'),
         ('${EVT_B_ID}', '${STORE_B_ID}', '${CUST_B_ID}', 'CHECKOUT_STARTED');
+
+      INSERT INTO public.commissions (id, order_id, profile_id, amount, type, status) VALUES
+        ('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '${INFLUENCER_A_UID}', 15.00, 'influencer', 'pending');
+
+      INSERT INTO public.wallets (id, profile_id, balance) VALUES
+        ('30000000-0000-0000-0000-000000000001', '${INFLUENCER_A_UID}', 150.00);
+
+      INSERT INTO public.wallet_transactions (id, wallet_id, type, amount, description) VALUES
+        ('40000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000001', 'credit', 150.00, 'Comissao Inicial');
     `);
 
     // 5. Setup web_user role without bypassrls
@@ -347,7 +455,47 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
     `);
   });
 
-  describe('1. Suppliers RLS & Public View', () => {
+  describe('0. SQL Audit on all 11 Business Tables in pg_class and pg_policies', () => {
+    it('All 11 business tables must have relrowsecurity = true in pg_class', async () => {
+      const tables = [
+        'profiles', 'stores', 'suppliers', 'master_products', 'products',
+        'customers', 'marketing_events', 'orders', 'commissions', 'wallets', 'wallet_transactions'
+      ];
+
+      const res = await pg.query<{ relname: string; relrowsecurity: boolean }>(`
+        SELECT relname, relrowsecurity 
+        FROM pg_class 
+        JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
+        WHERE pg_namespace.nspname = 'public' AND relname = ANY($1)
+      `, [tables]);
+
+      expect(res.rows.length).toBe(11);
+      for (const row of res.rows) {
+        expect(row.relrowsecurity).toBe(true);
+      }
+    });
+
+    it('Zero policies on business tables must contain permissive USING (true) or WITH CHECK (true)', async () => {
+      const res = await pg.query<{ tablename: string; policyname: string; qual: string; with_check: string }>(`
+        SELECT tablename, policyname, qual, with_check 
+        FROM pg_policies 
+        WHERE schemaname = 'public'
+      `);
+
+      for (const p of res.rows) {
+        if (p.qual) {
+          expect(p.qual.trim()).not.toBe('true');
+          expect(p.qual.trim()).not.toBe('(true)');
+        }
+        if (p.with_check) {
+          expect(p.with_check.trim()).not.toBe('true');
+          expect(p.with_check.trim()).not.toBe('(true)');
+        }
+      }
+    });
+  });
+
+  describe('1. Suppliers RLS & Commercial View', () => {
     it('MASTER can read all suppliers (A and B)', async () => {
       await asUser(MASTER_UID);
       const res = await pg.query<{ id: string }>('SELECT id FROM public.suppliers');
@@ -373,8 +521,8 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
       expect(res.rows.length).toBe(0);
     });
 
-    it('public_suppliers view exposes only non-sensitive fields and does not leak profile_id or private notes', async () => {
-      await asUser(null, 'anon');
+    it('public_suppliers view is accessible by authenticated users, exposes only non-sensitive catalog fields without private notes', async () => {
+      await asUser(LOJISTA_A_UID);
       const res = await pg.query<any>('SELECT * FROM public.public_suppliers');
       expect(res.rows.length).toBe(2);
       expect(res.rows[0].name).toBe('Fornecedor A LTDA');
@@ -516,14 +664,12 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
 
     it('ANON pixel tracking requires active store AND customer belonging to that same store', async () => {
       await asUser(null, 'anon');
-      // Valid matching customer
       const valid = await pg.query(`
         INSERT INTO public.marketing_events (id, store_id, customer_id, event_type)
         VALUES ('faaaaaaa-0000-0000-0000-000000000088', '${STORE_A_ID}', '${CUST_A_ID}', 'ADD_TO_CART')
       `);
       expect(valid.affectedRows).toBe(1);
 
-      // Invalid customer from store B injected into store A event
       let errorThrown = false;
       try {
         await pg.query(`
@@ -538,7 +684,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
     });
   });
 
-  describe('6. Orders Base Table & Influencer View RLS', () => {
+  describe('6. Orders Base Table & Influencer View RLS Hardening', () => {
     it('LOJISTA A reads only Store A orders with cost and net_profit', async () => {
       await asUser(LOJISTA_A_UID);
       const res = await pg.query<{ amount: number; cost: number; net_profit: number }>('SELECT amount, cost, net_profit FROM public.orders');
@@ -548,7 +694,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
       expect(Number(res.rows[0].net_profit)).toBe(30.00);
     });
 
-    it('LOJISTA B gets 0 rows for Store A orders', async () => {
+    it('LOJISTA B gets 0 rows for Store A orders on base table', async () => {
       await asUser(LOJISTA_B_UID);
       const res = await pg.query<{ id: string; store_id: string }>(`SELECT id, store_id FROM public.orders WHERE store_id = '${STORE_A_ID}'`);
       expect(res.rows.length).toBe(0);
@@ -561,19 +707,62 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
     });
 
     it('INFLUENCER gets 0 rows directly on base orders table (DENY)', async () => {
-      await asUser(INFLUENCER_UID);
+      await asUser(INFLUENCER_A_UID);
       const res = await pg.query('SELECT * FROM public.orders');
       expect(res.rows.length).toBe(0);
     });
 
-    it('INFLUENCER accesses influencer_orders view without cost, net_profit, or financial_metadata', async () => {
-      await asUser(INFLUENCER_UID);
-      const res = await pg.query<any>(`SELECT * FROM public.influencer_orders WHERE influencer_id = '${INFLUENCER_UID}'`);
+    it('INFLUENCER A sees ONLY own assigned orders in influencer_orders view', async () => {
+      await asUser(INFLUENCER_A_UID);
+      const res = await pg.query<any>('SELECT * FROM public.influencer_orders');
       expect(res.rows.length).toBe(1);
+      expect(res.rows[0].influencer_id).toBe(INFLUENCER_A_UID);
       expect(Number(res.rows[0].amount)).toBe(79.90);
       expect(res.rows[0].cost).toBeUndefined();
       expect(res.rows[0].net_profit).toBeUndefined();
       expect(res.rows[0].financial_metadata).toBeUndefined();
+    });
+
+    it('INFLUENCER B gets 0 rows from influencer_orders view for Influencer A orders', async () => {
+      await asUser(INFLUENCER_B_UID);
+      const res = await pg.query<any>('SELECT * FROM public.influencer_orders');
+      expect(res.rows.length).toBe(0);
+    });
+
+    it('AFFILIATE A sees only orders assigned to affiliate_id in influencer_orders view', async () => {
+      await asUser(AFFILIATE_A_UID);
+      const res = await pg.query<any>('SELECT * FROM public.influencer_orders');
+      expect(res.rows.length).toBe(1);
+      expect(res.rows[0].affiliate_id).toBe(AFFILIATE_A_UID);
+      expect(Number(res.rows[0].amount)).toBe(189.90);
+    });
+
+    it('LOJISTA gets 0 rows from influencer_orders view unless explicitly assigned as influencer/affiliate', async () => {
+      await asUser(LOJISTA_A_UID);
+      const res = await pg.query<any>('SELECT * FROM public.influencer_orders');
+      expect(res.rows.length).toBe(0);
+    });
+  });
+
+  describe('7. Commissions and Wallets RLS', () => {
+    it('INFLUENCER A sees only own commissions and wallet', async () => {
+      await asUser(INFLUENCER_A_UID);
+      const comms = await pg.query<{ id: string; amount: number }>('SELECT id, amount FROM public.commissions');
+      expect(comms.rows.length).toBe(1);
+      expect(Number(comms.rows[0].amount)).toBe(15.00);
+
+      const wallet = await pg.query<{ balance: number }>('SELECT balance FROM public.wallets');
+      expect(wallet.rows.length).toBe(1);
+      expect(Number(wallet.rows[0].balance)).toBe(150.00);
+    });
+
+    it('INFLUENCER B gets 0 rows for INFLUENCER A commissions and wallet', async () => {
+      await asUser(INFLUENCER_B_UID);
+      const comms = await pg.query('SELECT * FROM public.commissions');
+      expect(comms.rows.length).toBe(0);
+
+      const wallet = await pg.query('SELECT * FROM public.wallets');
+      expect(wallet.rows.length).toBe(0);
     });
   });
 
