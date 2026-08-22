@@ -1,6 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router';
 // Load the security issues from the scan results and fix the selected issues.
 // Update the "@tanstack/react-start" dependency (currently 1.168.48) to a version that fixes its known security vulnerability: JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported (via js-yaml) (high). Update package.json and the lockfile, then verify the project still builds. If the project's only lockfile is the binary bun.lockb, regenerate it as a text lockfile by running `bun install --save-text-lockfile` so the dependency scanner can verify the fix.
+// No projeto PUB ECOM / PubecomHub, preciso recuperar o acesso da conta MASTER existente.
+// 
+// Usuário:
+// contato.pubcore@gmail.com
+// 
+// O projeto usa Lovable Cloud Managed Supabase, e eu não tenho acesso administrativo ao Supabase Dashboard externo.
+// 
+// Use o mecanismo administrativo interno disponível no Lovable Cloud para redefinir a senha desse usuário existente.
+// 
+// IMPORTANTE:
+// - NÃO crie outro usuário.
+// - NÃO altere o e-mail.
+// - NÃO altere o role.
+// - Confirme que o perfil continua com role MASTER.
+// - NÃO exponha service_role, tokens ou outras credenciais.
+// - NÃO grave a senha em código, arquivo ou Git.
+// - Se a interface permitir definir a senha diretamente, faça a alteração de forma segura.
+// - Se precisar que eu informe uma nova senha, solicite a entrada de forma interativa e não registre o valor em logs.
+// 
+// Depois valide:
+// MASTER USER = contato.pubcore@gmail.com
+// MASTER ROLE = MASTER
+// PASSWORD RESET = PASS
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Database, Globe, LayoutDashboard, Store, RefreshCw, Activity, Terminal } from "lucide-react";
