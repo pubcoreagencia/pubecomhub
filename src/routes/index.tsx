@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-// OPERAÇÃO ADMINISTRATIVA — NÃO ALTERE O CÓDIGO
+// verifique as dependencias vulneraveis do arquivo package.json e atualize apenas os pacotes de forma individual e segura sem quebrar o codigo atual
 // 
 // A conta existente `admin@pubcore.com` já foi confirmada como:
 // - Auth: EXISTS
