@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 // Load the security issues from the scan results and fix the selected issues.
+// Update the "@tanstack/react-start" dependency (currently 1.168.48) to a version that fixes its known security vulnerability: JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported (via js-yaml) (high). Update package.json and the lockfile, then verify the project still builds. If the project's only lockfile is the binary bun.lockb, regenerate it as a text lockfile by running `bun install --save-text-lockfile` so the dependency scanner can verify the fix.
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Database, Globe, LayoutDashboard, Store, RefreshCw, Activity, Terminal } from "lucide-react";
