@@ -20,9 +20,18 @@ function Index() {
             <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">
               PUB ECOM Master Catalog
             </h1>
-            <Badge variant="outline" className="border-emerald-500/50 text-emerald-400 bg-emerald-500/5 px-3 py-1 text-sm font-medium">
-              Frontend Operacional v1.7.0
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 font-bold uppercase tracking-widest text-xs h-9 px-4"
+                onClick={() => window.location.href = '/login'}
+              >
+                Entrar / Login
+              </Button>
+              <Badge variant="outline" className="border-emerald-500/50 text-emerald-400 bg-emerald-500/5 px-3 py-1 text-sm font-medium">
+                v1.7.0
+              </Badge>
+            </div>
           </div>
           <p className="text-emerald-50/70 text-lg max-w-3xl leading-relaxed">
             O frontend operacional do PUB ECOM está agora integrado ao <strong>backend oficial</strong>. 

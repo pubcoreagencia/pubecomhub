@@ -1,7 +1,6 @@
-import * as React from 'react';
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+import { DashboardGuard } from '@/components/auth/DashboardGuard';
 
 export const Route = createFileRoute('/dashboard')({
-  component: () => <Outlet />
+  component: DashboardGuard,
 });
-

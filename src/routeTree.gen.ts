@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardAffiliatesRouteImport } from './routes/dashboard/affiliates'
 import { Route as DashboardAudienceRouteImport } from './routes/dashboard/audience'
@@ -46,6 +47,11 @@ const IndexRoute = IndexRouteImport.update({
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -184,6 +190,7 @@ const ApiCatalogStoresStoreIdRefreshRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/login': typeof LoginRoute
   '/dashboard/affiliates': typeof DashboardAffiliatesRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
   '/dashboard/bonifications': typeof DashboardBonificationsRoute
@@ -213,6 +220,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/dashboard/affiliates': typeof DashboardAffiliatesRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
   '/dashboard/bonifications': typeof DashboardBonificationsRoute
@@ -244,6 +252,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/login': typeof LoginRoute
   '/dashboard/affiliates': typeof DashboardAffiliatesRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
   '/dashboard/bonifications': typeof DashboardBonificationsRoute
@@ -276,6 +285,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/login'
     | '/dashboard/affiliates'
     | '/dashboard/audience'
     | '/dashboard/bonifications'
@@ -305,6 +315,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
     | '/dashboard/affiliates'
     | '/dashboard/audience'
     | '/dashboard/bonifications'
@@ -335,6 +346,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/login'
     | '/dashboard/affiliates'
     | '/dashboard/audience'
     | '/dashboard/bonifications'
@@ -366,6 +378,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
+  LoginRoute: typeof LoginRoute
   StoreCartRoute: typeof StoreCartRoute
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreConfirmationRoute: typeof StoreConfirmationRoute
@@ -388,6 +401,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -647,6 +667,7 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
+  LoginRoute: LoginRoute,
   StoreCartRoute: StoreCartRoute,
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreConfirmationRoute: StoreConfirmationRoute,

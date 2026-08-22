@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { supabase } from '@/integrations/supabase/client';
 
 const navGroups = [
   {
@@ -132,7 +133,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <p className="text-[12px] font-black text-white truncate italic">Central Operator</p>
               <p className="text-[9px] text-[var(--hub-muted)] uppercase font-bold tracking-widest">Master Access</p>
             </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-red-500 hover:bg-red-500/10">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-slate-500 hover:text-red-500 hover:bg-red-500/10 cursor-pointer"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                window.location.href = '/login';
+              }}
+              title="Sair da Conta"
+            >
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
