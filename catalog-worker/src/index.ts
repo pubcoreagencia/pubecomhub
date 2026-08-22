@@ -162,9 +162,9 @@ export default {
     if (url.pathname === '/debug/browser' && request.method === 'GET') {
       try {
         const [sessions, history, limits] = await Promise.all([
-          chromium.sessions(env.BROWSER),
-          chromium.history(env.BROWSER),
-          chromium.limits(env.BROWSER)
+          (chromium as any).sessions(env.BROWSER),
+          (chromium as any).history(env.BROWSER),
+          (chromium as any).limits(env.BROWSER)
         ]);
 
         return new Response(JSON.stringify({
