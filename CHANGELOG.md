@@ -1,5 +1,15 @@
 # Changelog - PUB ECOM HUB
 
+## [1.6.6] - 2026-08-22
+### Adicionado
+- **Fase 2G - Resolução de CORS e Preflight**:
+  - Implementação de camada CORS centralizada no `catalog-worker` (`cors.ts`).
+  - Suporte a requisições `OPTIONS` (Preflight) retornando status 204.
+  - Headers `Access-Control-Allow-Origin` configurados para `localhost`, `lovable.app` e domínio de produção.
+  - Garantia de headers CORS em todas as respostas (401 Unauthorized, 404 Not Found, etc).
+  - Suporte explícito aos headers `Authorization` e `Content-Type`.
+  - Suite de testes unitários para validação de fluxos CORS.
+
 ## [1.6.5] - 2026-08-21
 ### Adicionado
 - **Fase 2F.9 - Diagnóstico de Limites do Cloudflare Browser Run**:
