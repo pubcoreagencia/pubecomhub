@@ -214,6 +214,13 @@ export type Database = {
             foreignKeyName: "master_products_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
+            referencedRelation: "public_suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "master_products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
@@ -344,6 +351,13 @@ export type Database = {
             foreignKeyName: "orders_master_product_id_fkey"
             columns: ["master_product_id"]
             isOneToOne: false
+            referencedRelation: "available_master_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_master_product_id_fkey"
+            columns: ["master_product_id"]
+            isOneToOne: false
             referencedRelation: "master_products"
             referencedColumns: ["id"]
           },
@@ -416,6 +430,13 @@ export type Database = {
             foreignKeyName: "products_master_product_id_fkey"
             columns: ["master_product_id"]
             isOneToOne: false
+            referencedRelation: "available_master_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_master_product_id_fkey"
+            columns: ["master_product_id"]
+            isOneToOne: false
             referencedRelation: "master_products"
             referencedColumns: ["id"]
           },
@@ -424,6 +445,13 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "public_suppliers"
             referencedColumns: ["id"]
           },
           {
@@ -503,20 +531,31 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          profile_id: string | null
         }
         Insert: {
           category?: string | null
           created_at?: string | null
           id?: string
           name: string
+          profile_id?: string | null
         }
         Update: {
           category?: string | null
           created_at?: string | null
           id?: string
           name?: string
+          profile_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wallet_transactions: {
         Row: {
@@ -593,10 +632,85 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      available_master_products: {
+        Row: {
+          category: string | null
+          commercial_price: number | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          image_url: string | null
+          is_available: boolean | null
+          min_quantity: number | null
+          name: string | null
+          sku: string | null
+          status: string | null
+          weight_grams: number | null
+        }
+        Insert: {
+          category?: string | null
+          commercial_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          image_url?: string | null
+          is_available?: boolean | null
+          min_quantity?: never
+          name?: string | null
+          sku?: string | null
+          status?: string | null
+          weight_grams?: never
+        }
+        Update: {
+          category?: string | null
+          commercial_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          image_url?: string | null
+          is_available?: boolean | null
+          min_quantity?: never
+          name?: string | null
+          sku?: string | null
+          status?: string | null
+          weight_grams?: never
+        }
+        Relationships: []
+      }
+      public_store_products: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string | null
+          image_url: string | null
+          is_active: boolean | null
+          name: string | null
+          price: number | null
+          stock: number | null
+          store_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_suppliers: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          id: string | null
+          name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      is_master: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "MASTER" | "LOJISTA" | "FORNECEDOR" | "AFILIADO" | "INFLUENCER"
