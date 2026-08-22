@@ -45,8 +45,8 @@ export class ProductRepository implements IProductRepository {
     }
 
     const { data, error } = await supabase
-      .from('public_store_products')
-      .select('id, store_id, master_product_id, name, description, price, stock, image_url, status, created_at, updated_at')
+      .from('public_store_products' as any)
+      .select('id, store_id, master_product_id, name, description, price, stock, image_url, status, created_at, updated_at' as any)
       .eq('store_id', storeId);
 
     if (error) throw error;
