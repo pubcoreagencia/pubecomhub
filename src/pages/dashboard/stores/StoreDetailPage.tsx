@@ -1,0 +1,255 @@
+import { useEffect, useState } from 'react';
+import { useParams } from '@tanstack/react-router';
+import { Shell } from '@/components/layout/Shell';
+import { HubTable } from '@/components/ui-b';
+import { 
+  RefreshCw, 
+  ArrowLeft, 
+  Store as StoreIcon, 
+  Package, 
+  Calendar, 
+  Hash, 
+  Activity,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  ExternalLink
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { catalogApi } from '@/lib/api/catalog';
+import { Store, Product, SyncResponse } from '@/lib/api/types';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+
+export default function StoreDetailPage() {
+  const { storeId } = useParams({ from: '/dashboard/stores/$storeId' });
+  const [store, setStore] = useState<Store | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [syncResult, setSyncResult] = useState<SyncResponse['results'] | null>(null);
+
+  const fetchData = async () => {
+    try {
+      const [storeData, productsData] = await Promise.all([
+        catalogApi.getStore(storeId),
+        catalogApi.getStoreProducts(storeId)
+      ]);
+      setStore(storeData);
+      setProducts(productsData);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao carregar dados da loja');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [storeId]);
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    
+    setRefreshing(true);
+    setSyncResult(null);
+    toast.info('Sincronização em andamento...');
+
+    try {
+      const response = await catalogApi.refreshStore(storeId);
+      if (response.success) {
+        setSyncResult(response.results || null);
+        toast.success('Sincronização concluída com sucesso');
+        await fetchData(); // Recarregar dados
+      }
+    } catch (error: any) {
+      if (error.status === 409) {
+        toast.warning('Sincronização já está em andamento no servidor');
+      } else {
+        toast.error(`Falha ao sincronizar: ${error.data?.message || error.message}`);
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Shell>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <RefreshCw className="h-8 w-8 text-emerald-500 animate-spin" />
+        </div>
+      </Shell>
+    );
+  }
+
+  if (!store) {
+    return (
+      <Shell>
+        <div className="text-center py-20 space-y-4">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto" />
+          <h2 className="text-white text-xl font-bold">Loja não encontrada</h2>
+          <Button onClick={() => window.history.back()} variant="outline">Voltar</Button>
+        </div>
+      </Shell>
+    );
+  }
+
+  return (
+    <Shell>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => window.history.back()}
+              className="p-2 rounded-lg bg-black/40 border border-[var(--hub-border)] text-[var(--hub-muted)] hover:text-white transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-2xl font-black text-white italic">{store.name}</h1>
+                <span className={cn(
+                  "px-2 py-0.5 rounded-[4px] text-[8px] font-black uppercase",
+                  store.status === 'active' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'
+                )}>
+                  {store.status}
+                </span>
+              </div>
+              <p className="text-[10px] text-[var(--hub-muted)] font-black uppercase tracking-[0.2em]">
+                {store.source} · {store.username} · ID: {store.shopId}
+              </p>
+            </div>
+          </div>
+          
+          <Button 
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="bg-[var(--hub-primary)] hover:bg-[var(--hub-primary)]/80 text-[var(--hub-primary-foreground)] font-black uppercase tracking-wider h-12 px-8"
+          >
+            {refreshing ? (
+              <><RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Sincronizando...</>
+            ) : (
+              <><RefreshCw className="h-4 w-4 mr-2" /> Atualizar Catálogo</>
+            )}
+          </Button>
+        </div>
+
+        {/* Sync Summary Alert */}
+        {syncResult && (
+          <div className="hub-card border-emerald-500/30 bg-emerald-500/5 p-6 space-y-4 animate-in fade-in slide-in-from-top-4">
+            <div className="flex items-center gap-3 text-emerald-500">
+              <CheckCircle className="h-5 w-5" />
+              <h3 className="text-sm font-black uppercase tracking-widest">Resultado da Sincronização Real</h3>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div>
+                <p className="text-[9px] text-emerald-500/60 font-black uppercase tracking-widest">Encontrados</p>
+                <p className="text-xl font-black text-white italic">{syncResult.productsFound}</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-emerald-500/60 font-black uppercase tracking-widest">Criados</p>
+                <p className="text-xl font-black text-white italic">{syncResult.created}</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-emerald-500/60 font-black uppercase tracking-widest">Atualizados</p>
+                <p className="text-xl font-black text-white italic">{syncResult.updated}</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-emerald-500/60 font-black uppercase tracking-widest">Falhas</p>
+                <p className="text-xl font-black text-red-500 italic">{syncResult.failed}</p>
+              </div>
+              <div>
+                <p className="text-[9px] text-emerald-500/60 font-black uppercase tracking-widest">Duração</p>
+                <p className="text-xl font-black text-white italic">{(syncResult.duration / 1000).toFixed(1)}s</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="hub-card hub-gradient-border p-6 space-y-2">
+            <Package className="h-4 w-4 text-[var(--hub-muted)] mb-2" />
+            <p className="text-[9px] text-[var(--hub-muted)] font-black uppercase tracking-widest">Produtos</p>
+            <p className="text-2xl font-black text-white italic">{store.productCount}</p>
+          </div>
+          <div className="hub-card hub-gradient-border p-6 space-y-2">
+            <Activity className="h-4 w-4 text-[var(--hub-muted)] mb-2" />
+            <p className="text-[9px] text-[var(--hub-muted)] font-black uppercase tracking-widest">Estado Sync</p>
+            <p className={cn(
+              "text-2xl font-black italic",
+              store.syncState === 'success' ? 'text-emerald-500' : 
+              store.syncState === 'running' ? 'text-blue-500' : 'text-white'
+            )}>
+              {store.syncState}
+            </p>
+          </div>
+          <div className="hub-card hub-gradient-border p-6 space-y-2 md:col-span-2">
+            <Clock className="h-4 w-4 text-[var(--hub-muted)] mb-2" />
+            <p className="text-[9px] text-[var(--hub-muted)] font-black uppercase tracking-widest">Última Sincronização</p>
+            <p className="text-2xl font-black text-white italic">
+              {store.lastSyncAt ? new Date(store.lastSyncAt).toLocaleString('pt-BR') : 'Nunca'}
+            </p>
+          </div>
+        </div>
+
+        {/* Products Table */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-white italic">Catálogo de Produtos Real</h3>
+            <span className="text-[9px] font-black text-[var(--hub-muted)] uppercase tracking-widest italic opacity-40">D1 Master Storage</span>
+          </div>
+          
+          <HubTable headers={['Imagem', 'Título', 'SKU', 'Preço', 'Categoria', 'Ações']}>
+            {products.map((product) => (
+              <tr key={product.id} className="group hover:bg-white/[0.02]">
+                <td className="px-5 py-3">
+                  <div className="h-12 w-12 rounded bg-black/40 border border-[var(--hub-border)] overflow-hidden">
+                    {product.images[0] && (
+                      <img src={product.images[0]} alt={product.title} className="h-full w-full object-cover" />
+                    )}
+                  </div>
+                </td>
+                <td className="px-5 py-3">
+                  <div className="max-w-[300px]">
+                    <p className="text-white font-bold truncate">{product.title}</p>
+                    <p className="text-[9px] text-[var(--hub-muted)] font-mono uppercase truncate italic">{product.externalId}</p>
+                  </div>
+                </td>
+                <td className="px-5 py-3 font-mono text-[10px] text-[var(--hub-muted)] italic">{product.sku || '-'}</td>
+                <td className="px-5 py-3 font-black text-white italic">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: product.currency || 'BRL' }).format(product.price)}
+                </td>
+                <td className="px-5 py-3">
+                  <span className="px-2 py-0.5 rounded-[4px] bg-black/40 border border-[var(--hub-border)] text-[8px] font-black text-[var(--hub-muted)] uppercase italic">
+                    {product.category || 'Geral'}
+                  </span>
+                </td>
+                <td className="px-5 py-3 text-right">
+                  <a 
+                    href={product.url} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="p-2 text-[var(--hub-muted)] hover:text-[var(--hub-primary)] transition-colors inline-block"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </td>
+              </tr>
+            ))}
+            {products.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-5 py-20 text-center text-[var(--hub-muted)] italic text-[11px] uppercase tracking-widest">
+                  Nenhum produto encontrado neste catálogo real.
+                </td>
+              </tr>
+            )}
+          </HubTable>
+        </div>
+      </div>
+    </Shell>
+  );
+}

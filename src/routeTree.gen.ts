@@ -32,6 +32,7 @@ import { Route as StoreIndexRouteImport } from './routes/store/index'
 import { Route as StoreCartRouteImport } from './routes/store/cart'
 import { Route as StoreCheckoutRouteImport } from './routes/store/checkout'
 import { Route as StoreConfirmationRouteImport } from './routes/store/confirmation'
+import { Route as DashboardStoresStoreIdRouteImport } from './routes/dashboard/stores.$storeId'
 import { Route as DashboardSuppliersIngestionRouteImport } from './routes/dashboard/suppliers/ingestion'
 
 const IndexRoute = IndexRouteImport.update({
@@ -149,6 +150,11 @@ const StoreConfirmationRoute = StoreConfirmationRouteImport.update({
   path: '/store/confirmation',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardStoresStoreIdRoute = DashboardStoresStoreIdRouteImport.update({
+  id: '/$storeId',
+  path: '/$storeId',
+  getParentRoute: () => DashboardStoresRoute,
+} as any)
 const DashboardSuppliersIngestionRoute =
   DashboardSuppliersIngestionRouteImport.update({
     id: '/ingestion',
@@ -172,7 +178,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/ranking': typeof DashboardRankingRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
-  '/dashboard/stores': typeof DashboardStoresRoute
+  '/dashboard/stores': typeof DashboardStoresRouteWithChildren
   '/dashboard/suppliers': typeof DashboardSuppliersRouteWithChildren
   '/dashboard/tracking': typeof DashboardTrackingRoute
   '/store/cart': typeof StoreCartRoute
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/store/confirmation': typeof StoreConfirmationRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
+  '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
 }
 export interface FileRoutesByTo {
@@ -197,7 +204,7 @@ export interface FileRoutesByTo {
   '/dashboard/ranking': typeof DashboardRankingRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
-  '/dashboard/stores': typeof DashboardStoresRoute
+  '/dashboard/stores': typeof DashboardStoresRouteWithChildren
   '/dashboard/suppliers': typeof DashboardSuppliersRouteWithChildren
   '/dashboard/tracking': typeof DashboardTrackingRoute
   '/store/cart': typeof StoreCartRoute
@@ -205,6 +212,7 @@ export interface FileRoutesByTo {
   '/store/confirmation': typeof StoreConfirmationRoute
   '/dashboard': typeof DashboardIndexRoute
   '/store': typeof StoreIndexRoute
+  '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
 }
 export interface FileRoutesById {
@@ -224,7 +232,7 @@ export interface FileRoutesById {
   '/dashboard/ranking': typeof DashboardRankingRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
-  '/dashboard/stores': typeof DashboardStoresRoute
+  '/dashboard/stores': typeof DashboardStoresRouteWithChildren
   '/dashboard/suppliers': typeof DashboardSuppliersRouteWithChildren
   '/dashboard/tracking': typeof DashboardTrackingRoute
   '/store/cart': typeof StoreCartRoute
@@ -232,6 +240,7 @@ export interface FileRoutesById {
   '/store/confirmation': typeof StoreConfirmationRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
+  '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
 }
 export interface FileRouteTypes {
@@ -260,6 +269,7 @@ export interface FileRouteTypes {
     | '/store/confirmation'
     | '/dashboard/'
     | '/store/'
+    | '/dashboard/stores/$storeId'
     | '/dashboard/suppliers/ingestion'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -285,6 +295,7 @@ export interface FileRouteTypes {
     | '/store/confirmation'
     | '/dashboard'
     | '/store'
+    | '/dashboard/stores/$storeId'
     | '/dashboard/suppliers/ingestion'
   id:
     | '__root__'
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | '/store/confirmation'
     | '/dashboard/'
     | '/store/'
+    | '/dashboard/stores/$storeId'
     | '/dashboard/suppliers/ingestion'
   fileRoutesById: FileRoutesById
 }
@@ -486,6 +498,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreConfirmationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/stores/$storeId': {
+      id: '/dashboard/stores/$storeId'
+      path: '/$storeId'
+      fullPath: '/dashboard/stores/$storeId'
+      preLoaderRoute: typeof DashboardStoresStoreIdRouteImport
+      parentRoute: typeof DashboardStoresRoute
+    }
     '/dashboard/suppliers/ingestion': {
       id: '/dashboard/suppliers/ingestion'
       path: '/ingestion'
@@ -495,6 +514,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface DashboardStoresRouteChildren {
+  DashboardStoresStoreIdRoute: typeof DashboardStoresStoreIdRoute
+}
+
+const DashboardStoresRouteChildren: DashboardStoresRouteChildren = {
+  DashboardStoresStoreIdRoute: DashboardStoresStoreIdRoute,
+}
+
+const DashboardStoresRouteWithChildren = DashboardStoresRoute._addFileChildren(
+  DashboardStoresRouteChildren,
+)
 
 interface DashboardSuppliersRouteChildren {
   DashboardSuppliersIngestionRoute: typeof DashboardSuppliersIngestionRoute
@@ -521,7 +552,7 @@ interface DashboardRouteRouteChildren {
   DashboardRankingRoute: typeof DashboardRankingRoute
   DashboardSeoRoute: typeof DashboardSeoRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
-  DashboardStoresRoute: typeof DashboardStoresRoute
+  DashboardStoresRoute: typeof DashboardStoresRouteWithChildren
   DashboardSuppliersRoute: typeof DashboardSuppliersRouteWithChildren
   DashboardTrackingRoute: typeof DashboardTrackingRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -541,7 +572,7 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardRankingRoute: DashboardRankingRoute,
   DashboardSeoRoute: DashboardSeoRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
-  DashboardStoresRoute: DashboardStoresRoute,
+  DashboardStoresRoute: DashboardStoresRouteWithChildren,
   DashboardSuppliersRoute: DashboardSuppliersRouteWithChildren,
   DashboardTrackingRoute: DashboardTrackingRoute,
   DashboardIndexRoute: DashboardIndexRoute,
