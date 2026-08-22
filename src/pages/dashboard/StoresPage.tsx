@@ -1,9 +1,26 @@
+import { useEffect, useState } from 'react';
 import { Shell } from '@/components/layout/Shell';
 import { HubTable } from '@/components/ui-b';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { catalogApi } from '@/lib/api/catalog';
+import { Store } from '@/lib/api/types';
+import { toast } from 'sonner';
 
 export default function StoresPage() {
+  const [stores, setStores] = useState<Store[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    catalogApi.getStores()
+      .then(setStores)
+      .catch((e) => {
+        console.error(e);
+        toast.error('Falha ao carregar lojas');
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <Shell>
       <div className="space-y-6">
@@ -22,30 +39,36 @@ export default function StoresPage() {
            </Button>
         </div>
 
-        <HubTable headers={['Status', 'Loja', 'Domínio', 'Vendas', 'Faturamento', 'Último Evento', 'Ações']}>
-          {[
-            { status: 'Ativa', nome: 'Elite Dropshipping', dominio: 'elite.pubecom.com', vendas: '1.240', fat: 'R$ 840k', event: 'Venda há 2s' },
-            { status: 'Ativa', nome: 'Glow Up Store', dominio: 'glow.pubecom.com', vendas: '890', fat: 'R$ 320k', event: 'Checkout há 14s' },
-            { status: 'Ativa', nome: 'Alpha Tech Hub', dominio: 'alpha.pubecom.com', vendas: '2.100', fat: 'R$ 1.2M', event: 'Venda há 5m' },
-            { status: 'Pausada', nome: 'Urban Fit', dominio: 'urban.pubecom.com', vendas: '450', fat: 'R$ 180k', event: 'Inativa' },
-          ].map((loja, i) => (
-            <tr key={i}>
-              <td className="px-5 py-4">
-                 <span className={`px-2 py-0.5 rounded-[4px] text-[8px] font-black uppercase ${loja.status === 'Ativa' ? 'bg-[var(--hub-primary)]/20 text-[var(--hub-primary)]' : 'bg-slate-500/20 text-slate-400'}`}>
-                    {loja.status}
-                 </span>
-              </td>
-              <td className="px-5 py-4 font-bold text-white">{loja.nome}</td>
-              <td className="px-5 py-4 text-[var(--hub-muted)]">{loja.dominio}</td>
-              <td className="px-5 py-4 text-white">{loja.vendas}</td>
-              <td className="px-5 py-4 font-black text-white">{loja.fat}</td>
-              <td className="px-5 py-4 text-[var(--hub-muted)]">{loja.event}</td>
-              <td className="px-5 py-4 text-right">
-                 <Button variant="ghost" size="sm" className="text-[var(--hub-primary)] hover:bg-[var(--hub-primary)]/10 text-[9px] font-black uppercase tracking-widest">Gerenciar</Button>
-              </td>
-            </tr>
-          ))}
-        </HubTable>
+        {loading ? (
+            <div className="text-white text-center py-10">Carregando lojas...</div>
+        ) : (
+            <HubTable headers={['Status', 'Loja', 'Username', 'Source', 'Produtos', 'Sync', 'Ações']}>
+            {stores.map((loja) => (
+                <tr key={loja.id}>
+                <td className="px-5 py-4">
+                    <span className={`px-2 py-0.5 rounded-[4px] text-[8px] font-black uppercase ${loja.status === 'active' ? 'bg-[var(--hub-primary)]/20 text-[var(--hub-primary)]' : 'bg-slate-500/20 text-slate-400'}`}>
+                        {loja.status}
+                    </span>
+                </td>
+                <td className="px-5 py-4 font-bold text-white">{loja.name}</td>
+                <td className="px-5 py-4 text-[var(--hub-muted)]">{loja.username}</td>
+                <td className="px-5 py-4 text-white uppercase text-[10px] font-bold">{loja.source}</td>
+                <td className="px-5 py-4 font-black text-white">{loja.productCount}</td>
+                <td className="px-5 py-4 text-[var(--hub-muted)]">
+                    <div className="flex items-center gap-2">
+                        {loja.syncState === 'success' && <CheckCircle className="h-3 w-3 text-emerald-500" />}
+                        {loja.syncState === 'failed' && <AlertCircle className="h-3 w-3 text-red-500" />}
+                        {loja.syncState === 'running' && <RefreshCw className="h-3 w-3 text-blue-500 animate-spin" />}
+                        {loja.syncState}
+                    </div>
+                </td>
+                <td className="px-5 py-4 text-right">
+                    <Button variant="ghost" size="sm" className="text-[var(--hub-primary)] hover:bg-[var(--hub-primary)]/10 text-[9px] font-black uppercase tracking-widest">Gerenciar</Button>
+                </td>
+                </tr>
+            ))}
+            </HubTable>
+        )}
       </div>
     </Shell>
   );
