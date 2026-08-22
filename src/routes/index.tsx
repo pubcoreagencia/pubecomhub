@@ -1,33 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-// OPERAÇÃO ADMINISTRATIVA — NÃO ALTERE O CÓDIGO
-// 
-// A conta existente `admin@pubcore.com` já foi confirmada como:
-// - Auth: EXISTS
-// - Confirmed: YES
-// - Profile: EXISTS
-// - Role: MASTER
-// 
-// Agora defina uma nova senha para essa conta usando a API administrativa do Supabase/Lovable Cloud.
-// 
-// NOVA SENHA:
-// [COLOQUE AQUI A SENHA QUE VOCÊ ESCOLHER]
-// 
-// IMPORTANTE:
-// - Não crie outro usuário.
-// - Não altere o e-mail.
-// - Não altere o role MASTER.
-// - Não modifique nenhum arquivo do projeto.
-// - Não crie código.
-// - Não faça commit.
-// - Não faça deploy.
-// - Não exponha a service_role key.
-// - Não coloque a senha em arquivos ou Git.
-// 
-// Após concluir, confirme apenas:
-// 
-// PASSWORD UPDATED
-// USER: admin@pubcore.com
-// ROLE: MASTER
+// testar login
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Database, Globe, LayoutDashboard, Store, RefreshCw, Activity, Terminal } from "lucide-react";
