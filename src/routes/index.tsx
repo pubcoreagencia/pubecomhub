@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-// apos implementação de login eu fiquei sem acesso criar login temporario pra troca de senha nas configuraçoes
+// oi
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Database, Globe, LayoutDashboard, Store, RefreshCw, Activity, Terminal } from "lucide-react";
