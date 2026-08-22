@@ -6,9 +6,22 @@
 --   2. Master Products: Base table restricted to MASTER and owning supplier. Commercial view with sanitized metadata.
 --   3. Products: Base table restricted to MASTER and store owner. Public storefront view strictly excluding cost/margins.
 --   4. Customers: Strict multi-tenant isolation. No cross-tenant INSERTs.
---   5. Marketing Events: Strict store isolation + customer relational consistency.
+--   5. Marketing Events: Strict store isolation + customer relational consistency via security definer check.
 --   6. Orders: Base table restricted to store owner & MASTER. View for influencers/affiliates excluding cost/profit.
 -- ==============================================================================
+
+-- HELPER FUNCTIONS FOR SECURITY CHECKS
+CREATE OR REPLACE FUNCTION public.check_customer_store_match(p_customer_id uuid, p_store_id uuid)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.customers 
+    WHERE id = p_customer_id AND store_id = p_store_id
+  );
+$$;
 
 -- 1. SUPPLIERS HARDENING
 ALTER TABLE public.suppliers ADD COLUMN IF NOT EXISTS profile_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL;
@@ -20,6 +33,7 @@ DROP POLICY IF EXISTS "Suppliers base table select policy" ON public.suppliers;
 DROP POLICY IF EXISTS "Suppliers base table insert policy" ON public.suppliers;
 DROP POLICY IF EXISTS "Suppliers base table update policy" ON public.suppliers;
 DROP POLICY IF EXISTS "Suppliers base table delete policy" ON public.suppliers;
+DROP POLICY IF EXISTS "Suppliers base table access policy" ON public.suppliers;
 
 ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
 
@@ -55,6 +69,7 @@ DROP POLICY IF EXISTS "Master products base select policy" ON public.master_prod
 DROP POLICY IF EXISTS "Master products base insert policy" ON public.master_products;
 DROP POLICY IF EXISTS "Master products base update policy" ON public.master_products;
 DROP POLICY IF EXISTS "Master products base delete policy" ON public.master_products;
+DROP POLICY IF EXISTS "Master products base table policy" ON public.master_products;
 
 ALTER TABLE public.master_products ENABLE ROW LEVEL SECURITY;
 
@@ -268,7 +283,7 @@ ON public.marketing_events FOR INSERT TO anon
 WITH CHECK (
     store_id IS NOT NULL 
     AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = store_id AND s.status = 'active')
-    AND EXISTS (SELECT 1 FROM public.customers c WHERE c.id = customer_id AND c.store_id = store_id)
+    AND public.check_customer_store_match(customer_id, store_id)
 );
 
 CREATE POLICY "Marketing events update policy"

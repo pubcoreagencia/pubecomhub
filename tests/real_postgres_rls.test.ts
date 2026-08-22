@@ -161,9 +161,14 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         metadata jsonb DEFAULT '{}',
         created_at timestamptz DEFAULT now()
       );
+
+      CREATE OR REPLACE FUNCTION public.check_customer_store_match(p_customer_id uuid, p_store_id uuid)
+      RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE AS $$
+        SELECT EXISTS (SELECT 1 FROM public.customers WHERE id = p_customer_id AND store_id = p_store_id);
+      $$;
     `);
 
-    // 3. Apply Hardening RLS Policies & Views in PostgreSQL (with security_invoker = false)
+    // 3. Apply Hardening RLS Policies & Views in PostgreSQL
     await pg.exec(`
       -- A. SUPPLIERS RLS
       ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
@@ -239,8 +244,13 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
 
       CREATE POLICY "Customers authenticated insert policy" ON public.customers FOR INSERT
       WITH CHECK (
-        (store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = store_id AND s.owner_id = auth.uid()))
-        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        (auth.role() = 'authenticated' AND store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = store_id AND s.owner_id = auth.uid()))
+        OR (auth.role() = 'authenticated' AND EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER'))
+      );
+
+      CREATE POLICY "Customers anonymous checkout insert policy" ON public.customers FOR INSERT
+      WITH CHECK (
+        auth.role() = 'anon' AND store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = store_id AND s.status = 'active')
       );
 
       -- E. MARKETING EVENTS RLS
@@ -253,8 +263,16 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
 
       CREATE POLICY "Marketing events authenticated insert policy" ON public.marketing_events FOR INSERT
       WITH CHECK (
-        (store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = store_id AND s.owner_id = auth.uid()))
-        OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
+        (auth.role() = 'authenticated' AND store_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = store_id AND s.owner_id = auth.uid()))
+        OR (auth.role() = 'authenticated' AND EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER'))
+      );
+
+      CREATE POLICY "Marketing events anonymous tracking insert policy" ON public.marketing_events FOR INSERT
+      WITH CHECK (
+        auth.role() = 'anon'
+        AND store_id IS NOT NULL 
+        AND EXISTS (SELECT 1 FROM public.stores s WHERE s.id = store_id AND s.status = 'active')
+        AND public.check_customer_store_match(customer_id, store_id)
       );
 
       -- F. ORDERS RLS
@@ -274,7 +292,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
       FROM public.orders;
     `);
 
-    // 4. Seed database (as superuser before dropping to web_user)
+    // 4. Seed database
     await pg.exec(`
       INSERT INTO public.profiles (id, name, email, role) VALUES
         ('${MASTER_UID}', 'Admin Master', 'admin@pubholding.com', 'MASTER'),
@@ -293,7 +311,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         ('${SUPPLIER_B_ID}', 'Fornecedor B LTDA', 'Eletrônicos', '${FORNECEDOR_B_UID}');
 
       INSERT INTO public.master_products (id, supplier_id, sku, name, supplier_cost, base_price_pub, status, is_available, metadata) VALUES
-        ('${MP_A_ID}', '${SUPPLIER_A_ID}', 'SKU-A1', 'Babuche Alpha Zentta', 18.50, 39.90, 'active', true, '{"external_id": "1729928484", "brand": "Zentta", "supplier_secret_note": "Confidencial"}'),
+        ('${MP_A_ID}', '${SUPPLIER_A_ID}', 'SKU-A1', 'Babuche Alpha Zentta', 18.50, 39.90, 'active', true, '{"external_id": "1729928484", "brand": "Zentta", "supplier_secret_note": "Confidencial", "private_margin": 0.12}'),
         ('${MP_B_ID}', '${SUPPLIER_B_ID}', 'SKU-B1', 'Smartwatch Beta Lux', 45.00, 99.00, 'active', true, '{"external_id": "888888", "internal_tax": 0.15}');
 
       INSERT INTO public.products (id, store_id, supplier_id, name, price, cost, profit_margin, stock, status) VALUES
@@ -329,33 +347,106 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
     `);
   });
 
-  describe('1. Marketing Events Multi-Tenant SQL Isolation (CRITICAL)', () => {
-    it('Lojista A can SELECT only events from Store A in real PostgreSQL engine', async () => {
-      await asUser(LOJISTA_A_UID);
-      const res = await pg.query<{ id: string; store_id: string }>('SELECT id, store_id FROM public.marketing_events');
-      expect(res.rows.length).toBe(1);
-      expect(res.rows[0].id).toBe(EVT_A_ID);
-      expect(res.rows[0].store_id).toBe(STORE_A_ID);
+  describe('1. Suppliers RLS & Public View', () => {
+    it('MASTER can read all suppliers (A and B)', async () => {
+      await asUser(MASTER_UID);
+      const res = await pg.query<{ id: string }>('SELECT id FROM public.suppliers');
+      expect(res.rows.length).toBe(2);
     });
 
-    it('Lojista A is DENIED by PostgreSQL RLS when inserting event into Store B', async () => {
+    it('FORNECEDOR A can read only own supplier (A) and NOT supplier B', async () => {
+      await asUser(FORNECEDOR_A_UID);
+      const res = await pg.query<{ id: string }>('SELECT id FROM public.suppliers');
+      expect(res.rows.length).toBe(1);
+      expect(res.rows[0].id).toBe(SUPPLIER_A_ID);
+    });
+
+    it('LOJISTA gets 0 rows from base suppliers table (DENY)', async () => {
       await asUser(LOJISTA_A_UID);
-      let errorThrown = false;
-      try {
-        await pg.query(`
-          INSERT INTO public.marketing_events (id, store_id, customer_id, event_type)
-          VALUES ('faaaaaaa-0000-0000-0000-000000000099', '${STORE_B_ID}', '${CUST_B_ID}', 'ATTACK_EVENT')
-        `);
-      } catch (err: any) {
-        errorThrown = true;
-        expect(err.message).toContain('violates row-level security policy');
-      }
-      expect(errorThrown).toBe(true);
+      const res = await pg.query('SELECT * FROM public.suppliers');
+      expect(res.rows.length).toBe(0);
+    });
+
+    it('ANON gets 0 rows from base suppliers table (DENY)', async () => {
+      await asUser(null, 'anon');
+      const res = await pg.query('SELECT * FROM public.suppliers');
+      expect(res.rows.length).toBe(0);
+    });
+
+    it('public_suppliers view exposes only non-sensitive fields and does not leak profile_id or private notes', async () => {
+      await asUser(null, 'anon');
+      const res = await pg.query<any>('SELECT * FROM public.public_suppliers');
+      expect(res.rows.length).toBe(2);
+      expect(res.rows[0].name).toBe('Fornecedor A LTDA');
+      expect(res.rows[0].profile_id).toBeUndefined();
     });
   });
 
-  describe('2. Customer Contact Information SQL Isolation (CRITICAL)', () => {
-    it('Lojista A can SELECT only customers from Store A, getting 0 rows for Store B', async () => {
+  describe('2. Master Products RLS & Commercial View', () => {
+    it('MASTER can read all master products with supplier_cost', async () => {
+      await asUser(MASTER_UID);
+      const res = await pg.query<{ sku: string; supplier_cost: number }>('SELECT sku, supplier_cost FROM public.master_products');
+      expect(res.rows.length).toBe(2);
+      expect(Number(res.rows[0].supplier_cost)).toBeGreaterThan(0);
+    });
+
+    it('FORNECEDOR A can read own master products and NOT product from Supplier B', async () => {
+      await asUser(FORNECEDOR_A_UID);
+      const res = await pg.query<{ sku: string; supplier_cost: number }>('SELECT sku, supplier_cost FROM public.master_products');
+      expect(res.rows.length).toBe(1);
+      expect(res.rows[0].sku).toBe('SKU-A1');
+      expect(Number(res.rows[0].supplier_cost)).toBe(18.50);
+    });
+
+    it('LOJISTA gets 0 rows on base master_products table (direct supplier_cost access DENIED)', async () => {
+      await asUser(LOJISTA_A_UID);
+      const res = await pg.query('SELECT * FROM public.master_products');
+      expect(res.rows.length).toBe(0);
+    });
+
+    it('LOJISTA reads available_master_products view where supplier_cost is absent and private metadata is sanitized', async () => {
+      await asUser(LOJISTA_A_UID);
+      const res = await pg.query<any>('SELECT * FROM public.available_master_products');
+      expect(res.rows.length).toBe(2);
+      expect(res.rows[0].supplier_cost).toBeUndefined();
+      expect(Number(res.rows[0].base_price_pub)).toBe(39.90);
+      expect(res.rows[0].metadata?.external_id).toBe('1729928484');
+      expect(res.rows[0].metadata?.brand).toBe('Zentta');
+      expect(res.rows[0].metadata?.supplier_secret_note).toBeUndefined();
+      expect(res.rows[0].metadata?.private_margin).toBeUndefined();
+    });
+  });
+
+  describe('3. Products RLS & Storefront View', () => {
+    it('LOJISTA A reads Store A products with cost & margin, but gets 0 rows for Store B', async () => {
+      await asUser(LOJISTA_A_UID);
+      const res = await pg.query<{ cost: number; profit_margin: number; store_id: string }>('SELECT cost, profit_margin, store_id FROM public.products');
+      expect(res.rows.length).toBe(1);
+      expect(Number(res.rows[0].cost)).toBe(39.90);
+      expect(Number(res.rows[0].profit_margin)).toBe(40.00);
+      expect(res.rows[0].store_id).toBe(STORE_A_ID);
+    });
+
+    it('ANON gets 0 rows on base products table (DENY)', async () => {
+      await asUser(null, 'anon');
+      const res = await pg.query('SELECT * FROM public.products');
+      expect(res.rows.length).toBe(0);
+    });
+
+    it('public_store_products view strictly excludes cost, profit_margin, and supplier_id', async () => {
+      await asUser(null, 'anon');
+      const res = await pg.query<any>(`SELECT * FROM public.public_store_products WHERE store_id = '${STORE_A_ID}'`);
+      expect(res.rows.length).toBe(1);
+      expect(res.rows[0].name).toBe('Babuche Conforto Alpha');
+      expect(Number(res.rows[0].price)).toBe(79.90);
+      expect(res.rows[0].cost).toBeUndefined();
+      expect(res.rows[0].profit_margin).toBeUndefined();
+      expect(res.rows[0].supplier_id).toBeUndefined();
+    });
+  });
+
+  describe('4. Customers Multi-Tenant RLS & Injection Prevention', () => {
+    it('LOJISTA A reads only Store A customers, getting 0 rows for Store B', async () => {
       await asUser(LOJISTA_A_UID);
       const res = await pg.query<{ email: string; store_id: string }>('SELECT email, store_id FROM public.customers');
       expect(res.rows.length).toBe(1);
@@ -363,7 +454,7 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
       expect(res.rows[0].store_id).toBe(STORE_A_ID);
     });
 
-    it('Lojista A is DENIED by PostgreSQL RLS when inserting customer into Store B', async () => {
+    it('Cross-tenant INSERT by authenticated LOJISTA A into Store B is DENIED by PostgreSQL', async () => {
       await asUser(LOJISTA_A_UID);
       let errorThrown = false;
       try {
@@ -377,85 +468,105 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
       }
       expect(errorThrown).toBe(true);
     });
+
+    it('ANON checkout customer insertion succeeds for active store, but fails for non-existent/inactive store', async () => {
+      await asUser(null, 'anon');
+      const res = await pg.query(`
+        INSERT INTO public.customers (id, store_id, name, email, phone)
+        VALUES ('eaaaaaaa-0000-0000-0000-000000000088', '${STORE_A_ID}', 'Checkout Anon', 'anon@buyer.com', '123')
+      `);
+      expect(res.affectedRows).toBe(1);
+
+      let errorThrown = false;
+      try {
+        await pg.query(`
+          INSERT INTO public.customers (id, store_id, name, email, phone)
+          VALUES ('eaaaaaaa-0000-0000-0000-000000000077', '99999999-9999-9999-9999-999999999999', 'Fake', 'fake@bad.com', '000')
+        `);
+      } catch (err: any) {
+        errorThrown = true;
+      }
+      expect(errorThrown).toBe(true);
+    });
   });
 
-  describe('3. Product Cost & Profit Margin SQL Protection (WARNING)', () => {
-    it('Lojista A sees cost & profit_margin for Store A, but 0 rows for Store B', async () => {
+  describe('5. Marketing Events Multi-Tenant RLS & Relational Consistency', () => {
+    it('LOJISTA A reads only Store A marketing events', async () => {
       await asUser(LOJISTA_A_UID);
-      const res = await pg.query<{ cost: number; profit_margin: number; store_id: string }>('SELECT cost, profit_margin, store_id FROM public.products');
+      const res = await pg.query<{ id: string; store_id: string }>('SELECT id, store_id FROM public.marketing_events');
       expect(res.rows.length).toBe(1);
-      expect(Number(res.rows[0].cost)).toBe(39.90);
-      expect(Number(res.rows[0].profit_margin)).toBe(40.00);
+      expect(res.rows[0].id).toBe(EVT_A_ID);
       expect(res.rows[0].store_id).toBe(STORE_A_ID);
     });
 
-    it('Public storefront view public_store_products does not contain cost or profit_margin columns in SQL query', async () => {
-      await asUser(null, 'anon');
-      const res = await pg.query<any>(`SELECT * FROM public.public_store_products WHERE store_id = '${STORE_A_ID}'`);
-      expect(res.rows.length).toBe(1);
-      expect(res.rows[0].name).toBe('Babuche Conforto Alpha');
-      expect(Number(res.rows[0].price)).toBe(79.90);
-      expect(res.rows[0].cost).toBeUndefined();
-      expect(res.rows[0].profit_margin).toBeUndefined();
-      expect(res.rows[0].supplier_id).toBeUndefined();
-    });
-  });
-
-  describe('4. Master Catalog Supplier Cost & Metadata Sanitization (WARNING)', () => {
-    it('Fornecedor A can query base master_products and see supplier_cost for their own products only', async () => {
-      await asUser(FORNECEDOR_A_UID);
-      const res = await pg.query<{ sku: string; supplier_cost: number }>('SELECT sku, supplier_cost FROM public.master_products');
-      expect(res.rows.length).toBe(1);
-      expect(res.rows[0].sku).toBe('SKU-A1');
-      expect(Number(res.rows[0].supplier_cost)).toBe(18.50);
-    });
-
-    it('Lojista A gets 0 rows on base master_products table (direct supplier_cost access DENIED)', async () => {
+    it('Cross-tenant INSERT by LOJISTA A into Store B is DENIED by PostgreSQL', async () => {
       await asUser(LOJISTA_A_UID);
-      const res = await pg.query('SELECT * FROM public.master_products');
-      expect(res.rows.length).toBe(0);
+      let errorThrown = false;
+      try {
+        await pg.query(`
+          INSERT INTO public.marketing_events (id, store_id, customer_id, event_type)
+          VALUES ('faaaaaaa-0000-0000-0000-000000000099', '${STORE_B_ID}', '${CUST_B_ID}', 'ATTACK_EVENT')
+        `);
+      } catch (err: any) {
+        errorThrown = true;
+        expect(err.message).toContain('violates row-level security policy');
+      }
+      expect(errorThrown).toBe(true);
     });
 
-    it('Lojista A queries available_master_products view and receives sanitized metadata without secret notes', async () => {
-      await asUser(LOJISTA_A_UID);
-      const res = await pg.query<any>('SELECT * FROM public.available_master_products');
-      expect(res.rows.length).toBe(2);
-      expect(res.rows[0].supplier_cost).toBeUndefined();
-      expect(Number(res.rows[0].base_price_pub)).toBe(39.90);
-      expect(res.rows[0].metadata?.external_id).toBe('1729928484');
-      expect(res.rows[0].metadata?.brand).toBe('Zentta');
-      expect(res.rows[0].metadata?.supplier_secret_note).toBeUndefined();
-    });
-  });
-
-  describe('5. Suppliers Directory Access & Ownership (WARNING)', () => {
-    it('Fornecedor A sees only their own supplier record on base table', async () => {
-      await asUser(FORNECEDOR_A_UID);
-      const res = await pg.query<{ id: string; name: string }>('SELECT id, name FROM public.suppliers');
-      expect(res.rows.length).toBe(1);
-      expect(res.rows[0].id).toBe(SUPPLIER_A_ID);
-    });
-
-    it('Public view public_suppliers exposes only non-sensitive fields (id, name, category)', async () => {
+    it('ANON pixel tracking requires active store AND customer belonging to that same store', async () => {
       await asUser(null, 'anon');
-      const res = await pg.query<any>('SELECT * FROM public.public_suppliers');
-      expect(res.rows.length).toBe(2);
-      expect(res.rows[0].name).toBe('Fornecedor A LTDA');
-      expect(res.rows[0].profile_id).toBeUndefined();
+      // Valid matching customer
+      const valid = await pg.query(`
+        INSERT INTO public.marketing_events (id, store_id, customer_id, event_type)
+        VALUES ('faaaaaaa-0000-0000-0000-000000000088', '${STORE_A_ID}', '${CUST_A_ID}', 'ADD_TO_CART')
+      `);
+      expect(valid.affectedRows).toBe(1);
+
+      // Invalid customer from store B injected into store A event
+      let errorThrown = false;
+      try {
+        await pg.query(`
+          INSERT INTO public.marketing_events (id, store_id, customer_id, event_type)
+          VALUES ('faaaaaaa-0000-0000-0000-000000000077', '${STORE_A_ID}', '${CUST_B_ID}', 'FRAUD_EVENT')
+        `);
+      } catch (err: any) {
+        errorThrown = true;
+        expect(err.message).toContain('violates row-level security policy');
+      }
+      expect(errorThrown).toBe(true);
     });
   });
 
   describe('6. Orders Base Table & Influencer View RLS', () => {
-    it('Lojista A sees full order with net_profit and cost for Store A', async () => {
+    it('LOJISTA A reads only Store A orders with cost and net_profit', async () => {
       await asUser(LOJISTA_A_UID);
       const res = await pg.query<{ amount: number; cost: number; net_profit: number }>('SELECT amount, cost, net_profit FROM public.orders');
       expect(res.rows.length).toBe(1);
       expect(Number(res.rows[0].amount)).toBe(79.90);
       expect(Number(res.rows[0].cost)).toBe(39.90);
-      expect(Number(res.rows[0].net_profit)).toBe(30.00); // 79.90 - 39.90 - 10.00 shipping
+      expect(Number(res.rows[0].net_profit)).toBe(30.00);
     });
 
-    it('Influencer view strictly omits cost and net_profit columns', async () => {
+    it('LOJISTA B gets 0 rows for Store A orders', async () => {
+      await asUser(LOJISTA_B_UID);
+      const res = await pg.query<{ id: string; store_id: string }>(`SELECT id, store_id FROM public.orders WHERE store_id = '${STORE_A_ID}'`);
+      expect(res.rows.length).toBe(0);
+    });
+
+    it('FORNECEDOR gets 0 rows on base orders table (DENY)', async () => {
+      await asUser(FORNECEDOR_A_UID);
+      const res = await pg.query('SELECT * FROM public.orders');
+      expect(res.rows.length).toBe(0);
+    });
+
+    it('INFLUENCER gets 0 rows directly on base orders table (DENY)', async () => {
+      await asUser(INFLUENCER_UID);
+      const res = await pg.query('SELECT * FROM public.orders');
+      expect(res.rows.length).toBe(0);
+    });
+
+    it('INFLUENCER accesses influencer_orders view without cost, net_profit, or financial_metadata', async () => {
       await asUser(INFLUENCER_UID);
       const res = await pg.query<any>(`SELECT * FROM public.influencer_orders WHERE influencer_id = '${INFLUENCER_UID}'`);
       expect(res.rows.length).toBe(1);
