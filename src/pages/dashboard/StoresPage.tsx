@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Shell } from '@/components/layout/Shell';
 import { HubTable } from '@/components/ui-b';
+import { Link } from '@tanstack/react-router';
 import { Plus, Search, Filter, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { catalogApi } from '@/lib/api/catalog';
@@ -63,14 +64,13 @@ export default function StoresPage() {
                     </div>
                 </td>
                 <td className="px-5 py-4 text-right">
-                    <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-[var(--hub-primary)] hover:bg-[var(--hub-primary)]/10 text-[9px] font-black uppercase tracking-widest"
-                        onClick={() => window.location.href = `/dashboard/stores/${loja.id}`}
+                    <Link 
+                        to="/dashboard/stores/$storeId"
+                        params={{ storeId: loja.id }}
+                        className="text-[var(--hub-primary)] hover:bg-[var(--hub-primary)]/10 text-[9px] font-black uppercase tracking-widest px-3 py-2 rounded-lg transition-colors border border-[var(--hub-primary)]/20"
                     >
                         Gerenciar
-                    </Button>
+                    </Link>
                 </td>
                 </tr>
             ))}
