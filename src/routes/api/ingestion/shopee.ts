@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/integrations/supabase/client.server';
 export const Route = createFileRoute('/api/ingestion/shopee')({
   server: {
     handlers: {
-      POST: async ({ request }) => {
+      POST: async ({ request }): Promise<Response> => {
         // 1. O proxy exige uma sessão autenticada válida
         const authHeader = request.headers.get('Authorization');
         if (!authHeader || !authHeader.startsWith('Bearer ')) {

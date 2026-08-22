@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/integrations/supabase/client.server';
 export const Route = createFileRoute('/api/catalog/stores/$storeId/refresh')({
   server: {
     handlers: {
-      POST: async ({ request, params }) => {
+      POST: async ({ request, params }): Promise<Response> => {
         const { storeId } = params;
 
         // 1. Exige sessão autenticada
