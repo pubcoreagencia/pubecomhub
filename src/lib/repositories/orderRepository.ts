@@ -49,9 +49,9 @@ export class OrderRepository implements IOrderRepository {
     }
 
     const { data, error } = await supabase
-      .from('influencer_orders')
+      .from('influencer_orders' as any)
       .select('id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, shipping, tax, discount, status, fulfillment_status, tracking_code, created_at')
-      .eq('influencer_id', influencerId)
+      .eq('influencer_id' as any, influencerId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
