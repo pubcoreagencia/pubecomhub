@@ -62,8 +62,9 @@ Transformar o PUB ECOM em uma plataforma central de operação de e-commerce pre
 - **Fase 2F - PUB ECOM Catalog Worker**: Criação do projeto independente `catalog-worker/` com suporte nativo a Browser Run.
 - **Fase 2F.4 - Health Check**: Ponto de verificação operacional concluído com endpoint `/health`.
 - **Fase 2F.9 - Diagnóstico de Limites**: Implementado endpoint `/debug/browser` para investigar erros HTTP 429 (Rate Limit) através das APIs de telemetria da Cloudflare (`playwright.limits()`).
+- **Fase 2G - Camada CORS Central**: Resolvido erro `Failed to fetch` no Preview do Lovable através da implementação de suporte total a Preflight `OPTIONS` e headers CORS em todos os endpoints e códigos de resposta (2xx a 5xx).
 - **Integração Planejada**: 
-  - **URL**: `https://pub-ecom-catalog-worker.<your-subdomain>.workers.dev`
+  - **URL**: `https://pub-ecom-catalog-worker.contato-pubcore.workers.dev`
   - **Auth**: Bearer Token seguro (Server-side only).
 - **Prova Operacional (Fase 2D)**:
   - **URL Testada**: `https://shopee.com.br/shop/286044738`
