@@ -1,4 +1,5 @@
 import { chromium } from '@cloudflare/playwright';
+import { getCorsHeaders, handleOptions } from './cors';
 
 export interface Env {
   BROWSER: any;
@@ -141,167 +142,186 @@ async function resolveShopIdWithDiagnostics(page: any, targetUrl: string): Promi
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    const origin = request.headers.get('Origin');
+    const corsHeaders = getCorsHeaders(origin);
 
-    // Health Check
-    if (url.pathname === '/health' && request.method === 'GET') {
-      return new Response(JSON.stringify({ ok: true, service: "pub-ecom-catalog-worker" }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+    // 1. Handle Preflight
+    if (request.method === 'OPTIONS') {
+      return handleOptions(request);
     }
 
-    // Auth Check
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || authHeader !== `Bearer ${env.CATALOG_WORKER_TOKEN}`) {
-      return new Response(JSON.stringify({ success: false, errors: ['Unauthorized'] }), { 
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Debug Browser Limits
-    if (url.pathname === '/debug/browser' && request.method === 'GET') {
-      try {
-        const [sessions, history, limits] = await Promise.all([
-          (chromium as any).sessions?.(env.BROWSER) || [],
-          (chromium as any).history?.(env.BROWSER) || [],
-          (chromium as any).limits?.(env.BROWSER) || {}
-        ]);
-
-        return new Response(JSON.stringify({
-          sessions,
-          history,
-          limits
-        }), {
+    // Wrap the inner logic to add CORS to all responses
+    const handleRequest = async () => {
+      // Health Check
+      if (url.pathname === '/health' && request.method === 'GET') {
+        return new Response(JSON.stringify({ ok: true, service: "pub-ecom-catalog-worker" }), {
           headers: { 'Content-Type': 'application/json' }
         });
-      } catch (error: any) {
-        return new Response(JSON.stringify({
-          success: false,
-          errors: [error.message]
-        }), { status: 500, headers: { 'Content-Type': 'application/json' } });
       }
-    }
 
-    // Ingestion Flow
-    if (url.pathname === '/ingestion/shopee' && request.method === 'POST') {
-      try {
-        const body: any = await request.json();
-        const targetUrl = body.url;
-        const limit = body.limit || 1;
-        const pageSize = body.pageSize || 1;
+      // Auth Check
+      const authHeader = request.headers.get('Authorization');
+      if (!authHeader || authHeader !== `Bearer ${env.CATALOG_WORKER_TOKEN}`) {
+        return new Response(JSON.stringify({ success: false, errors: ['Unauthorized'] }), { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
 
-        if (!targetUrl) {
-          return new Response(JSON.stringify({ success: false, errors: ['URL is required'] }), { status: 400 });
-        }
-
-        const browser = await chromium.launch(env.BROWSER);
-        const context = await browser.newContext();
-        const page = await context.newPage();
-
+      // Debug Browser Limits
+      if (url.pathname === '/debug/browser' && request.method === 'GET') {
         try {
-          const startTime = Date.now();
-          const diag = await resolveShopIdWithDiagnostics(page, targetUrl);
-          let resolvedShopId = diag.shopId;
-          let method = diag.strategy;
-
-          if (!resolvedShopId) {
-            resolvedShopId = await page.evaluate(() => {
-              const state = (globalThis as any).__PRELOADED_STATE__;
-              return state?.shop?.shopid || state?.common?.shopid;
-            });
-            if (resolvedShopId) {
-              resolvedShopId = resolvedShopId.toString();
-              method = 'preloaded_state';
-            }
-          }
-
-          if (!resolvedShopId) {
-            resolvedShopId = await page.evaluate(() => {
-              const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
-              for (const script of scripts as HTMLScriptElement[]) {
-                try {
-                  const data = JSON.parse(script.textContent || '{}');
-                  if (data['@type'] === 'Store' && data['url']?.includes('shop/')) {
-                    return data['url'].split('shop/')[1];
-                  }
-                } catch {}
-              }
-              return null;
-            });
-            if (resolvedShopId) method = 'json_ld';
-          }
-
-          const metadata = {
-            provider: 'cloudflare-browser-run',
-            shopIdStrategy: method,
-            username: diag.username,
-            finalPageUrl: diag.finalPageUrl,
-            productLinkCount: diag.productLinkCount,
-            productLinkShopIds: diag.productLinkShopIds,
-            shopBaseStatus: diag.shopBaseStatus,
-            shopBaseContentType: diag.shopBaseContentType,
-            shopBaseResponseSize: diag.shopBaseResponseSize,
-            shopBaseKeys: diag.shopBaseKeys,
-            shopBaseHasData: diag.shopBaseHasData,
-            shopBaseHasShopId: diag.shopBaseHasShopId,
-            fallbackGetStatus: diag.fallbackGetStatus,
-            fallbackGetResponseSize: diag.fallbackGetResponseSize,
-            fallbackGetKeys: diag.fallbackGetKeys,
-            fallbackGetHasData: diag.fallbackGetHasData,
-            fallbackGetHasShopId: diag.fallbackGetHasShopId,
-            executionTimeMs: Date.now() - startTime
-          };
-
-          if (!resolvedShopId) {
-            return new Response(JSON.stringify({
-              success: false,
-              source: 'shopee',
-              shopId: null,
-              items: [],
-              metadata,
-              errors: ['unable to resolve Shopee ShopID']
-            }), { status: 404, headers: { 'Content-Type': 'application/json' } });
-          }
-
-          const searchResult = await page.evaluate(async ({ sid, lmt, psz }: { sid: string, lmt: number, psz: number }) => {
-            try {
-              const resp = await fetch('https://shopee.com.br/api/v4/search/search_items', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  shopid: parseInt(sid),
-                  limit: lmt,
-                  offset: 0,
-                  pageSize: psz
-                })
-              });
-              const json = await resp.json() as any;
-              return { status: resp.status, items: json.items || [] };
-            } catch (e) {
-              return { status: 0, error: String(e) };
-            }
-          }, { sid: resolvedShopId, lmt: limit, psz: pageSize });
+          const [sessions, history, limits] = await Promise.all([
+            (chromium as any).sessions?.(env.BROWSER) || [],
+            (chromium as any).history?.(env.BROWSER) || [],
+            (chromium as any).limits?.(env.BROWSER) || {}
+          ]);
 
           return new Response(JSON.stringify({
-            success: true,
-            source: 'shopee',
-            shopId: resolvedShopId,
-            items: searchResult.items || [],
-            metadata,
-            errors: []
-          }), { headers: { 'Content-Type': 'application/json' } });
-
-        } finally {
-          await browser.close();
+            sessions,
+            history,
+            limits
+          }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } catch (error: any) {
+          return new Response(JSON.stringify({
+            success: false,
+            errors: [error.message]
+          }), { status: 500, headers: { 'Content-Type': 'application/json' } });
         }
-      } catch (error: any) {
-        return new Response(JSON.stringify({
-          success: false,
-          errors: [error.message]
-        }), { status: 500, headers: { 'Content-Type': 'application/json' } });
       }
-    }
 
-    return new Response('Not Found', { status: 404 });
+      // Ingestion Flow
+      if (url.pathname === '/ingestion/shopee' && request.method === 'POST') {
+        try {
+          const body: any = await request.json();
+          const targetUrl = body.url;
+          const limit = body.limit || 1;
+          const pageSize = body.pageSize || 1;
+
+          if (!targetUrl) {
+            return new Response(JSON.stringify({ success: false, errors: ['URL is required'] }), { status: 400 });
+          }
+
+          const browser = await chromium.launch(env.BROWSER);
+          const context = await browser.newContext();
+          const page = await context.newPage();
+
+          try {
+            const startTime = Date.now();
+            const diag = await resolveShopIdWithDiagnostics(page, targetUrl);
+            let resolvedShopId = diag.shopId;
+            let method = diag.strategy;
+
+            if (!resolvedShopId) {
+              resolvedShopId = await page.evaluate(() => {
+                const state = (globalThis as any).__PRELOADED_STATE__;
+                return state?.shop?.shopid || state?.common?.shopid;
+              });
+              if (resolvedShopId) {
+                resolvedShopId = resolvedShopId.toString();
+                method = 'preloaded_state';
+              }
+            }
+
+            if (!resolvedShopId) {
+              resolvedShopId = await page.evaluate(() => {
+                const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
+                for (const script of scripts as HTMLScriptElement[]) {
+                  try {
+                    const data = JSON.parse(script.textContent || '{}');
+                    if (data['@type'] === 'Store' && data['url']?.includes('shop/')) {
+                      return data['url'].split('shop/')[1];
+                    }
+                  } catch {}
+                }
+                return null;
+              });
+              if (resolvedShopId) method = 'json_ld';
+            }
+
+            const metadata = {
+              provider: 'cloudflare-browser-run',
+              shopIdStrategy: method,
+              username: diag.username,
+              finalPageUrl: diag.finalPageUrl,
+              productLinkCount: diag.productLinkCount,
+              productLinkShopIds: diag.productLinkShopIds,
+              shopBaseStatus: diag.shopBaseStatus,
+              shopBaseContentType: diag.shopBaseContentType,
+              shopBaseResponseSize: diag.shopBaseResponseSize,
+              shopBaseKeys: diag.shopBaseKeys,
+              shopBaseHasData: diag.shopBaseHasData,
+              shopBaseHasShopId: diag.shopBaseHasShopId,
+              fallbackGetStatus: diag.fallbackGetStatus,
+              fallbackGetResponseSize: diag.fallbackGetResponseSize,
+              fallbackGetKeys: diag.fallbackGetKeys,
+              fallbackGetHasData: diag.fallbackGetHasData,
+              fallbackGetHasShopId: diag.fallbackGetHasShopId,
+              executionTimeMs: Date.now() - startTime
+            };
+
+            if (!resolvedShopId) {
+              return new Response(JSON.stringify({
+                success: false,
+                source: 'shopee',
+                shopId: null,
+                items: [],
+                metadata,
+                errors: ['unable to resolve Shopee ShopID']
+              }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+            }
+
+            const searchResult = await page.evaluate(async ({ sid, lmt, psz }: { sid: string, lmt: number, psz: number }) => {
+              try {
+                const resp = await fetch('https://shopee.com.br/api/v4/search/search_items', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    shopid: parseInt(sid),
+                    limit: lmt,
+                    offset: 0,
+                    pageSize: psz
+                  })
+                });
+                const json = await resp.json() as any;
+                return { status: resp.status, items: json.items || [] };
+              } catch (e) {
+                return { status: 0, error: String(e) };
+              }
+            }, { sid: resolvedShopId, lmt: limit, psz: pageSize });
+
+            return new Response(JSON.stringify({
+              success: true,
+              source: 'shopee',
+              shopId: resolvedShopId,
+              items: searchResult.items || [],
+              metadata,
+              errors: []
+            }), { headers: { 'Content-Type': 'application/json' } });
+
+          } finally {
+            await browser.close();
+          }
+        } catch (error: any) {
+          return new Response(JSON.stringify({
+            success: false,
+            errors: [error.message]
+          }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+        }
+      }
+
+      return new Response('Not Found', { status: 404 });
+    };
+
+    // Execute handler and append CORS headers to all responses
+    const response = await handleRequest();
+    const newResponse = new Response(response.body, response);
+    Object.entries(corsHeaders).forEach(([name, value]) => {
+      newResponse.headers.set(name, value);
+    });
+
+    return newResponse;
   },
 };
