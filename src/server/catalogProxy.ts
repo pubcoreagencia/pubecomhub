@@ -30,8 +30,6 @@
   const workerToken = (
     envObj['CATALOG_WORKER_TOKEN'] ||
     process.env['CATALOG_WORKER_TOKEN'] ||
-    envObj['VITE_CATALOG_API_TOKEN'] ||
-    process.env['VITE_CATALOG_API_TOKEN'] ||
     ''
   ).trim();
 
