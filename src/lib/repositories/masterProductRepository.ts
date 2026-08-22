@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+﻿import { supabase } from "@/integrations/supabase/client";
 import { MasterProduct } from "@/types";
 
 export class MasterProductRepository {
@@ -73,8 +73,8 @@ export class MasterProductRepository {
       description: row.description,
       imageUrl: row.image_url,
       category: row.category,
-      supplierCost: Number(row.supplier_cost),
-      basePricePub: Number(row.base_price_pub),
+      supplierCost: row.supplier_cost !== undefined && row.supplier_cost !== null ? Number(row.supplier_cost) : undefined,
+      basePricePub: Number(row.base_price_pub || 0),
       status: row.status,
       isAvailable: row.is_available,
       metadata: row.metadata,

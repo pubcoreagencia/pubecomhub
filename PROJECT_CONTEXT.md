@@ -1,74 +1,15 @@
-# PUB ECOM HUB - Project Context
+﻿# Project Context — PUB ECOM / PubecomHub
 
-## Objetivo
-Transformar o PUB ECOM em uma plataforma central de operação de e-commerce premium, independente e consolidada.
+## Arquitetura do Sistema
+- **Frontend / Hub:** TanStack Start, React 19, TailwindCSS v4, Vite 8, Nitro (Cloudflare module preset).
+- **Backend / Catalog Worker:** Cloudflare Worker com D1 Master Catalog persistido (`pub-ecom-catalog-worker`).
+- **Scraper Authority:** `pub-shopee-scraper` (Apify / Browser Run).
+- **Database:** Supabase PostgreSQL com Row Level Security (RLS) e isolamento multi-tenant.
 
-## Arquitetura Atual
-- **Framework**: TanStack Start v1 (React 19, Vite 7, SSR).
-- **Estilização**: Tailwind CSS v4 com design system "Emerald Dark" (OKLCH).
-- **Roteamento**: TanStack Router com arquivos em `src/routes/`.
-- **Componentização**: Páginas centralizadas em `src/pages/dashboard/` e `src/pages/store/`.
-- **Layout**: Shell principal unificado em `src/components/layout/Shell.tsx`.
-- **Estado**: TanStack Query para gerenciamento de dados.
-- **Persistência**: Lovable Cloud (Supabase) integrada via Repository Pattern.
-
-## Estrutura de Diretórios
-- `src/components/`: Componentes UI reutilizáveis (Shadcn).
-- `src/components/ui-b.tsx`: Componente ativo com elementos Emerald Dark.
-- `src/pages/dashboard/`: Componentes de página do painel administrativo.
-- `src/pages/store/`: Componentes de página da loja.
-- `src/routes/`: Definição de rotas e loaders.
-- `src/data/`: Dados mockados centralizados (`mock.ts`) usados como fallback.
-- `src/lib/services/`: Lógica de negócio (ex: cálculo de repasse de 50%).
-- `src/lib/repositories/`: Repositórios de dados com abstração Mock/Real.
-- `src/lib/repositories/orderRepository.ts`: Repositório de pedidos.
-- `src/lib/repositories/storeRepository.ts`: Repositório de lojas.
-- `src/lib/repositories/productRepository.ts`: Repositório de produtos da loja.
-- `src/lib/repositories/masterProductRepository.ts`: Repositório do catálogo master global.
-- `src/types/`: Definições de tipos unificadas e interfaces de repositórios.
-
-## Módulos Implementados
-- **Dashboard**: Visão geral com Bento Grid e métricas em tempo real.
-- **Live Shop**: Monitoramento de eventos e vendas ao vivo.
-- **Audience Engine**: Gestão de clientes e leads.
-- **Financeiro**: Controle de vendas, lucros e repasses.
-- **Operação**: Gestão de pedidos, estoque, produtos e fornecedores.
-- **Ingestion Engine**: Motor de importação automática de catálogos via adapters (Shopee/Mock) com interface operacional completa, preview e confirmação de importação.
-- **Crescimento**: Marketing, SEO, Afiliados e Influenciadores.
-
-## Regras de Negócio e Domínio
-- **Master vs Store Product**: Separação entre o catálogo global e as customizações por loja.
-- **Pricing em Camadas**: Custo Fornecedor -> Preço Base PUB -> Preço de Venda Lojista.
-- **Influenciadores**: Recebem 50% do lucro líquido das vendas (Venda - Custo - Frete - Taxas - Descontos).
-- **Event Engine**: Captura de eventos de marketing (PAGE_VIEW, etc.) para CRM e Audience.
-- **Catalog Ingestion**: Workflow de Descoberta -> Normalização -> Preview -> Importação para Catálogo Master.
-- **Storefront**: Checkout funcional preparado para fulfillment e tracking real.
-
-## Catalog Ingestion Infrastructure
-- **Worker Externo**: Projeto `pub-ecom-catalog-worker` hospedado na Cloudflare.
-- **Provider Principal**: `Cloudflare Browser Run` via Playwright/CDP.
-- **Segurança**: Autenticação Server-to-Server via `Authorization: Bearer`.
-- **Arquitetura**: ShopeeExecutionProvider -> CloudflareExecutionProvider -> Cloudflare Worker.
-- **Custos/Limites**: 
-  - Workers Free: 10 min/dia.
-  - Workers Paid: 10h/mês base.
-  - Limite Operacional: 100 produtos por importação.
-
-## Histórico de Decisões
-- **Fundação de Dados**: Criada camada de persistência real sem quebrar o frontend.
-- **Independência**: Produto independente PUB ECOM HUB (pubcoreagencia/pubecomhub).
-- **Ingestion Engine**: Arquitetura baseada em Adapters e Services para expansão multi-fonte.
-- **Fase 2E - Worker Externo**: Implementação de ponte para Cloudflare Browser Run para superar bloqueios de scraping (403) no ambiente local.
-- **Fase 2F - PUB ECOM Catalog Worker**: Criação do projeto independente `catalog-worker/` com suporte nativo a Browser Run.
-- **Fase 2F.4 - Health Check**: Ponto de verificação operacional concluído com endpoint `/health`.
-- **Fase 2F.9 - Diagnóstico de Limites**: Implementado endpoint `/debug/browser` para investigar erros HTTP 429 (Rate Limit) através das APIs de telemetria da Cloudflare (`playwright.limits()`).
-- **Fase 2G - Camada CORS Central**: Resolvido erro `Failed to fetch` no Preview do Lovable através da implementação de suporte total a Preflight `OPTIONS` e headers CORS em todos os endpoints e códigos de resposta (2xx a 5xx).
-- **v1.7.1 - Segurança**: Atualizadas dependências do TanStack e gerado lockfile textual para mitigar vulnerabilidade CVE-2026-59870 (`js-yaml`).
-- **v1.7.0 - Diagnóstico UX**: Implementado feedback visual direto no toast de erro 401 para facilitar a configuração do ambiente de preview com as variáveis `VITE_CATALOG_API_URL` e `VITE_CATALOG_API_TOKEN`.
-- **Integração Planejada**: 
-  - **URL**: `https://pub-ecom-catalog-worker.contato-pubcore.workers.dev`
-  - **Auth**: Bearer Token seguro (Server-side only).
-- **Prova Operacional (Fase 2D)**:
-  - **URL Testada**: `https://shopee.com.br/shop/286044738`
-  - **ShopID Detectado**: `286044738`
-  - **Status**: Diagnóstico de limites Browser Run em progresso.
+## Baseline de Segurança e Autorização (Fase Atual)
+- **RLS Rigoroso:** Todas as tabelas sensíveis (`marketing_events`, `customers`, `products`, `master_products`, `suppliers`, `orders`, `wallets`) possuem RLS habilitado e políticas específicas sem `USING (true)` para dados de negócio.
+- **Isolamento de Custos e Margens:**
+  - `cost` e `profit_margin` em `products` acessíveis somente pelo dono da loja e `MASTER`.
+  - `supplier_cost` em `master_products` acessível somente por `MASTER` e fornecedor.
+  - Visões públicas (`public_store_products` e `available_master_products`) para navegação comercial segura.
+- **BFF / Proxy Server-Side:** Comunicação com o Catalog Worker através de proxy server-side autenticado com `CATALOG_WORKER_TOKEN`, sem exposição de tokens no browser.

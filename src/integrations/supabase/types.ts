@@ -66,6 +66,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          store_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -73,6 +74,7 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
+          store_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -80,8 +82,17 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          store_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financial_transactions: {
         Row: {
@@ -135,6 +146,7 @@ export type Database = {
           event_type: string
           id: string
           metadata: Json | null
+          store_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -142,6 +154,7 @@ export type Database = {
           event_type: string
           id?: string
           metadata?: Json | null
+          store_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -149,6 +162,7 @@ export type Database = {
           event_type?: string
           id?: string
           metadata?: Json | null
+          store_id?: string | null
         }
         Relationships: [
           {
@@ -156,6 +170,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_events_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
@@ -593,7 +614,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_store_products: {
+        Row: {
+          id: string
+          store_id: string | null
+          master_product_id: string | null
+          name: string
+          description: string | null
+          price: number
+          stock: number
+          image_url: string | null
+          status: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
+      available_master_products: {
+        Row: {
+          id: string
+          sku: string
+          name: string
+          description: string | null
+          image_url: string | null
+          category: string | null
+          base_price_pub: number
+          status: string
+          is_available: boolean
+          metadata: Json | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
