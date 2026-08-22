@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { handleCatalogProxy, validateSupabaseCaller } from '../src/server/catalogProxy';
+import { handleCatalogProxy } from '../src/server/catalogProxy';
 
 describe('Catalog Proxy Authentication & RBAC Forensics (HTTP real)', () => {
   const MASTER_TOKEN = 'mock-jwt-master-token';
@@ -57,6 +57,17 @@ describe('Catalog Proxy Authentication & RBAC Forensics (HTTP real)', () => {
         return new Response(JSON.stringify([]), { status: 200, headers: { 'content-type': 'application/json' } });
       }
 
+      // Supabase Stores query mock
+      if (urlStr.includes('/rest/v1/stores')) {
+        if (urlStr.includes('store-a')) {
+          return new Response(JSON.stringify([{ id: 'store-a', owner_id: 'uid-lojista' }]), { status: 200, headers: { 'content-type': 'application/json' } });
+        }
+        if (urlStr.includes('store-b')) {
+          return new Response(JSON.stringify([{ id: 'store-b', owner_id: 'uid-other-user' }]), { status: 200, headers: { 'content-type': 'application/json' } });
+        }
+        return new Response(JSON.stringify([]), { status: 200, headers: { 'content-type': 'application/json' } });
+      }
+
       // Upstream Catalog Worker mock
       if (urlStr.includes('pub-ecom-catalog-worker.contato-pubcore.workers.dev')) {
         const auth = init?.headers?.get?.('authorization') || init?.headers?.authorization;
@@ -70,7 +81,7 @@ describe('Catalog Proxy Authentication & RBAC Forensics (HTTP real)', () => {
     });
   });
 
-  describe('1. Unauthenticated Proxy Prevention (Finding 2)', () => {
+  describe('1. Unauthenticated Proxy Prevention (Finding 2 & Finding 3)', () => {
     it('ANON request to /ingestion/shopee is rejected with HTTP 401 Unauthorized', async () => {
       const req = new Request('https://pubecomhub.com/ingestion/shopee', {
         method: 'POST',
@@ -103,7 +114,7 @@ describe('Catalog Proxy Authentication & RBAC Forensics (HTTP real)', () => {
   });
 
   describe('2. Role-Based Scraping Authorization (Finding 2 & Finding 7)', () => {
-    it('Authenticated LOJISTA is rejected with HTTP 403 Forbidden when calling /ingestion/shopee', async () => {
+    it('Authenticated LOJISTA is rejected with HTTP 403 Forbidden when calling global /ingestion/shopee', async () => {
       const req = new Request('https://pubecomhub.com/ingestion/shopee', {
         method: 'POST',
         headers: {
@@ -168,7 +179,50 @@ describe('Catalog Proxy Authentication & RBAC Forensics (HTTP real)', () => {
       expect(json.success).toBe(true);
       expect(json.message).toBe('Proxied successfully');
     });
+  });
 
+  describe('3. Store Refresh Tenant Isolation', () => {
+    it('LOJISTA owning Store A is ALLOWED (HTTP 200) to refresh Store A', async () => {
+      const req = new Request('https://pubecomhub.com/v1/catalog/stores/store-a/refresh', {
+        method: 'POST',
+        headers: {
+          'authorization': `Bearer ${LOJISTA_TOKEN}`,
+        },
+      });
+
+      const res = await handleCatalogProxy(req, mockEnv);
+      expect(res).not.toBeNull();
+      expect(res!.status).toBe(200);
+    });
+
+    it('LOJISTA is REJECTED (HTTP 403) when attempting to refresh Store B (owned by another user)', async () => {
+      const req = new Request('https://pubecomhub.com/v1/catalog/stores/store-b/refresh', {
+        method: 'POST',
+        headers: {
+          'authorization': `Bearer ${LOJISTA_TOKEN}`,
+        },
+      });
+
+      const res = await handleCatalogProxy(req, mockEnv);
+      expect(res).not.toBeNull();
+      expect(res!.status).toBe(403);
+    });
+
+    it('MASTER is ALLOWED (HTTP 200) to refresh any store', async () => {
+      const req = new Request('https://pubecomhub.com/v1/catalog/stores/store-b/refresh', {
+        method: 'POST',
+        headers: {
+          'authorization': `Bearer ${MASTER_TOKEN}`,
+        },
+      });
+
+      const res = await handleCatalogProxy(req, mockEnv);
+      expect(res).not.toBeNull();
+      expect(res!.status).toBe(200);
+    });
+  });
+
+  describe('4. Standard Catalog Reading Routes', () => {
     it('Authenticated LOJISTA is ALLOWED to read standard catalog routes /v1/catalog/stores', async () => {
       const req = new Request('https://pubecomhub.com/v1/catalog/stores', {
         method: 'GET',

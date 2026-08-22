@@ -2,12 +2,16 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { catalogIngestionService } from "./ingestion/CatalogIngestionService";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { validateTargetUrl } from "./ingestion/security/urlValidator";
 
 export const analyzeCatalogFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ url: z.string().url() }).parse(data))
   .handler(async ({ data, context }) => {
-    // 1. Verify caller has MASTER or FORNECEDOR role
+    // 1. SSRF Protection: Validate target URL before any outbound connection
+    validateTargetUrl(data.url);
+
+    // 2. Verify caller has MASTER or FORNECEDOR role
     const supabase = (context as any).supabase;
     const userId = (context as any).userId;
 

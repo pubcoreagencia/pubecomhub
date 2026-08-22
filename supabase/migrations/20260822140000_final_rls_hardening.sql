@@ -44,7 +44,7 @@ $$;
 
 
 -- ------------------------------------------------------------------------------
--- 1. PROFILES
+-- 1. PROFILES & ROLE ESCALATION PREVENTION
 -- ------------------------------------------------------------------------------
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
@@ -53,11 +53,54 @@ DROP POLICY IF EXISTS "Master users have full profile access" ON public.profiles
 DROP POLICY IF EXISTS "Profiles base access policy" ON public.profiles;
 DROP POLICY IF EXISTS "Profiles select policy" ON public.profiles;
 DROP POLICY IF EXISTS "Profiles update policy" ON public.profiles;
+DROP POLICY IF EXISTS "Profiles insert policy" ON public.profiles;
 
+-- 1.1 Trigger: Strictly prevent non-MASTER users from changing role
+CREATE OR REPLACE FUNCTION public.prevent_role_escalation()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.role IS DISTINCT FROM OLD.role THEN
+    IF NOT public.is_master() THEN
+      RAISE EXCEPTION 'Forbidden: Only MASTER administrators can change user roles.';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+DROP TRIGGER IF EXISTS trg_prevent_role_escalation ON public.profiles;
+CREATE TRIGGER trg_prevent_role_escalation
+BEFORE UPDATE ON public.profiles
+FOR EACH ROW EXECUTE FUNCTION public.prevent_role_escalation();
+
+-- 1.2 Trigger: Enforce default non-privileged role on insert by non-masters
+CREATE OR REPLACE FUNCTION public.enforce_profile_insert_role()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NOT public.is_master() THEN
+    NEW.role := 'LOJISTA';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+DROP TRIGGER IF EXISTS trg_enforce_profile_insert_role ON public.profiles;
+CREATE TRIGGER trg_enforce_profile_insert_role
+BEFORE INSERT ON public.profiles
+FOR EACH ROW EXECUTE FUNCTION public.enforce_profile_insert_role();
+
+-- 1.3 Policies for Profiles
 CREATE POLICY "Profiles select policy"
 ON public.profiles FOR SELECT TO authenticated
 USING (
     id = auth.uid() 
+    OR public.is_master()
+);
+
+CREATE POLICY "Profiles insert policy"
+ON public.profiles FOR INSERT TO authenticated
+WITH CHECK (
+    id = auth.uid()
     OR public.is_master()
 );
 
@@ -68,7 +111,7 @@ USING (
     OR public.is_master()
 )
 WITH CHECK (
-    id = auth.uid() 
+    (id = auth.uid() AND (role = (SELECT role FROM public.profiles WHERE id = auth.uid()) OR public.is_master()))
     OR public.is_master()
 );
 

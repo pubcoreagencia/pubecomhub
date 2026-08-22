@@ -3,6 +3,8 @@ import { ShopeeExecutionProvider } from "../execution/ShopeeExecutionProvider";
 import { MockExecutionProvider } from "../execution/MockExecutionProvider";
 import { ExecutionProvider } from "../execution/ExecutionProvider";
 
+import { validateTargetUrl } from "../security/urlValidator";
+
 export class ShopeeAdapter implements CatalogSourceAdapter {
   private executionProvider: ExecutionProvider<any>;
   private maxProductsPerImport = 50;
@@ -29,6 +31,7 @@ export class ShopeeAdapter implements CatalogSourceAdapter {
   }
 
   async discover(url: string): Promise<RawProduct[]> {
+    validateTargetUrl(url);
     console.log(`[ShopeeAdapter] Starting discovery for: ${url}`);
     
     const shopId = this.extractShopId(url);

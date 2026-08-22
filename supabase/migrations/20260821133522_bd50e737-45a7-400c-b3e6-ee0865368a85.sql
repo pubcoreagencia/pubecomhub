@@ -24,7 +24,9 @@ DO $$ BEGIN
         CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT TO authenticated USING (auth.uid() = id);
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Users can update their own profile') THEN
-        CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
+        CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE TO authenticated 
+        USING (auth.uid() = id)
+        WITH CHECK (auth.uid() = id AND role = (SELECT role FROM public.profiles WHERE id = auth.uid()));
     END IF;
 END $$;
 

@@ -1,4 +1,3 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { UserRole } from "@/types";
 
 export interface AuthContext {
@@ -22,12 +21,10 @@ export async function validateStoreAccess(auth: AuthContext, storeId?: string): 
   // 2. LOJISTA is authorized only for their own stores
   if (auth.role === 'LOJISTA') {
     if (!storeId) {
-      // Ingestion engine might not have a storeId yet if it's a new import, 
-      // but the requirement says "LOJISTA: somente lojas cujo stores.owner_id = auth.uid()".
-      // If we're importing to a store, we check ownership.
       return false; 
     }
 
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: store, error } = await supabaseAdmin
       .from('stores')
       .select('owner_id')

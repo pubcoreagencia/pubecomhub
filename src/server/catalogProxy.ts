@@ -119,19 +119,69 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
   }
 
   // 2. Authorize based on route sensitivity
-  const isPaidScrapingOrIngestion =
-    targetPath.startsWith('/ingestion') ||
-    targetPath.includes('/refresh');
-
-  if (isPaidScrapingOrIngestion) {
-    // Only MASTER is authorized to trigger paid scraping/ingestion credits
+  // Global Scraping / Ingestion: Strictly MASTER
+  if (targetPath.startsWith('/ingestion')) {
     if (auth.role !== 'MASTER') {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Forbidden: Apenas administradores MASTER podem disparar operações de scraping e ingestão.',
+          error: 'Forbidden: Apenas administradores MASTER podem disparar operações globais de scraping e ingestão.',
           requiredRole: 'MASTER',
           currentRole: auth.role,
+        }),
+        {
+          status: 403,
+          headers: { 'content-type': 'application/json; charset=utf-8' },
+        }
+      );
+    }
+  }
+
+  // Store Refresh: MASTER allowed globally; LOJISTA allowed ONLY if owner of the store
+  if (targetPath.includes('/refresh')) {
+    const storeMatch = targetPath.match(/\/stores\/([^/]+)\/refresh/);
+    const targetStoreId = storeMatch ? storeMatch[1] : null;
+
+    if (auth.role === 'MASTER') {
+      // MASTER is globally allowed
+    } else if (auth.role === 'LOJISTA') {
+      if (!targetStoreId) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Bad Request: ID da loja ausente.' }),
+          { status: 400, headers: { 'content-type': 'application/json; charset=utf-8' } }
+        );
+      }
+
+      const supabaseUrl = envObj['SUPABASE_URL'] || process.env['SUPABASE_URL'] || '';
+      const supabaseKey = envObj['SUPABASE_SERVICE_ROLE_KEY'] || process.env['SUPABASE_SERVICE_ROLE_KEY'] || envObj['SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'] || '';
+
+      const supabase = createClient(supabaseUrl, supabaseKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+
+      const { data: store, error: storeError } = await supabase
+        .from('stores')
+        .select('owner_id')
+        .eq('id', targetStoreId)
+        .maybeSingle();
+
+      if (storeError || !store || store.owner_id !== auth.userId) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Forbidden: Usuário não é o proprietário desta loja para disparar sincronização.',
+          }),
+          {
+            status: 403,
+            headers: { 'content-type': 'application/json; charset=utf-8' },
+          }
+        );
+      }
+    } else {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Forbidden: Apenas MASTER ou o LOJISTA proprietário da loja podem atualizar catálogo.',
         }),
         {
           status: 403,

@@ -215,11 +215,37 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
 
     // 3. Apply Hardening RLS Policies & Views across all 11 Tables
     await pg.exec(`
-      -- 1. profiles RLS
+      -- 1. profiles RLS & Triggers
+      CREATE OR REPLACE FUNCTION public.prevent_role_escalation()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        IF NEW.role IS DISTINCT FROM OLD.role THEN
+          IF NOT public.is_master() THEN
+            RAISE EXCEPTION 'Forbidden: Only MASTER administrators can change user roles.';
+          END IF;
+        END IF;
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+      DROP TRIGGER IF EXISTS trg_prevent_role_escalation ON public.profiles;
+      CREATE TRIGGER trg_prevent_role_escalation
+      BEFORE UPDATE ON public.profiles
+      FOR EACH ROW EXECUTE FUNCTION public.prevent_role_escalation();
+
       ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
       CREATE POLICY "Profiles select policy" ON public.profiles FOR SELECT
       USING (
         id = auth.uid() 
+        OR public.is_master()
+      );
+      CREATE POLICY "Profiles update policy" ON public.profiles FOR UPDATE
+      USING (
+        id = auth.uid() 
+        OR public.is_master()
+      )
+      WITH CHECK (
+        (id = auth.uid() AND (role = (SELECT role FROM public.profiles WHERE id = auth.uid()) OR public.is_master()))
         OR public.is_master()
       );
 
@@ -763,6 +789,53 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
 
       const wallet = await pg.query('SELECT * FROM public.wallets');
       expect(wallet.rows.length).toBe(0);
+    });
+  });
+
+  describe('8. Role Escalation Prevention Hardening (Finding 1)', () => {
+    it('LOJISTA attempting to promote self to MASTER is strictly DENIED by trigger/RLS', async () => {
+      await asUser(LOJISTA_A_UID);
+      await expect(
+        pg.query(`UPDATE public.profiles SET role = 'MASTER' WHERE id = '${LOJISTA_A_UID}'`)
+      ).rejects.toThrow(/Forbidden/);
+    });
+
+    it('FORNECEDOR attempting to promote self to MASTER is strictly DENIED', async () => {
+      await asUser(FORNECEDOR_A_UID);
+      await expect(
+        pg.query(`UPDATE public.profiles SET role = 'MASTER' WHERE id = '${FORNECEDOR_A_UID}'`)
+      ).rejects.toThrow(/Forbidden/);
+    });
+
+    it('INFLUENCER attempting to promote self to MASTER is strictly DENIED', async () => {
+      await asUser(INFLUENCER_A_UID);
+      await expect(
+        pg.query(`UPDATE public.profiles SET role = 'MASTER' WHERE id = '${INFLUENCER_A_UID}'`)
+      ).rejects.toThrow(/Forbidden/);
+    });
+
+    it('LOJISTA attempting to update someone else profile is DENIED (0 rows updated)', async () => {
+      await asUser(LOJISTA_A_UID);
+      const res = await pg.query(`UPDATE public.profiles SET name = 'Hacked Name' WHERE id = '${LOJISTA_B_UID}' RETURNING id`);
+      expect(res.rows.length).toBe(0);
+    });
+
+    it('MASTER is ALLOWED to change user roles', async () => {
+      await asUser(MASTER_UID);
+      const res = await pg.query<{ id: string; role: string }>(
+        `UPDATE public.profiles SET role = 'FORNECEDOR' WHERE id = '${LOJISTA_B_UID}' RETURNING id, role`
+      );
+      expect(res.rows.length).toBe(1);
+      expect(res.rows[0].role).toBe('FORNECEDOR');
+    });
+
+    it('LOJISTA is ALLOWED to update own non-privileged profile data (name, email)', async () => {
+      await asUser(LOJISTA_A_UID);
+      const res = await pg.query<{ id: string; name: string }>(
+        `UPDATE public.profiles SET name = 'Lojista Updated Name' WHERE id = '${LOJISTA_A_UID}' RETURNING id, name`
+      );
+      expect(res.rows.length).toBe(1);
+      expect(res.rows[0].name).toBe('Lojista Updated Name');
     });
   });
 
