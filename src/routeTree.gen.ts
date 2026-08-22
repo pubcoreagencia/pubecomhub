@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardAffiliatesRouteImport } from './routes/dashboard/affiliates'
 import { Route as DashboardAudienceRouteImport } from './routes/dashboard/audience'
@@ -52,6 +53,11 @@ const DashboardRouteRoute = DashboardRouteRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/dashboard/affiliates': typeof DashboardAffiliatesRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
   '/dashboard/bonifications': typeof DashboardBonificationsRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/dashboard/affiliates': typeof DashboardAffiliatesRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
   '/dashboard/bonifications': typeof DashboardBonificationsRoute
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/dashboard/affiliates': typeof DashboardAffiliatesRoute
   '/dashboard/audience': typeof DashboardAudienceRoute
   '/dashboard/bonifications': typeof DashboardBonificationsRoute
@@ -286,6 +295,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/reset-password'
     | '/dashboard/affiliates'
     | '/dashboard/audience'
     | '/dashboard/bonifications'
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/reset-password'
     | '/dashboard/affiliates'
     | '/dashboard/audience'
     | '/dashboard/bonifications'
@@ -347,6 +358,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/reset-password'
     | '/dashboard/affiliates'
     | '/dashboard/audience'
     | '/dashboard/bonifications'
@@ -379,6 +391,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   StoreCartRoute: typeof StoreCartRoute
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreConfirmationRoute: typeof StoreConfirmationRoute
@@ -408,6 +421,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -668,6 +688,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
   LoginRoute: LoginRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   StoreCartRoute: StoreCartRoute,
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreConfirmationRoute: StoreConfirmationRoute,
