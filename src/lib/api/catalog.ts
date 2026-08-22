@@ -1,8 +1,8 @@
 
 import { CatalogStats, Store, Product, SyncResponse } from './types';
 
-const API_BASE_URL = import.meta.env.VITE_CATALOG_API_URL || 'https://pub-ecom-catalog-worker.contato-pubcore.workers.dev';
-const API_TOKEN = import.meta.env.VITE_CATALOG_API_TOKEN;
+const API_BASE_URL = import.meta.env['VITE_CATALOG_API_URL'] || 'https://pub-ecom-catalog-worker.contato-pubcore.workers.dev';
+const API_TOKEN = import.meta.env['VITE_CATALOG_API_TOKEN'];
 
 class CatalogApi {
   private baseUrl: string;
