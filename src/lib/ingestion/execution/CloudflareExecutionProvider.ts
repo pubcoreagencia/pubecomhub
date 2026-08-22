@@ -1,18 +1,20 @@
-import { ExecutionProvider, ExecutionResult } from "./ExecutionProvider";
+﻿import { ExecutionProvider, ExecutionResult } from "./ExecutionProvider";
 
 export class CloudflareExecutionProvider implements ExecutionProvider<any> {
   async execute(params: Record<string, any>): Promise<ExecutionResult<any>> {
     const { url, limit = 50, shopId } = params;
     
-    // In a real TanStack Start server environment, these would be in process.env
-    // Read inside the method to ensure they are available at execution time
-    const workerUrl = process.env['CATALOG_WORKER_URL'];
-    const workerToken = process.env['CATALOG_WORKER_TOKEN'];
+    const workerUrl = (
+      process.env['CATALOG_WORKER_URL'] || 
+      process.env['VITE_CATALOG_API_URL'] || 
+      'https://pub-ecom-catalog-worker.contato-pubcore.workers.dev'
+    ).replace(/\/+$/, '');
 
-
-    if (!workerUrl) {
-      throw new Error("Configuração ausente: CATALOG_WORKER_URL não definido.");
-    }
+    const workerToken = (
+      process.env['CATALOG_WORKER_TOKEN'] || 
+      process.env['VITE_CATALOG_API_TOKEN'] || 
+      ''
+    ).trim();
 
     console.log(`[CloudflareExecutionProvider] Routing request to external worker: ${workerUrl}`);
 
@@ -21,7 +23,7 @@ export class CloudflareExecutionProvider implements ExecutionProvider<any> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': workerToken ? `Bearer ${workerToken}` : '',
+          ...(workerToken ? { 'Authorization': `Bearer ${workerToken}` } : {}),
         },
         body: JSON.stringify({
           url,
