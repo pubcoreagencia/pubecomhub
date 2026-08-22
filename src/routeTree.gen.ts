@@ -17,6 +17,7 @@ import { Route as DashboardAudienceRouteImport } from './routes/dashboard/audien
 import { Route as DashboardBonificationsRouteImport } from './routes/dashboard/bonifications'
 import { Route as DashboardFinanceRouteImport } from './routes/dashboard/finance'
 import { Route as DashboardInfluencersRouteImport } from './routes/dashboard/influencers'
+import { Route as DashboardIngestionRouteImport } from './routes/dashboard/ingestion'
 import { Route as DashboardInventoryRouteImport } from './routes/dashboard/inventory'
 import { Route as DashboardLiveRouteImport } from './routes/dashboard/live'
 import { Route as DashboardMarketingRouteImport } from './routes/dashboard/marketing'
@@ -73,6 +74,11 @@ const DashboardFinanceRoute = DashboardFinanceRouteImport.update({
 const DashboardInfluencersRoute = DashboardInfluencersRouteImport.update({
   id: '/influencers',
   path: '/influencers',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardIngestionRoute = DashboardIngestionRouteImport.update({
+  id: '/ingestion',
+  path: '/ingestion',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DashboardInventoryRoute = DashboardInventoryRouteImport.update({
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/bonifications': typeof DashboardBonificationsRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
   '/dashboard/influencers': typeof DashboardInfluencersRoute
+  '/dashboard/ingestion': typeof DashboardIngestionRoute
   '/dashboard/inventory': typeof DashboardInventoryRoute
   '/dashboard/live': typeof DashboardLiveRoute
   '/dashboard/marketing': typeof DashboardMarketingRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/dashboard/bonifications': typeof DashboardBonificationsRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
   '/dashboard/influencers': typeof DashboardInfluencersRoute
+  '/dashboard/ingestion': typeof DashboardIngestionRoute
   '/dashboard/inventory': typeof DashboardInventoryRoute
   '/dashboard/live': typeof DashboardLiveRoute
   '/dashboard/marketing': typeof DashboardMarketingRoute
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/dashboard/bonifications': typeof DashboardBonificationsRoute
   '/dashboard/finance': typeof DashboardFinanceRoute
   '/dashboard/influencers': typeof DashboardInfluencersRoute
+  '/dashboard/ingestion': typeof DashboardIngestionRoute
   '/dashboard/inventory': typeof DashboardInventoryRoute
   '/dashboard/live': typeof DashboardLiveRoute
   '/dashboard/marketing': typeof DashboardMarketingRoute
@@ -253,6 +262,7 @@ export interface FileRouteTypes {
     | '/dashboard/bonifications'
     | '/dashboard/finance'
     | '/dashboard/influencers'
+    | '/dashboard/ingestion'
     | '/dashboard/inventory'
     | '/dashboard/live'
     | '/dashboard/marketing'
@@ -279,6 +289,7 @@ export interface FileRouteTypes {
     | '/dashboard/bonifications'
     | '/dashboard/finance'
     | '/dashboard/influencers'
+    | '/dashboard/ingestion'
     | '/dashboard/inventory'
     | '/dashboard/live'
     | '/dashboard/marketing'
@@ -306,6 +317,7 @@ export interface FileRouteTypes {
     | '/dashboard/bonifications'
     | '/dashboard/finance'
     | '/dashboard/influencers'
+    | '/dashboard/ingestion'
     | '/dashboard/inventory'
     | '/dashboard/live'
     | '/dashboard/marketing'
@@ -391,6 +403,13 @@ declare module '@tanstack/react-router' {
       path: '/influencers'
       fullPath: '/dashboard/influencers'
       preLoaderRoute: typeof DashboardInfluencersRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/ingestion': {
+      id: '/dashboard/ingestion'
+      path: '/ingestion'
+      fullPath: '/dashboard/ingestion'
+      preLoaderRoute: typeof DashboardIngestionRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/inventory': {
@@ -544,6 +563,7 @@ interface DashboardRouteRouteChildren {
   DashboardBonificationsRoute: typeof DashboardBonificationsRoute
   DashboardFinanceRoute: typeof DashboardFinanceRoute
   DashboardInfluencersRoute: typeof DashboardInfluencersRoute
+  DashboardIngestionRoute: typeof DashboardIngestionRoute
   DashboardInventoryRoute: typeof DashboardInventoryRoute
   DashboardLiveRoute: typeof DashboardLiveRoute
   DashboardMarketingRoute: typeof DashboardMarketingRoute
@@ -564,6 +584,7 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardBonificationsRoute: DashboardBonificationsRoute,
   DashboardFinanceRoute: DashboardFinanceRoute,
   DashboardInfluencersRoute: DashboardInfluencersRoute,
+  DashboardIngestionRoute: DashboardIngestionRoute,
   DashboardInventoryRoute: DashboardInventoryRoute,
   DashboardLiveRoute: DashboardLiveRoute,
   DashboardMarketingRoute: DashboardMarketingRoute,
