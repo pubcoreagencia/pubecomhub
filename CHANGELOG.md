@@ -1,7 +1,8 @@
 # Changelog - PUB ECOM HUB
 
-## [1.6.6] - 2026-08-22
+## [1.7.0] - 2026-08-22
 ### Adicionado
+- **Melhoria UX de Diagnóstico**: Adicionada exibição literal das variáveis de ambiente necessárias (`VITE_CATALOG_API_URL`, `VITE_CATALOG_API_TOKEN`) no toast de erro 401 da `CatalogIngestion`.
 - **Fase 2G - Resolução de CORS e Preflight**:
   - Implementação de camada CORS centralizada no `catalog-worker` (`cors.ts`).
   - Suporte a requisições `OPTIONS` (Preflight) retornando status 204.

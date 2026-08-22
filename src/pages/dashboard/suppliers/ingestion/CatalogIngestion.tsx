@@ -79,7 +79,17 @@ export const CatalogIngestion = () => {
       setErrorMessage(msg);
       setStatus('error');
       if (error.status === 401 || error.isAuthError) {
-        toast.error('Catalog API: autenticação não configurada ou inválida no Preview.');
+        toast.error(
+          <div className="flex flex-col gap-2">
+            <p className="font-bold">Catalog API: autenticação não configurada.</p>
+            <div className="bg-black/40 p-2 rounded text-[10px] font-mono break-all select-all">
+              VITE_CATALOG_API_URL=https://pub-ecom-catalog-worker.contato-pubcore.workers.dev
+              <br />
+              VITE_CATALOG_API_TOKEN=&lt;mesmo CATALOG_WORKER_TOKEN do Cloudflare Worker&gt;
+            </div>
+          </div>,
+          { duration: 10000 }
+        );
       } else {
         toast.error(msg);
       }
