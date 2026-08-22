@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-// (1 arquivo enviado)
+// OPERAÇÃO ADMINISTRATIVA — NÃO ALTERE O CÓDIGO
 // 
 // A conta existente `admin@pubcore.com` já foi confirmada como:
 // - Auth: EXISTS
@@ -24,6 +24,7 @@ import { createFileRoute } from '@tanstack/react-router';
 // - Não coloque a senha em arquivos ou Git.
 // 
 // Após concluir, confirme apenas:
+// 
 // PASSWORD UPDATED
 // USER: admin@pubcore.com
 // ROLE: MASTER
