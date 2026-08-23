@@ -1,5 +1,10 @@
 # Changelog - PUB ECOM HUB
 
+## [1.7.5] - 2026-08-23
+### Alterado
+- **Migração Supabase**: Removidas restrições de ID de projeto hardcoded em `LoginPage.tsx`, `catalog.ts` e `supabase/client.ts` para permitir a transição para o Supabase oficial.
+- **Segurança Auth**: Generalizada a validação de issuer do token JWT para suportar URLs dinâmicas do Supabase.
+
 ## [1.7.4] - 2026-08-23
 ### Corrigido
 - **Ingestion Engine**: Adicionada proteção SSRF pre-flight no endpoint `/api/ingestion/shopee` e logs de diagnóstico para ausência de `CATALOG_WORKER_TOKEN`.

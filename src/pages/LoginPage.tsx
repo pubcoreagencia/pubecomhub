@@ -19,25 +19,15 @@ export const LoginPage = () => {
 
   useEffect(() => {
     let isMounted = true;
-    // Check if session already exists and is valid on the official Supabase
+    // Check if session already exists and is valid
     supabase.auth.getSession().then(({ data }) => {
       if (!isMounted) return;
       const session = data?.session;
       if (session?.user && session.access_token) {
-        try {
-          const parts = session.access_token.split('.');
-          const rawPayload = parts[1];
-          if (parts.length >= 2 && rawPayload) {
-            const base64 = rawPayload.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonStr = typeof atob !== 'undefined' ? atob(base64) : Buffer.from(base64, 'base64').toString('utf-8');
-            const payload = JSON.parse(jsonStr);
-            const now = Math.floor(Date.now() / 1000);
-            if (payload.iss && payload.iss.includes('vtcnundfslqqlxdyrogv') && payload.exp > now) {
-              navigate({ to: '/dashboard' });
-              return;
-            }
-          }
-        } catch {}
+        // Just checking if we have a session. If so, go to dashboard.
+        // We removed the hardcoded vtcnundfslqqlxdyrogv check to support the official project.
+        navigate({ to: '/dashboard' });
+        return;
       }
       setCheckingSession(false);
     }).catch(() => {

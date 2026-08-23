@@ -95,7 +95,7 @@ export class CatalogApi {
         const token = session?.access_token;
 
         if (token) {
-          // Forensic validation of token issuer
+          // Forensic validation of token expiration (issuer check removed for official migration)
           try {
             const parts = token.split('.');
             const rawPayload = parts[1];
@@ -103,10 +103,11 @@ export class CatalogApi {
               const base64 = rawPayload.replace(/-/g, '+').replace(/_/g, '/');
               const jsonStr = typeof atob !== 'undefined' ? atob(base64) : Buffer.from(base64, 'base64').toString('utf-8');
               const payload = JSON.parse(jsonStr);
-              if (payload.iss && !payload.iss.includes('vtcnundfslqqlxdyrogv')) {
-                console.warn('[CatalogApi] Token de emissor não-oficial detectado:', payload.iss);
+              const now = Math.floor(Date.now() / 1000);
+              if (payload.exp && payload.exp < now) {
+                console.warn('[CatalogApi] Token expirado detectado');
                 await supabase.auth.signOut();
-                const err = new Error('Sessão vinculada a outro projeto Supabase. Faça login novamente no Supabase oficial.') as any;
+                const err = new Error('Sessão expirada. Faça login novamente.') as any;
                 err.status = 401;
                 err.isAuthError = true;
                 throw err;
