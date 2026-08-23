@@ -60,7 +60,7 @@ export default function RankingPage() {
                 "text-3xl font-black tracking-tighter italic mb-4",
                 i === 0 ? "text-[var(--hub-primary)]" : "text-white"
               )}>{r.metric}</p>
-              <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-emerald-500">
+              <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-red-500">
                 <ArrowUp className="h-3 w-3" />
                 <span>{r.trend} vs semana anterior</span>
               </div>
@@ -87,7 +87,7 @@ export default function RankingPage() {
                 <div className="flex items-center gap-12 text-right">
                   <div>
                     <p className="text-xl font-black text-white tracking-tighter italic">{r.metric}</p>
-                    <div className="flex items-center justify-end gap-1 text-emerald-500 text-[9px] font-black">
+                    <div className="flex items-center justify-end gap-1 text-red-500 text-[9px] font-black">
                       <ArrowUp className="h-3 w-3" /> {r.trend}
                     </div>
                   </div>
