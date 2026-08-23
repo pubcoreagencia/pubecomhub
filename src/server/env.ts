@@ -22,9 +22,9 @@ export function getServerEnv(request?: Request): Record<string, any> {
   const procEnv = (typeof process !== 'undefined' && process.env) ? process.env : {};
   const gThis = (typeof globalThis !== 'undefined') ? (globalThis as Record<string, any>) : {};
   
-  // Nitro stores the Cloudflare env on globalThis.__env__
-  const nitroEnv = (typeof gThis.__env__ === 'object' && gThis.__env__ !== null) ? gThis.__env__ : {};
-  const directGlobalEnv = (typeof gThis.env === 'object' && gThis.env !== null) ? gThis.env : {};
+  // Nitro stores the Cloudflare env on globalThis['__env__']
+  const nitroEnv = (typeof gThis['__env__'] === 'object' && gThis['__env__'] !== null) ? gThis['__env__'] : {};
+  const directGlobalEnv = (typeof gThis['env'] === 'object' && gThis['env'] !== null) ? gThis['env'] : {};
   
   // Request-attached Cloudflare context
   const reqRuntimeEnv = (request && (request as any).runtime?.cloudflare?.env) || {};
