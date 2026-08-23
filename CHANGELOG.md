@@ -1,5 +1,9 @@
 # Changelog - PUB ECOM HUB
 
+## [1.7.4] - 2026-08-23
+### Corrigido
+- **Ingestion Engine**: Adicionada proteção SSRF pre-flight no endpoint `/api/ingestion/shopee` e logs de diagnóstico para ausência de `CATALOG_WORKER_TOKEN`.
+
 ## [1.7.2] - 2026-08-22
 ### Segurança
 - **Correção de 10 findings de segurança selecionados**:

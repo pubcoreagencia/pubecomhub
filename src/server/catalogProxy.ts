@@ -203,10 +203,12 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
   const workerToken = getCatalogWorkerToken();
 
   if (!workerToken) {
+    const errorMsg = 'Catalog API: CATALOG_WORKER_TOKEN não configurado no servidor. O Ingestion Engine requer este segredo para operar.';
+    console.error(`[CatalogProxy] ${errorMsg}`);
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'Catalog API: CATALOG_WORKER_TOKEN não configurado no servidor.',
+        error: errorMsg,
         isAuthError: true,
       }),
       {
