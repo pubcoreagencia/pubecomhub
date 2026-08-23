@@ -56,3 +56,8 @@
 - **Fix**: Configurada `security_invoker = true` em views sensíveis para evitar vazamento de dados via planejador de consulta.
 - **UI**: Atualizado e-mail padrão de login para `contato.pubcore@gmail.com`.
 - **Docs**: Atualizado `PROJECT_CONTEXT.md` com as novas credenciais e baseline de segurança.
+
+## [2026-08-23] - Hardening de Segurança (Sprint Final)
+- **Fix (Lint 0029)**: Revogada permissão de execução da função `is_master()` para usuários `authenticated` e `PUBLIC`.
+- **Security**: Restrita permissão de execução da função `prevent_role_escalation()` apenas para roles administrativas.
+- **Hardening**: Reforçada a configuração `security_invoker` em todas as views públicas do Master Catalog.

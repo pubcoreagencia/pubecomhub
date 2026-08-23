@@ -11,12 +11,14 @@
   - Isolamento atômico em `marketing_events`, `customers`, `products`, `master_products`, `suppliers` e `orders`.
   - Inserções cross-tenant autenticadas são bloqueadas em nível de banco.
   - Tracking anônimo e checkout público validam a existência e consistência das lojas e clientes.
+- **Hardening de Funções & Views:**
+  - Funções `SECURITY DEFINER` (`is_master`, `has_role`, `prevent_role_escalation`) têm execução restrita a `service_role`.
+  - Views públicas utilizam `security_invoker = true` (PostgreSQL 15+), garantindo que RLS seja aplicado corretamente durante o planejamento.
 - **Isolamento de Custos e Margens:**
   - `cost` e `profit_margin` em `products` acessíveis somente pelo dono da loja e `MASTER`.
   - `supplier_cost` em `master_products` acessível somente por `MASTER` e fornecedor proprietário (`suppliers.profile_id = auth.uid()`).
-  - Views seguras: `public_store_products`, `available_master_products` (com sanitização de metadata), `public_suppliers` e `influencer_orders`.
-- **BFF / Proxy Server-Side:** Comunicação com o Catalog Worker através de proxy server-side autenticado com `CATALOG_WORKER_TOKEN`, sem exposição de secrets no browser.
-- **Suíte de Testes Reais PostgreSQL (PGlite):** 13 testes cobrindo toda a matriz de autorização executados em motor SQL real.
+  - Views seguras sanitizadas: `public_store_products`, `available_master_products`, `public_suppliers`.
+- **BFF / Proxy Server-Side:** Comunicação com o Catalog Worker através de proxy server-side autenticado com `CATALOG_WORKER_TOKEN`.
 
 ## Recuperação de Acesso Master
 - **Usuário:** `contato.pubcore@gmail.com`
