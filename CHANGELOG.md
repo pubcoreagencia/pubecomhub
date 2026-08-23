@@ -49,3 +49,10 @@
 - **Fix**: Configurada `security_invoker = true` em views sensíveis para evitar vazamento de dados via planejador de consulta.
 - **UI**: Atualizado e-mail padrão de login para `contato.pubcore@gmail.com`.
 - **Docs**: Atualizado `PROJECT_CONTEXT.md` com as novas credenciais e baseline de segurança.
+
+## [2026-08-23] - Segurança e Acesso Administrativo
+- **Fix**: Impedido que usuários alterem a própria role via RLS na tabela `profiles`.
+- **Hardening**: Restrita permissão de execução da função `has_role` para `service_role`.
+- **Fix**: Configurada `security_invoker = true` em views sensíveis para evitar vazamento de dados via planejador de consulta.
+- **UI**: Atualizado e-mail padrão de login para `contato.pubcore@gmail.com`.
+- **Docs**: Atualizado `PROJECT_CONTEXT.md` com as novas credenciais e baseline de segurança.
