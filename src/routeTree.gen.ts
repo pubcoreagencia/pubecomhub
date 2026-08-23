@@ -29,14 +29,16 @@ import { Route as DashboardRankingRouteImport } from './routes/dashboard/ranking
 import { Route as DashboardSeoRouteImport } from './routes/dashboard/seo'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
 import { Route as DashboardStoresRouteImport } from './routes/dashboard/stores'
-import { Route as DashboardSuppliersRouteImport } from './routes/dashboard/suppliers'
 import { Route as DashboardTrackingRouteImport } from './routes/dashboard/tracking'
 import { Route as StoreIndexRouteImport } from './routes/store/index'
 import { Route as StoreCartRouteImport } from './routes/store/cart'
 import { Route as StoreCheckoutRouteImport } from './routes/store/checkout'
 import { Route as StoreConfirmationRouteImport } from './routes/store/confirmation'
+import { Route as ApiCatalogHealthRouteImport } from './routes/api/catalog/health'
+import { Route as ApiCatalogStatsRouteImport } from './routes/api/catalog/stats'
 import { Route as ApiIngestionShopeeRouteImport } from './routes/api/ingestion/shopee'
 import { Route as DashboardStoresStoreIdRouteImport } from './routes/dashboard/stores.$storeId'
+import { Route as DashboardSuppliersIndexRouteImport } from './routes/dashboard/suppliers/index'
 import { Route as DashboardSuppliersIngestionRouteImport } from './routes/dashboard/suppliers/ingestion'
 import { Route as ApiCatalogStoresStoreIdRefreshRouteImport } from './routes/api/catalog/stores/$storeId.refresh'
 
@@ -140,11 +142,6 @@ const DashboardStoresRoute = DashboardStoresRouteImport.update({
   path: '/stores',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
-const DashboardSuppliersRoute = DashboardSuppliersRouteImport.update({
-  id: '/suppliers',
-  path: '/suppliers',
-  getParentRoute: () => DashboardRouteRoute,
-} as any)
 const DashboardTrackingRoute = DashboardTrackingRouteImport.update({
   id: '/tracking',
   path: '/tracking',
@@ -170,6 +167,16 @@ const StoreConfirmationRoute = StoreConfirmationRouteImport.update({
   path: '/store/confirmation',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCatalogHealthRoute = ApiCatalogHealthRouteImport.update({
+  id: '/api/catalog/health',
+  path: '/api/catalog/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCatalogStatsRoute = ApiCatalogStatsRouteImport.update({
+  id: '/api/catalog/stats',
+  path: '/api/catalog/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiIngestionShopeeRoute = ApiIngestionShopeeRouteImport.update({
   id: '/api/ingestion/shopee',
   path: '/api/ingestion/shopee',
@@ -180,11 +187,16 @@ const DashboardStoresStoreIdRoute = DashboardStoresStoreIdRouteImport.update({
   path: '/$storeId',
   getParentRoute: () => DashboardStoresRoute,
 } as any)
+const DashboardSuppliersIndexRoute = DashboardSuppliersIndexRouteImport.update({
+  id: '/suppliers/',
+  path: '/suppliers/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardSuppliersIngestionRoute =
   DashboardSuppliersIngestionRouteImport.update({
-    id: '/ingestion',
-    path: '/ingestion',
-    getParentRoute: () => DashboardSuppliersRoute,
+    id: '/suppliers/ingestion',
+    path: '/suppliers/ingestion',
+    getParentRoute: () => DashboardRouteRoute,
   } as any)
 const ApiCatalogStoresStoreIdRefreshRoute =
   ApiCatalogStoresStoreIdRefreshRouteImport.update({
@@ -213,16 +225,18 @@ export interface FileRoutesByFullPath {
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/stores': typeof DashboardStoresRouteWithChildren
-  '/dashboard/suppliers': typeof DashboardSuppliersRouteWithChildren
   '/dashboard/tracking': typeof DashboardTrackingRoute
   '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
   '/store/confirmation': typeof StoreConfirmationRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
+  '/api/catalog/health': typeof ApiCatalogHealthRoute
+  '/api/catalog/stats': typeof ApiCatalogStatsRoute
   '/api/ingestion/shopee': typeof ApiIngestionShopeeRoute
   '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
+  '/dashboard/suppliers/': typeof DashboardSuppliersIndexRoute
   '/api/catalog/stores/$storeId/refresh': typeof ApiCatalogStoresStoreIdRefreshRoute
 }
 export interface FileRoutesByTo {
@@ -244,16 +258,18 @@ export interface FileRoutesByTo {
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/stores': typeof DashboardStoresRouteWithChildren
-  '/dashboard/suppliers': typeof DashboardSuppliersRouteWithChildren
   '/dashboard/tracking': typeof DashboardTrackingRoute
   '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
   '/store/confirmation': typeof StoreConfirmationRoute
   '/dashboard': typeof DashboardIndexRoute
   '/store': typeof StoreIndexRoute
+  '/api/catalog/health': typeof ApiCatalogHealthRoute
+  '/api/catalog/stats': typeof ApiCatalogStatsRoute
   '/api/ingestion/shopee': typeof ApiIngestionShopeeRoute
   '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
+  '/dashboard/suppliers': typeof DashboardSuppliersIndexRoute
   '/api/catalog/stores/$storeId/refresh': typeof ApiCatalogStoresStoreIdRefreshRoute
 }
 export interface FileRoutesById {
@@ -277,16 +293,18 @@ export interface FileRoutesById {
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/stores': typeof DashboardStoresRouteWithChildren
-  '/dashboard/suppliers': typeof DashboardSuppliersRouteWithChildren
   '/dashboard/tracking': typeof DashboardTrackingRoute
   '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
   '/store/confirmation': typeof StoreConfirmationRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
+  '/api/catalog/health': typeof ApiCatalogHealthRoute
+  '/api/catalog/stats': typeof ApiCatalogStatsRoute
   '/api/ingestion/shopee': typeof ApiIngestionShopeeRoute
   '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
+  '/dashboard/suppliers/': typeof DashboardSuppliersIndexRoute
   '/api/catalog/stores/$storeId/refresh': typeof ApiCatalogStoresStoreIdRefreshRoute
 }
 export interface FileRouteTypes {
@@ -311,16 +329,18 @@ export interface FileRouteTypes {
     | '/dashboard/seo'
     | '/dashboard/settings'
     | '/dashboard/stores'
-    | '/dashboard/suppliers'
     | '/dashboard/tracking'
     | '/store/cart'
     | '/store/checkout'
     | '/store/confirmation'
     | '/dashboard/'
     | '/store/'
+    | '/api/catalog/health'
+    | '/api/catalog/stats'
     | '/api/ingestion/shopee'
     | '/dashboard/stores/$storeId'
     | '/dashboard/suppliers/ingestion'
+    | '/dashboard/suppliers/'
     | '/api/catalog/stores/$storeId/refresh'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -342,16 +362,18 @@ export interface FileRouteTypes {
     | '/dashboard/seo'
     | '/dashboard/settings'
     | '/dashboard/stores'
-    | '/dashboard/suppliers'
     | '/dashboard/tracking'
     | '/store/cart'
     | '/store/checkout'
     | '/store/confirmation'
     | '/dashboard'
     | '/store'
+    | '/api/catalog/health'
+    | '/api/catalog/stats'
     | '/api/ingestion/shopee'
     | '/dashboard/stores/$storeId'
     | '/dashboard/suppliers/ingestion'
+    | '/dashboard/suppliers'
     | '/api/catalog/stores/$storeId/refresh'
   id:
     | '__root__'
@@ -374,16 +396,18 @@ export interface FileRouteTypes {
     | '/dashboard/seo'
     | '/dashboard/settings'
     | '/dashboard/stores'
-    | '/dashboard/suppliers'
     | '/dashboard/tracking'
     | '/store/cart'
     | '/store/checkout'
     | '/store/confirmation'
     | '/dashboard/'
     | '/store/'
+    | '/api/catalog/health'
+    | '/api/catalog/stats'
     | '/api/ingestion/shopee'
     | '/dashboard/stores/$storeId'
     | '/dashboard/suppliers/ingestion'
+    | '/dashboard/suppliers/'
     | '/api/catalog/stores/$storeId/refresh'
   fileRoutesById: FileRoutesById
 }
@@ -396,6 +420,8 @@ export interface RootRouteChildren {
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreConfirmationRoute: typeof StoreConfirmationRoute
   StoreIndexRoute: typeof StoreIndexRoute
+  ApiCatalogHealthRoute: typeof ApiCatalogHealthRoute
+  ApiCatalogStatsRoute: typeof ApiCatalogStatsRoute
   ApiIngestionShopeeRoute: typeof ApiIngestionShopeeRoute
   ApiCatalogStoresStoreIdRefreshRoute: typeof ApiCatalogStoresStoreIdRefreshRoute
 }
@@ -542,13 +568,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStoresRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/dashboard/suppliers': {
-      id: '/dashboard/suppliers'
-      path: '/suppliers'
-      fullPath: '/dashboard/suppliers'
-      preLoaderRoute: typeof DashboardSuppliersRouteImport
-      parentRoute: typeof DashboardRouteRoute
-    }
     '/dashboard/tracking': {
       id: '/dashboard/tracking'
       path: '/tracking'
@@ -584,6 +603,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreConfirmationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/catalog/health': {
+      id: '/api/catalog/health'
+      path: '/api/catalog/health'
+      fullPath: '/api/catalog/health'
+      preLoaderRoute: typeof ApiCatalogHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/catalog/stats': {
+      id: '/api/catalog/stats'
+      path: '/api/catalog/stats'
+      fullPath: '/api/catalog/stats'
+      preLoaderRoute: typeof ApiCatalogStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/ingestion/shopee': {
       id: '/api/ingestion/shopee'
       path: '/api/ingestion/shopee'
@@ -598,12 +631,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStoresStoreIdRouteImport
       parentRoute: typeof DashboardStoresRoute
     }
+    '/dashboard/suppliers/': {
+      id: '/dashboard/suppliers/'
+      path: '/suppliers'
+      fullPath: '/dashboard/suppliers/'
+      preLoaderRoute: typeof DashboardSuppliersIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/suppliers/ingestion': {
       id: '/dashboard/suppliers/ingestion'
-      path: '/ingestion'
+      path: '/suppliers/ingestion'
       fullPath: '/dashboard/suppliers/ingestion'
       preLoaderRoute: typeof DashboardSuppliersIngestionRouteImport
-      parentRoute: typeof DashboardSuppliersRoute
+      parentRoute: typeof DashboardRouteRoute
     }
     '/api/catalog/stores/$storeId/refresh': {
       id: '/api/catalog/stores/$storeId/refresh'
@@ -627,17 +667,6 @@ const DashboardStoresRouteWithChildren = DashboardStoresRoute._addFileChildren(
   DashboardStoresRouteChildren,
 )
 
-interface DashboardSuppliersRouteChildren {
-  DashboardSuppliersIngestionRoute: typeof DashboardSuppliersIngestionRoute
-}
-
-const DashboardSuppliersRouteChildren: DashboardSuppliersRouteChildren = {
-  DashboardSuppliersIngestionRoute: DashboardSuppliersIngestionRoute,
-}
-
-const DashboardSuppliersRouteWithChildren =
-  DashboardSuppliersRoute._addFileChildren(DashboardSuppliersRouteChildren)
-
 interface DashboardRouteRouteChildren {
   DashboardAffiliatesRoute: typeof DashboardAffiliatesRoute
   DashboardAudienceRoute: typeof DashboardAudienceRoute
@@ -654,9 +683,10 @@ interface DashboardRouteRouteChildren {
   DashboardSeoRoute: typeof DashboardSeoRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardStoresRoute: typeof DashboardStoresRouteWithChildren
-  DashboardSuppliersRoute: typeof DashboardSuppliersRouteWithChildren
   DashboardTrackingRoute: typeof DashboardTrackingRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardSuppliersIngestionRoute: typeof DashboardSuppliersIngestionRoute
+  DashboardSuppliersIndexRoute: typeof DashboardSuppliersIndexRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
@@ -675,9 +705,10 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardSeoRoute: DashboardSeoRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardStoresRoute: DashboardStoresRouteWithChildren,
-  DashboardSuppliersRoute: DashboardSuppliersRouteWithChildren,
   DashboardTrackingRoute: DashboardTrackingRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardSuppliersIngestionRoute: DashboardSuppliersIngestionRoute,
+  DashboardSuppliersIndexRoute: DashboardSuppliersIndexRoute,
 }
 
 const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
@@ -693,6 +724,8 @@ const rootRouteChildren: RootRouteChildren = {
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreConfirmationRoute: StoreConfirmationRoute,
   StoreIndexRoute: StoreIndexRoute,
+  ApiCatalogHealthRoute: ApiCatalogHealthRoute,
+  ApiCatalogStatsRoute: ApiCatalogStatsRoute,
   ApiIngestionShopeeRoute: ApiIngestionShopeeRoute,
   ApiCatalogStoresStoreIdRefreshRoute: ApiCatalogStoresStoreIdRefreshRoute,
 }

@@ -256,7 +256,11 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
   }
 
   try {
-    const upstreamResponse = await fetch(upstreamUrl, {
+    const fetcher = (envObj['CATALOG_WORKER'] && typeof envObj['CATALOG_WORKER'].fetch === 'function')
+      ? envObj['CATALOG_WORKER']
+      : { fetch: globalThis.fetch };
+
+    const upstreamResponse = await fetcher.fetch(upstreamUrl, {
       method: request.method,
       headers: forwardHeaders,
       body,
