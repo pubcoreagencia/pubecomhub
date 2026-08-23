@@ -142,7 +142,7 @@ export const LoginPage = () => {
                     <Mail className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
                     <Input
                       type="email"
-                      placeholder="admin@pubcore.com"
+                      placeholder="contato.pubcore@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={loading}
@@ -216,7 +216,7 @@ export const LoginPage = () => {
                     <Mail className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
                     <Input
                       type="email"
-                      placeholder="admin@pubcore.com"
+                      placeholder="contato.pubcore@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={loading}
