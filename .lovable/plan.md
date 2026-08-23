@@ -16,8 +16,8 @@ O objetivo é permitir que o usuário MASTER altere sua senha temporária para u
 
 ### Frontend (Configurações)
 - Refatorar `src/pages/dashboard/SettingsPage.tsx` para incluir uma nova seção de "Segurança da Conta".
-- Adicionar um formulário de alteração de senha com validação de força.
-- Integrar a chamada à `updateMasterPassword` com feedback visual (Success/Error).
+- Adicionar um formulário de alteração de senha com validação de força e confirmação.
+- Integrar a chamada à `updateMasterPassword` com feedback visual via `sonner` (Success/Error).
 
 ### Memória e Segurança
 - Documentar a estratégia de recuperação e a função em `mem://features/password-recovery.md`.
@@ -27,4 +27,5 @@ O objetivo é permitir que o usuário MASTER altere sua senha temporária para u
 
 - **Tooling:** TanStack Start `createServerFn`.
 - **Security:** `supabaseAdmin.auth.admin.updateUserById` via server-side execution.
-- **Validation:** Zod para garantir que a nova senha atenda aos requisitos mínimos.
+- **Validation:** Zod para garantir que a nova senha atenda aos requisitos mínimos (mínimo 8 caracteres).
+- **UX:** Uso de estados de loading para o botão de salvar durante a requisição ao servidor.
