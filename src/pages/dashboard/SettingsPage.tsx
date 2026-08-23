@@ -111,24 +111,25 @@ export default function SettingsPage() {
           <div className="lg:col-span-1 space-y-6">
             <div className="hub-card hub-gradient-border p-2 bg-black/20">
               {[
-                { label: 'Geral', icon: Globe, active: true },
-                { label: 'Faturamento', icon: CreditCard },
-                { label: 'Equipe', icon: Database },
-                { label: 'Integrações', icon: Zap },
-                { label: 'Segurança', icon: Lock }
+                { id: 'Geral', label: 'Geral', icon: Globe },
+                { id: 'Faturamento', label: 'Faturamento', icon: CreditCard },
+                { id: 'Equipe', label: 'Equipe', icon: Database },
+                { id: 'Integrações', label: 'Integrações', icon: Zap },
+                { id: 'Segurança', label: 'Segurança', icon: Lock }
               ].map((item, i) => (
                 <button 
                   key={i} 
+                  onClick={() => setActiveTab(item.id)}
                   className={cn(
                     "w-full flex items-center justify-between p-4 rounded-xl transition-all group",
-                    item.active ? "bg-white/5 text-white border border-white/10" : "hover:bg-white/5 text-[var(--hub-muted)]"
+                    activeTab === item.id ? "bg-white/5 text-white border border-white/10" : "hover:bg-white/5 text-[var(--hub-muted)]"
                   )}
                 >
                   <div className="flex items-center gap-4">
-                    <item.icon className={cn("h-4 w-4", item.active ? "text-[var(--hub-primary)]" : "opacity-40")} />
+                    <item.icon className={cn("h-4 w-4", activeTab === item.id ? "text-[var(--hub-primary)]" : "opacity-40")} />
                     <span className="text-[10px] font-black uppercase tracking-[0.2em]">{item.label}</span>
                   </div>
-                  {!item.active && <ChevronRight className="h-4 w-4 opacity-10 group-hover:opacity-40" />}
+                  {activeTab !== item.id && <ChevronRight className="h-4 w-4 opacity-10 group-hover:opacity-40" />}
                 </button>
               ))}
             </div>
