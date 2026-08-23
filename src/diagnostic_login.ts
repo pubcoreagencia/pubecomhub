@@ -23,8 +23,10 @@ async function testLogin() {
     }
   } else {
     console.log('[Diagnostic] SUCESSO NO LOGIN!');
-    console.log('[Diagnostic] User ID:', data.user.id);
-    console.log('[Diagnostic] Session active until:', new Date(data.session.expires_at * 1000).toISOString());
+    console.log('[Diagnostic] User ID:', data.user?.id);
+    if (data.session) {
+      console.log('[Diagnostic] Session active until:', new Date(data.session.expires_at * 1000).toISOString());
+    }
   }
 }
 
