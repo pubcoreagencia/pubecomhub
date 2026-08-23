@@ -2,14 +2,33 @@ import { CatalogStats, Store, Product, SyncResponse, IngestionApiResponse } from
 import { supabase } from '@/integrations/supabase/client';
 
 function getApiBaseUrl(): string {
-  if (typeof window !== 'undefined') {
-    return '';
-  }
-  const overrideUrl = import.meta.env['VITE_CATALOG_API_URL'];
-  if (overrideUrl && typeof overrideUrl === 'string' && overrideUrl.trim().length > 0) {
+  // If explicitly provided via environment variable, respect it
+  const overrideUrl = (import.meta.env['VITE_CATALOG_API_URL'] || '').trim();
+  if (overrideUrl.length > 0) {
     return overrideUrl.endsWith('/') ? overrideUrl.slice(0, -1) : overrideUrl;
   }
-  return '';
+
+  // In browser runtime:
+  if (typeof window !== 'undefined') {
+    const hostname = window.location?.hostname || '';
+    // When running inside Lovable preview or localhost dev without custom override:
+    // Route API requests to the production Hub Worker backend
+    if (
+      hostname.includes('lovableproject.com') ||
+      hostname.includes('lovable.app') ||
+      hostname.includes('lovable.dev') ||
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1'
+    ) {
+      return 'https://pubcoreagencia-pubecomhub.contato-pubcore.workers.dev';
+    }
+
+    // In production (e.g. workers.dev or custom production domain), use relative path
+    return '';
+  }
+
+  // Server-side fallback
+  return 'https://pubcoreagencia-pubecomhub.contato-pubcore.workers.dev';
 }
 
 function normalizeStore(raw: any): Store {

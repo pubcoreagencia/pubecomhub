@@ -1,12 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { handleCatalogProxy } from '@/server/catalogProxy';
+import { handleCatalogProxy, handleCorsPreflight, getCorsHeaders } from '@/server/catalogProxy';
 import { validateTargetUrl } from '@/lib/ingestion/security/urlValidator';
 import { z } from 'zod';
 
 export const Route = createFileRoute('/api/ingestion/shopee')({
   server: {
     handlers: {
+      OPTIONS: async ({ request }): Promise<Response> => {
+        const preflight = handleCorsPreflight(request);
+        return preflight || new Response(null, { status: 204 });
+      },
       POST: async ({ request }): Promise<Response> => {
+        const cors = getCorsHeaders(request);
         try {
           // Pre-flight SSRF validation
           const clone = request.clone();
@@ -16,7 +21,10 @@ export const Route = createFileRoute('/api/ingestion/shopee')({
           validateTargetUrl(targetUrl);
           
           const response = await handleCatalogProxy(request);
-          return response || new Response(JSON.stringify({ error: 'Endpoint proxy não encontrado' }), { status: 404 });
+          return response || new Response(JSON.stringify({ error: 'Endpoint proxy não encontrado' }), {
+            status: 404,
+            headers: { 'content-type': 'application/json', ...cors }
+          });
         } catch (err: any) {
           console.error('[ShopeeIngestion] Erro na validação ou execução:', err);
           return new Response(
@@ -26,7 +34,7 @@ export const Route = createFileRoute('/api/ingestion/shopee')({
             }), 
             { 
               status: err.message?.includes('SSRF') ? 403 : 400,
-              headers: { 'content-type': 'application/json' }
+              headers: { 'content-type': 'application/json', ...cors }
             }
           );
         }

@@ -82,7 +82,84 @@ export async function validateSupabaseCaller(request: Request, envObj?: Record<s
   }
 }
 
+/**
+ * Checks whether an origin is allowed by the dynamic allowlist
+ */
+export function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  try {
+    const url = new URL(origin);
+    const host = url.hostname;
+    // Allow Lovable preview domains (*.lovableproject.com, *.lovable.app, *.lovable.dev)
+    if (
+      host === 'lovableproject.com' ||
+      host.endsWith('.lovableproject.com') ||
+      host === 'lovable.app' ||
+      host.endsWith('.lovable.app') ||
+      host === 'lovable.dev' ||
+      host.endsWith('.lovable.dev')
+    ) {
+      return true;
+    }
+    // Allow local development (localhost, 127.0.0.1)
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return true;
+    }
+    // Allow production workers.dev domain
+    if (host.endsWith('.workers.dev')) {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Generates CORS headers tailored to the request origin
+ */
+export function getCorsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get('origin') || request.headers.get('Origin');
+  if (origin && isAllowedOrigin(origin)) {
+    return {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type, Accept, Origin, X-Requested-With',
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Max-Age': '86400',
+    };
+  }
+  return {};
+}
+
+/**
+ * Handles CORS Preflight OPTIONS requests
+ */
+export function handleCorsPreflight(request: Request): Response | null {
+  if (request.method === 'OPTIONS') {
+    const origin = request.headers.get('origin') || request.headers.get('Origin');
+    const cors = getCorsHeaders(request);
+    if (origin && isAllowedOrigin(origin)) {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          ...cors,
+          'Content-Length': '0',
+        },
+      });
+    }
+    return new Response(null, { status: 204 });
+  }
+  return null;
+}
+
 export async function handleCatalogProxy(request: Request, env?: unknown): Promise<Response | null> {
+  if (request.method === 'OPTIONS') {
+    const preflight = handleCorsPreflight(request);
+    if (preflight) return preflight;
+  }
+
+  const cors = getCorsHeaders(request);
   const url = new URL(request.url);
   const pathname = url.pathname;
 
@@ -105,7 +182,7 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
       }),
       {
         status: 200,
-        headers: { 'content-type': 'application/json; charset=utf-8' },
+        headers: { 'content-type': 'application/json; charset=utf-8', ...cors },
       }
     );
   }
@@ -139,7 +216,7 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
       }),
       {
         status: auth.statusCode || 401,
-        headers: { 'content-type': 'application/json; charset=utf-8' },
+        headers: { 'content-type': 'application/json; charset=utf-8', ...cors },
       }
     );
   }
@@ -157,7 +234,7 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
         }),
         {
           status: 403,
-          headers: { 'content-type': 'application/json; charset=utf-8' },
+          headers: { 'content-type': 'application/json; charset=utf-8', ...cors },
         }
       );
     }
@@ -174,7 +251,7 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
       if (!targetStoreId) {
         return new Response(
           JSON.stringify({ success: false, error: 'Bad Request: ID da loja ausente.' }),
-          { status: 400, headers: { 'content-type': 'application/json; charset=utf-8' } }
+          { status: 400, headers: { 'content-type': 'application/json; charset=utf-8', ...cors } }
         );
       }
 
@@ -200,7 +277,7 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
           }),
           {
             status: 403,
-            headers: { 'content-type': 'application/json; charset=utf-8' },
+            headers: { 'content-type': 'application/json; charset=utf-8', ...cors },
           }
         );
       }
@@ -212,7 +289,7 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
         }),
         {
           status: 403,
-          headers: { 'content-type': 'application/json; charset=utf-8' },
+          headers: { 'content-type': 'application/json; charset=utf-8', ...cors },
         }
       );
     }
@@ -233,7 +310,7 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
       }),
       {
         status: 500,
-        headers: { 'content-type': 'application/json; charset=utf-8' },
+        headers: { 'content-type': 'application/json; charset=utf-8', ...cors },
       }
     );
   }
@@ -268,6 +345,9 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
 
     const responseHeaders = new Headers(upstreamResponse.headers);
     responseHeaders.set('content-type', 'application/json; charset=utf-8');
+    for (const [k, v] of Object.entries(cors)) {
+      responseHeaders.set(k, v);
+    }
 
     return new Response(upstreamResponse.body, {
       status: upstreamResponse.status,
@@ -282,7 +362,7 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
       }),
       {
         status: 502,
-        headers: { 'content-type': 'application/json; charset=utf-8' },
+        headers: { 'content-type': 'application/json; charset=utf-8', ...cors },
       }
     );
   }

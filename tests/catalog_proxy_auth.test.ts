@@ -340,4 +340,55 @@ describe('Catalog Proxy Authentication & RBAC Forensics (HTTP real)', () => {
       expect(res!.status).toBe(200);
     });
   });
+
+  describe('5. CORS & Lovable Preview Origin Dynamic Allowlist', () => {
+    it('responde 204 com headers CORS para preflight OPTIONS vindo de *.lovableproject.com', async () => {
+      const req = new Request('https://pubcoreagencia-pubecomhub.contato-pubcore.workers.dev/api/ingestion/shopee', {
+        method: 'OPTIONS',
+        headers: {
+          'Origin': 'https://preview-12345.lovableproject.com',
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'authorization, content-type',
+        },
+      });
+
+      const res = await handleCatalogProxy(req, mockEnv);
+      expect(res).not.toBeNull();
+      expect(res!.status).toBe(204);
+      expect(res!.headers.get('access-control-allow-origin')).toBe('https://preview-12345.lovableproject.com');
+      expect(res!.headers.get('access-control-allow-credentials')).toBe('true');
+    });
+
+    it('responde 204 com headers CORS para preflight OPTIONS vindo de *.lovable.app', async () => {
+      const req = new Request('https://pubcoreagencia-pubecomhub.contato-pubcore.workers.dev/api/ingestion/shopee', {
+        method: 'OPTIONS',
+        headers: {
+          'Origin': 'https://my-app.lovable.app',
+        },
+      });
+
+      const res = await handleCatalogProxy(req, mockEnv);
+      expect(res).not.toBeNull();
+      expect(res!.status).toBe(204);
+      expect(res!.headers.get('access-control-allow-origin')).toBe('https://my-app.lovable.app');
+    });
+
+    it('injeta headers CORS na resposta de ingestão para origem Lovable', async () => {
+      const req = new Request('https://pubcoreagencia-pubecomhub.contato-pubcore.workers.dev/api/ingestion/shopee', {
+        method: 'POST',
+        headers: {
+          'Origin': 'https://preview-sandbox.lovableproject.com',
+          'authorization': `Bearer ${MASTER_TOKEN}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ url: 'https://shopee.com.br/shop/1729928484', limit: 3 }),
+      });
+
+      const res = await handleCatalogProxy(req, mockEnv);
+      expect(res).not.toBeNull();
+      expect(res!.status).toBe(200);
+      expect(res!.headers.get('access-control-allow-origin')).toBe('https://preview-sandbox.lovableproject.com');
+      expect(res!.headers.get('access-control-allow-credentials')).toBe('true');
+    });
+  });
 });
