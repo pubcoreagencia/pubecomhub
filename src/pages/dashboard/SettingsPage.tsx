@@ -9,12 +9,19 @@ import {
   Lock, 
   CreditCard,
   Check,
-  ChevronRight
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Loader2
 } from 'lucide-react';
 import { Shell } from '@/components/layout/Shell';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useServerFn } from '@tanstack/react-start';
+import { updateMasterPassword } from '@/lib/api/auth-admin.functions';
+import { toast } from 'sonner';
 
 export default function SettingsPage() {
   const sections = [
