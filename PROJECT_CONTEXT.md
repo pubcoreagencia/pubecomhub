@@ -17,3 +17,9 @@
   - Views seguras: `public_store_products`, `available_master_products` (com sanitização de metadata), `public_suppliers` e `influencer_orders`.
 - **BFF / Proxy Server-Side:** Comunicação com o Catalog Worker através de proxy server-side autenticado com `CATALOG_WORKER_TOKEN`, sem exposição de secrets no browser.
 - **Suíte de Testes Reais PostgreSQL (PGlite):** 13 testes cobrindo toda a matriz de autorização executados em motor SQL real.
+
+## Recuperação de Acesso Master
+- **Usuário:** `admin@pubcore.com`
+- **Role:** `MASTER`
+- **Procedimento:** Caso o login falhe, a recuperação deve ser feita via "Esqueci a senha" na página de login, que enviará um link para o e-mail cadastrado. A página de redefinição está configurada no tema Black & Red.
+- **Segurança:** O acesso é protegido por RLS e exige a role `MASTER` na tabela `public.profiles`.
