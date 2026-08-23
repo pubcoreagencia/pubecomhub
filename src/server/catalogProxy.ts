@@ -31,7 +31,7 @@ export async function validateSupabaseCaller(request: Request, envObj?: Record<s
     };
   }
 
-  const creds = getSupabaseCredentials();
+  const creds = getSupabaseCredentials(request);
   const supabaseUrl = envObj?.['SUPABASE_URL'] || creds.url;
   const supabaseKey = envObj?.['SUPABASE_SERVICE_ROLE_KEY'] || envObj?.['SUPABASE_PUBLISHABLE_KEY'] || creds.key;
 
@@ -86,6 +86,30 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
   const url = new URL(request.url);
   const pathname = url.pathname;
 
+  if (env) {
+    setServerEnv(env);
+  }
+
+  // Safe diagnostic endpoint for verifying runtime bindings (never leaks secret value)
+  if (pathname === '/api/catalog/health') {
+    const token = getCatalogWorkerToken(request);
+    const creds = getSupabaseCredentials(request);
+    const workerUrl = getCatalogWorkerUrl(request);
+    return new Response(
+      JSON.stringify({
+        status: 'ok',
+        CATALOG_WORKER_TOKEN_PRESENT: Boolean(token && token.length > 0),
+        CATALOG_WORKER_URL_PRESENT: Boolean(workerUrl && workerUrl.length > 0),
+        SUPABASE_URL_PRESENT: Boolean(creds.url && creds.url.length > 0),
+        SUPABASE_KEY_PRESENT: Boolean(creds.key && creds.key.length > 0),
+      }),
+      {
+        status: 200,
+        headers: { 'content-type': 'application/json; charset=utf-8' },
+      }
+    );
+  }
+
   let targetPath: string | null = null;
 
   if (pathname.startsWith('/api/catalog/')) {
@@ -102,11 +126,7 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
     return null;
   }
 
-  if (env) {
-    setServerEnv(env);
-  }
-
-  const envObj = getServerEnv();
+  const envObj = getServerEnv(request);
 
   // 1. Authenticate caller with Supabase
   const auth = await validateSupabaseCaller(request, envObj);
@@ -158,7 +178,7 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
         );
       }
 
-      const creds = getSupabaseCredentials();
+      const creds = getSupabaseCredentials(request);
       const supabaseUrl = envObj['SUPABASE_URL'] || creds.url;
       const supabaseKey = envObj['SUPABASE_SERVICE_ROLE_KEY'] || envObj['SUPABASE_PUBLISHABLE_KEY'] || creds.key;
 
@@ -199,8 +219,8 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
   }
 
   // 3. Load server-side Catalog Worker Token
-  const workerUrl = getCatalogWorkerUrl();
-  const workerToken = getCatalogWorkerToken();
+  const workerUrl = getCatalogWorkerUrl(request);
+  const workerToken = getCatalogWorkerToken(request);
 
   if (!workerToken) {
     const errorMsg = 'Catalog API: CATALOG_WORKER_TOKEN não configurado no servidor. O Ingestion Engine requer este segredo para operar.';

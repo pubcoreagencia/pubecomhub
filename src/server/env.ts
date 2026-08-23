@@ -1,6 +1,6 @@
 /**
  * Centralized Server-Side Environment & Secrets Resolver
- * Safely accesses Cloudflare Workers bindings (env) and process.env
+ * Safely accesses Cloudflare Workers bindings (env), globalThis.__env__, and process.env
  */
 
 let globalServerEnv: Record<string, any> = {};
@@ -18,16 +18,30 @@ export function setServerEnv(env: unknown) {
   }
 }
 
-export function getServerEnv(): Record<string, any> {
+export function getServerEnv(request?: Request): Record<string, any> {
   const procEnv = (typeof process !== 'undefined' && process.env) ? process.env : {};
+  const gThis = (typeof globalThis !== 'undefined') ? (globalThis as Record<string, any>) : {};
+  
+  // Nitro stores the Cloudflare env on globalThis.__env__
+  const nitroEnv = (typeof gThis.__env__ === 'object' && gThis.__env__ !== null) ? gThis.__env__ : {};
+  const directGlobalEnv = (typeof gThis.env === 'object' && gThis.env !== null) ? gThis.env : {};
+  
+  // Request-attached Cloudflare context
+  const reqRuntimeEnv = (request && (request as any).runtime?.cloudflare?.env) || {};
+  const reqEnv = (request && (request as any).env) || {};
+
   return {
     ...procEnv,
+    ...nitroEnv,
+    ...directGlobalEnv,
     ...globalServerEnv,
+    ...reqRuntimeEnv,
+    ...reqEnv,
   };
 }
 
-export function getCatalogWorkerToken(): string {
-  const env = getServerEnv();
+export function getCatalogWorkerToken(request?: Request): string {
+  const env = getServerEnv(request);
   return (
     env['CATALOG_WORKER_TOKEN'] ||
     env['VITE_CATALOG_API_TOKEN'] ||
@@ -35,8 +49,8 @@ export function getCatalogWorkerToken(): string {
   ).trim();
 }
 
-export function getCatalogWorkerUrl(): string {
-  const env = getServerEnv();
+export function getCatalogWorkerUrl(request?: Request): string {
+  const env = getServerEnv(request);
   return (
     env['CATALOG_WORKER_URL'] ||
     env['VITE_CATALOG_API_URL'] ||
@@ -44,8 +58,8 @@ export function getCatalogWorkerUrl(): string {
   ).replace(/\/+$/, '');
 }
 
-export function getSupabaseCredentials(): { url: string; key: string } {
-  const env = getServerEnv();
+export function getSupabaseCredentials(request?: Request): { url: string; key: string } {
+  const env = getServerEnv(request);
   const url = env['SUPABASE_URL'] || env['VITE_SUPABASE_URL'] || '';
   const key = (
     env['SUPABASE_SERVICE_ROLE_KEY'] ||
