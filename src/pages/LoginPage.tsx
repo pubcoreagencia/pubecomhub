@@ -18,8 +18,10 @@ export const LoginPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let isMounted = true;
     // Check if session already exists and is valid on the official Supabase
-    supabase.auth.getSession().then(async ({ data }) => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!isMounted) return;
       const session = data?.session;
       if (session?.user && session.access_token) {
         try {
@@ -36,13 +38,15 @@ export const LoginPage = () => {
             }
           }
         } catch {}
-        // Stale or non-official session -> clear it
-        await supabase.auth.signOut();
       }
       setCheckingSession(false);
     }).catch(() => {
-      setCheckingSession(false);
+      if (isMounted) setCheckingSession(false);
     });
+
+    return () => {
+      isMounted = false;
+    };
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {

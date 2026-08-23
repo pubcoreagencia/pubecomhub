@@ -52,7 +52,7 @@ export const DashboardGuard = () => {
     checkAuth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
+      if (event === 'SIGNED_OUT') {
         if (isMounted) {
           navigate({ to: '/login' });
         }
