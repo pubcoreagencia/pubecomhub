@@ -11,6 +11,6 @@
   border-color: var(--hub-primary)/30;
 }
 
-.outline-text-emerald {
+.outline-text-red {
   -webkit-text-stroke: 1px var(--hub-primary);
 }
