@@ -1,14 +1,11 @@
 import { supabaseAdmin } from './integrations/supabase/client.server';
-import { crypto } from 'crypto';
+import { randomBytes } from 'crypto';
 import * as fs from 'fs';
 
 async function executeReset() {
   const email = 'contato.pubcore@gmail.com';
   // Gere uma senha temporária forte e aleatória
-  const tempPassword = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-    .map(b => b.toString(36))
-    .join('')
-    .substring(0, 16) + 'A1!'; 
+  const tempPassword = randomBytes(12).toString('base64').substring(0, 16) + 'A1!'; 
 
   console.log('--- EXECUÇÃO DE RESET MASTER ---');
   
