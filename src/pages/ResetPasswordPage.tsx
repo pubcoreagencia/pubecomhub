@@ -91,26 +91,26 @@ export const ResetPasswordPage = () => {
 
   if (!ready) {
     return (
-      <div className="min-h-screen bg-[#020817] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-red-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#020817] text-white flex items-center justify-center p-4 selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4 selection:bg-red-500/30">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 mb-2">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-600/20 mb-2">
             <CircleDollarSign className="h-7 w-7" />
           </div>
           <h1 className="text-2xl font-black tracking-tight text-white uppercase italic">PUB ECOM</h1>
-          <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest">
+          <p className="text-xs font-bold text-red-500 uppercase tracking-widest">
             Redefinição de Senha
           </p>
         </div>
 
-        <Card className="bg-[#0a0f1d] border-emerald-500/20 shadow-2xl">
+        <Card className="bg-black border-red-500/20 shadow-2xl shadow-red-500/5">
           <CardHeader className="space-y-1">
             <CardTitle className="text-lg font-black uppercase tracking-wider text-white">Criar Nova Senha</CardTitle>
             <CardDescription className="text-xs text-slate-400">
@@ -120,7 +120,7 @@ export const ResetPasswordPage = () => {
           <CardContent>
             {success ? (
               <div className="text-center space-y-4 py-4">
-                <div className="mx-auto w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                <div className="mx-auto w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-400">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <h3 className="text-base font-bold text-white">Senha Redefinida!</h3>
@@ -138,7 +138,7 @@ export const ResetPasswordPage = () => {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       disabled={loading}
-                      className="pl-10 bg-black/50 border-slate-800 text-white focus:border-emerald-500 h-11"
+                      className="pl-10 bg-black/50 border-slate-800 text-white focus:border-red-500 h-11"
                       autoComplete="new-password"
                       required
                     />
@@ -155,7 +155,7 @@ export const ResetPasswordPage = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       disabled={loading}
-                      className="pl-10 bg-black/50 border-slate-800 text-white focus:border-emerald-500 h-11"
+                      className="pl-10 bg-black/50 border-slate-800 text-white focus:border-red-500 h-11"
                       autoComplete="new-password"
                       required
                     />
@@ -172,7 +172,7 @@ export const ResetPasswordPage = () => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-11 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-xs shadow-lg shadow-emerald-500/10 mt-2 cursor-pointer"
+                  className="w-full h-11 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-widest text-xs shadow-lg shadow-red-600/10 mt-2 cursor-pointer"
                 >
                   {loading ? (
                     <>
