@@ -18,13 +18,10 @@ async function testLogin() {
   
   if (error) {
     console.error('[Diagnostic] FALHA NO LOGIN:', error.message);
-    if (error.message.includes('Invalid login credentials')) {
-      console.log('[Diagnostic] Dica: A senha não coincide com o que está no banco oficial.');
-    }
   } else {
     console.log('[Diagnostic] SUCESSO NO LOGIN!');
     console.log('[Diagnostic] User ID:', data.user?.id);
-    if (data.session) {
+    if (data.session?.expires_at) {
       console.log('[Diagnostic] Session active until:', new Date(data.session.expires_at * 1000).toISOString());
     }
   }
