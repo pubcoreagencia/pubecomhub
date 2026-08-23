@@ -85,7 +85,7 @@ export default function StoreDetailPage() {
     return (
       <Shell>
         <div className="flex items-center justify-center min-h-[400px]">
-          <RefreshCw className="h-8 w-8 text-emerald-500 animate-spin" />
+          <RefreshCw className="h-8 w-8 text-red-500 animate-spin" />
         </div>
       </Shell>
     );
@@ -120,7 +120,7 @@ export default function StoreDetailPage() {
                 <h1 className="text-2xl font-black text-white italic">{store.name}</h1>
                 <span className={cn(
                   "px-2 py-0.5 rounded-[4px] text-[8px] font-black uppercase",
-                  store.status === 'active' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'
+                  store.status === 'active' ? 'bg-red-500/20 text-red-500' : 'bg-red-500/20 text-red-500'
                 )}>
                   {store.status}
                 </span>
@@ -146,30 +146,30 @@ export default function StoreDetailPage() {
 
         {/* Sync Summary Alert */}
         {syncResult && (
-          <div className="hub-card border-emerald-500/30 bg-emerald-500/5 p-6 space-y-4 animate-in fade-in slide-in-from-top-4">
-            <div className="flex items-center gap-3 text-emerald-500">
+          <div className="hub-card border-red-500/30 bg-red-500/5 p-6 space-y-4 animate-in fade-in slide-in-from-top-4">
+            <div className="flex items-center gap-3 text-red-500">
               <CheckCircle className="h-5 w-5" />
               <h3 className="text-sm font-black uppercase tracking-widest">Resultado da Sincronização Real</h3>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div>
-                <p className="text-[9px] text-emerald-500/60 font-black uppercase tracking-widest">Encontrados</p>
+                <p className="text-[9px] text-red-500/60 font-black uppercase tracking-widest">Encontrados</p>
                 <p className="text-xl font-black text-white italic">{syncResult.productsFound}</p>
               </div>
               <div>
-                <p className="text-[9px] text-emerald-500/60 font-black uppercase tracking-widest">Criados</p>
+                <p className="text-[9px] text-red-500/60 font-black uppercase tracking-widest">Criados</p>
                 <p className="text-xl font-black text-white italic">{syncResult.created}</p>
               </div>
               <div>
-                <p className="text-[9px] text-emerald-500/60 font-black uppercase tracking-widest">Atualizados</p>
+                <p className="text-[9px] text-red-500/60 font-black uppercase tracking-widest">Atualizados</p>
                 <p className="text-xl font-black text-white italic">{syncResult.updated}</p>
               </div>
               <div>
-                <p className="text-[9px] text-emerald-500/60 font-black uppercase tracking-widest">Falhas</p>
+                <p className="text-[9px] text-red-500/60 font-black uppercase tracking-widest">Falhas</p>
                 <p className="text-xl font-black text-red-500 italic">{syncResult.failed}</p>
               </div>
               <div>
-                <p className="text-[9px] text-emerald-500/60 font-black uppercase tracking-widest">Duração</p>
+                <p className="text-[9px] text-red-500/60 font-black uppercase tracking-widest">Duração</p>
                 <p className="text-xl font-black text-white italic">{(syncResult.duration / 1000).toFixed(1)}s</p>
               </div>
             </div>
@@ -188,7 +188,7 @@ export default function StoreDetailPage() {
             <p className="text-[9px] text-[var(--hub-muted)] font-black uppercase tracking-widest">Estado Sync</p>
             <p className={cn(
               "text-2xl font-black italic",
-              store.syncState === 'success' ? 'text-emerald-500' : 
+              store.syncState === 'success' ? 'text-red-500' : 
               store.syncState === 'running' ? 'text-blue-500' : 'text-white'
             )}>
               {store.syncState}

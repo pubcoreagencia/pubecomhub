@@ -177,7 +177,7 @@ export const CatalogIngestion = () => {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center py-2 border-b border-[var(--hub-border)]/30">
                   <span className="text-[10px] font-bold text-[var(--hub-muted)] uppercase">Status</span>
-                  <Badge className={status === 'running' ? 'bg-blue-500/20 text-blue-400' : status === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}>
+                  <Badge className={status === 'running' ? 'bg-blue-500/20 text-blue-400' : status === 'success' ? 'bg-red-500/20 text-red-400' : 'bg-slate-500/20 text-slate-400'}>
                     {status.toUpperCase()}
                   </Badge>
                 </div>
@@ -189,7 +189,7 @@ export const CatalogIngestion = () => {
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-[var(--hub-border)]/30">
                       <span className="text-[10px] font-bold text-[var(--hub-muted)] uppercase">Novos Criados</span>
-                      <span className="text-sm font-black text-emerald-400">{result.created}</span>
+                      <span className="text-sm font-black text-red-400">{result.created}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-[var(--hub-border)]/30">
                       <span className="text-[10px] font-bold text-[var(--hub-muted)] uppercase">Atualizados</span>

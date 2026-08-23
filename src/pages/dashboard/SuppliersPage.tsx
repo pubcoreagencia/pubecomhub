@@ -25,7 +25,7 @@ export default function SuppliersPage() {
             <tr key={i}>
               <td className="px-5 py-4 font-bold text-white">{s.name}</td>
               <td className="px-5 py-4 text-[var(--hub-muted)]">{s.category}</td>
-              <td className="px-5 py-4 text-emerald-500 font-bold">{s.status}</td>
+              <td className="px-5 py-4 text-red-500 font-bold">{s.status}</td>
               <td className="px-5 py-4 text-white">{s.products}</td>
               <td className="px-5 py-4 text-[var(--hub-primary)]">Gerenciar</td>
             </tr>

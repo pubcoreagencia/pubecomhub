@@ -34,7 +34,7 @@ export function CardMetric({ label, value, trend, trendType, subtext, icon: Icon
             <span className={cn(
               "text-[10px] font-black flex items-center gap-1 px-2 py-0.5 rounded bg-black/40 border border-[var(--hub-border)]",
               trendType === 'up' && "text-[var(--hub-primary)] border-[var(--hub-primary)]/20",
-              trendType === 'down' && "text-red-500 border-red-500/20",
+              trendType === 'down' && "text-orange-500 border-orange-500/20",
               trendType === 'neutral' && "text-[var(--hub-muted)]"
             )}>
               {trendType === 'up' && <TrendingUp className="h-3 w-3" />}

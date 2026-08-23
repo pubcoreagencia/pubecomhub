@@ -38,7 +38,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h2 className="text-[12px] font-black uppercase tracking-[0.4em] text-white italic">Master Catalog Performance</h2>
-            {loading && <RefreshCw className="h-4 w-4 text-emerald-500 animate-spin" />}
+            {loading && <RefreshCw className="h-4 w-4 text-red-500 animate-spin" />}
           </div>
           <button 
             onClick={fetchStats}
@@ -115,7 +115,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex-1 space-y-3 pt-2">
                         {[
-                            { label: 'Sucesso', val: stats?.stats.sync.success || 0, color: 'bg-emerald-500' },
+                            { label: 'Sucesso', val: stats?.stats.sync.success || 0, color: 'bg-red-500' },
                             { label: 'Processando', val: stats?.stats.sync.running || 0, color: 'bg-blue-500' },
                             { label: 'Parcial', val: stats?.stats.sync.partial || 0, color: 'bg-yellow-500' },
                             { label: 'Erro', val: stats?.stats.sync.error || 0, color: 'bg-red-500' }
@@ -155,8 +155,8 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between mb-8">
                     <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-white">Catalog Sync Stream</h4>
                     <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">REALTIME</span>
+                    <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+                    <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">REALTIME</span>
                     </div>
                 </div>
                 <div className="space-y-4">

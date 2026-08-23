@@ -61,7 +61,7 @@ export default function StoresPage() {
                 <td className="px-5 py-4 font-black text-white">{loja.productCount}</td>
                 <td className="px-5 py-4 text-[var(--hub-muted)]">
                     <div className="flex items-center gap-2">
-                        {loja.syncState === 'success' && <CheckCircle className="h-3 w-3 text-emerald-500" />}
+                        {loja.syncState === 'success' && <CheckCircle className="h-3 w-3 text-red-500" />}
                         {loja.syncState === 'failed' && <AlertCircle className="h-3 w-3 text-red-500" />}
                         {loja.syncState === 'running' && <RefreshCw className="h-3 w-3 text-blue-500 animate-spin" />}
                         {loja.syncState}

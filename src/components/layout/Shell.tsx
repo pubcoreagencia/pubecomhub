@@ -75,12 +75,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <aside className="hub-sidebar w-[var(--hub-sidebar-width)] flex flex-col z-50 shrink-0">
         <div className="p-8 border-b border-[var(--hub-border)]/50">
           <Link to="/dashboard" className="flex items-center gap-4 group">
-            <div className="h-10 w-10 hub-bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-[var(--hub-primary)]/20 transition-transform group-hover:scale-105">
-              <CircleDollarSign className="h-6 w-6 text-black" />
+            <div className="h-10 w-10 bg-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-600/20 transition-transform group-hover:scale-105">
+              <CircleDollarSign className="h-6 w-6 text-white" />
             </div>
             <div>
               <span className="text-xl font-black tracking-tighter text-white block leading-none">PUB ECOM</span>
-              <span className="text-[10px] font-black hub-text-primary tracking-[0.2em] uppercase mt-1 block">Master Operation</span>
+              <span className="text-[10px] font-black text-red-500 tracking-[0.2em] uppercase mt-1 block">Master Operation</span>
             </div>
           </Link>
         </div>
@@ -173,7 +173,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 <div className="h-1.5 w-1.5 rounded-full bg-[var(--hub-primary)]" />
                 1.284 ONLINE
              </div>
-             <Button className="h-10 rounded-xl hub-bg-primary hover:opacity-90 text-black text-[11px] font-black uppercase tracking-[0.2em] px-6 shadow-lg shadow-[var(--hub-primary)]/20">
+             <Button className="h-10 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[11px] font-black uppercase tracking-[0.2em] px-6 shadow-lg shadow-red-600/20">
                 Novo Lojista
              </Button>
              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl border border-[var(--hub-border)] text-[var(--hub-muted)] hover:text-white hover:bg-white/5 relative">
