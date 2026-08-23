@@ -1,9 +1,3 @@
-/**
- * PASSWORD UPDATED
- * USER: admin@pubcore.com
- * ROLE: MASTER
- * STATUS: ACTIVE
- */
 import { createFileRoute } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
