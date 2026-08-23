@@ -105,3 +105,7 @@
     font-family: var(--font-sans);
   }
 }
+
+#lovable-badge {
+  display: none !important;
+}
