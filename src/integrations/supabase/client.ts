@@ -31,17 +31,25 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 function cleanStaleStorage() {
   if (typeof window === 'undefined') return;
   try {
+    // Only clean session keys that are definitely not related to the current Supabase project URL
+    const SUPABASE_URL = import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'];
+    if (!SUPABASE_URL) return;
+    
+    // Extract project ID from URL (e.g., https://xyz.supabase.co -> xyz)
+    const currentProjectId = SUPABASE_URL.split('.')[0].split('//')[1];
+    
     const keysToRemove: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
-        if (!key.includes('vtcnundfslqqlxdyrogv')) {
+        // If it's a supabase auth key but doesn't match current project OR the temporary one, remove it
+        if (!key.includes(currentProjectId) && !key.includes('vtcnundfslqqlxdyrogv')) {
           keysToRemove.push(key);
         }
       }
     }
     keysToRemove.forEach((k) => {
-      console.warn(`[SupabaseAuth] Limpando chave de sessão não-oficial: ${k}`);
+      console.warn(`[SupabaseAuth] Limpando chave de sessão de projeto diferente: ${k}`);
       localStorage.removeItem(k);
     });
   } catch {}
