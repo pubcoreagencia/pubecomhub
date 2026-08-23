@@ -20,6 +20,7 @@ CREATE TABLE public.master_products (
 GRANT SELECT ON public.master_products TO authenticated;
 GRANT ALL ON public.master_products TO service_role;
 ALTER TABLE public.master_products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.suppliers ADD COLUMN IF NOT EXISTS profile_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL;
 CREATE POLICY "Master products are viewable by all authenticated users" ON public.master_products FOR SELECT TO authenticated USING (
     EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'MASTER')
     OR (

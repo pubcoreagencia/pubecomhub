@@ -60,6 +60,9 @@ CREATE OR REPLACE FUNCTION public.prevent_role_escalation()
 RETURNS TRIGGER AS $$
 BEGIN
   IF NEW.role IS DISTINCT FROM OLD.role THEN
+    IF current_user IN ('postgres', 'supabase_admin', 'supabase_auth_admin', 'service_role') THEN
+      RETURN NEW;
+    END IF;
     IF NOT public.is_master() THEN
       RAISE EXCEPTION 'Forbidden: Only MASTER administrators can change user roles.';
     END IF;
@@ -68,6 +71,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
+DROP TRIGGER IF EXISTS prevent_role_escalation_trigger ON public.profiles;
 DROP TRIGGER IF EXISTS trg_prevent_role_escalation ON public.profiles;
 CREATE TRIGGER trg_prevent_role_escalation
 BEFORE UPDATE ON public.profiles
@@ -77,12 +81,21 @@ FOR EACH ROW EXECUTE FUNCTION public.prevent_role_escalation();
 CREATE OR REPLACE FUNCTION public.enforce_profile_insert_role()
 RETURNS TRIGGER AS $$
 BEGIN
+  IF current_user IN ('postgres', 'supabase_admin', 'supabase_auth_admin', 'service_role') THEN
+    RETURN NEW;
+  END IF;
   IF NOT public.is_master() THEN
     NEW.role := 'LOJISTA';
   END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+DROP TRIGGER IF EXISTS enforce_profile_insert_role_trigger ON public.profiles;
+DROP TRIGGER IF EXISTS trg_enforce_profile_insert_role ON public.profiles;
+CREATE TRIGGER trg_enforce_profile_insert_role
+BEFORE INSERT ON public.profiles
+FOR EACH ROW EXECUTE FUNCTION public.enforce_profile_insert_role();
 
 DROP TRIGGER IF EXISTS trg_enforce_profile_insert_role ON public.profiles;
 CREATE TRIGGER trg_enforce_profile_insert_role
@@ -173,6 +186,7 @@ WITH CHECK (
 );
 
 -- Commercial view: restricted to authenticated users, only exposing suppliers with active products
+DROP VIEW IF EXISTS public.public_suppliers CASCADE;
 CREATE OR REPLACE VIEW public.public_suppliers WITH (security_invoker = false) AS
 SELECT DISTINCT
     s.id,
@@ -224,6 +238,7 @@ WITH CHECK (
     )
 );
 
+DROP VIEW IF EXISTS public.available_master_products CASCADE;
 CREATE OR REPLACE VIEW public.available_master_products WITH (security_invoker = false) AS
 SELECT 
     id,
@@ -271,6 +286,7 @@ WITH CHECK (
     OR public.is_master()
 );
 
+DROP VIEW IF EXISTS public.public_store_products CASCADE;
 CREATE OR REPLACE VIEW public.public_store_products WITH (security_invoker = false) AS
 SELECT 
     id,

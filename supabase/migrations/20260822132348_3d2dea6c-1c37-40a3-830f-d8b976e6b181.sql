@@ -61,6 +61,10 @@ CREATE TRIGGER enforce_profile_insert_role_trigger
   EXECUTE FUNCTION public.enforce_profile_insert_role();
 
 DROP POLICY IF EXISTS "Authenticated users can view customers" ON public.customers;
+DROP POLICY IF EXISTS "Customers select policy" ON public.customers;
+DROP POLICY IF EXISTS "Customers insert policy" ON public.customers;
+DROP POLICY IF EXISTS "Customers update policy" ON public.customers;
+DROP POLICY IF EXISTS "Customers delete policy" ON public.customers;
 
 CREATE POLICY "Customers select policy"
 ON public.customers
@@ -109,6 +113,10 @@ TO authenticated
 USING (public.is_master());
 
 DROP POLICY IF EXISTS "Authenticated users can manage marketing events" ON public.marketing_events;
+DROP POLICY IF EXISTS "Marketing events select policy" ON public.marketing_events;
+DROP POLICY IF EXISTS "Marketing events insert policy" ON public.marketing_events;
+DROP POLICY IF EXISTS "Marketing events update policy" ON public.marketing_events;
+DROP POLICY IF EXISTS "Marketing events delete policy" ON public.marketing_events;
 
 CREATE POLICY "Marketing events select policy"
 ON public.marketing_events
@@ -152,6 +160,13 @@ ALTER TABLE public.suppliers
   ADD COLUMN IF NOT EXISTS profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL;
 
 DROP POLICY IF EXISTS "Authenticated users can view suppliers" ON public.suppliers;
+DROP POLICY IF EXISTS "Authorized users can view suppliers" ON public.suppliers;
+DROP POLICY IF EXISTS "Master and suppliers can manage suppliers" ON public.suppliers;
+DROP POLICY IF EXISTS "Suppliers base table select policy" ON public.suppliers;
+DROP POLICY IF EXISTS "Suppliers base table insert policy" ON public.suppliers;
+DROP POLICY IF EXISTS "Suppliers base table update policy" ON public.suppliers;
+DROP POLICY IF EXISTS "Suppliers base table delete policy" ON public.suppliers;
+DROP POLICY IF EXISTS "Suppliers base table access policy" ON public.suppliers;
 
 CREATE POLICY "Suppliers base table access policy"
 ON public.suppliers
@@ -171,6 +186,7 @@ WITH CHECK (
   OR (profile_id IS NOT NULL AND profile_id = auth.uid())
 );
 
+DROP VIEW IF EXISTS public.public_suppliers CASCADE;
 CREATE OR REPLACE VIEW public.public_suppliers
 WITH (security_invoker = false) AS
 SELECT DISTINCT s.id, s.name, s.category, s.created_at
@@ -182,6 +198,9 @@ REVOKE ALL ON public.public_suppliers FROM anon, public;
 GRANT SELECT ON public.public_suppliers TO authenticated;
 
 DROP POLICY IF EXISTS "Master products are viewable by all authenticated users" ON public.master_products;
+DROP POLICY IF EXISTS "Master and suppliers can view full master products" ON public.master_products;
+DROP POLICY IF EXISTS "Master and suppliers can manage master products" ON public.master_products;
+DROP POLICY IF EXISTS "Master products base table policy" ON public.master_products;
 
 CREATE POLICY "Master products base table policy"
 ON public.master_products
@@ -202,6 +221,7 @@ WITH CHECK (
   ))
 );
 
+DROP VIEW IF EXISTS public.available_master_products CASCADE;
 CREATE OR REPLACE VIEW public.available_master_products
 WITH (security_invoker = false) AS
 SELECT
@@ -220,6 +240,7 @@ GRANT SELECT ON public.available_master_products TO authenticated;
 
 DROP POLICY IF EXISTS "Public can view products" ON public.products;
 DROP POLICY IF EXISTS "Store owners can manage products" ON public.products;
+DROP POLICY IF EXISTS "Store products base policy" ON public.products;
 
 CREATE POLICY "Store products base policy"
 ON public.products
@@ -240,6 +261,7 @@ WITH CHECK (
   OR public.is_master()
 );
 
+DROP VIEW IF EXISTS public.public_store_products CASCADE;
 CREATE OR REPLACE VIEW public.public_store_products
 WITH (security_invoker = false) AS
 SELECT
