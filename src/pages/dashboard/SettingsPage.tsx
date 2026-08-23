@@ -9,16 +9,60 @@ import {
   Lock, 
   CreditCard,
   Check,
-  ChevronRight
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Loader2
 } from 'lucide-react';
 import { Shell } from '@/components/layout/Shell';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useServerFn } from '@tanstack/react-start';
+import { updateMasterPassword } from '@/lib/api/auth-admin.functions';
+import { toast } from 'sonner';
 
 export default function SettingsPage() {
+  const [activeTab, setActiveTab] = React.useState('Geral');
+  const [showNewPassword, setShowNewPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [newPassword, setNewPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [isUpdating, setIsUpdating] = React.useState(false);
+
+  const updatePasswordFn = useServerFn(updateMasterPassword);
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword.length < 8) {
+      toast.error("A senha deve ter pelo menos 8 caracteres.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("As senhas não coincidem.");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await updatePasswordFn({ data: { newPassword } });
+      toast.success("Senha alterada com sucesso!");
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      console.error('Update password error:', error);
+      toast.error(error.message || "Erro ao alterar a senha.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const sections = [
     {
+      id: 'Geral',
       title: "Geral",
       icon: Globe,
       settings: [
@@ -28,6 +72,7 @@ export default function SettingsPage() {
       ]
     },
     {
+      id: 'Segurança',
       title: "Segurança & API",
       icon: Shield,
       settings: [
@@ -37,6 +82,7 @@ export default function SettingsPage() {
       ]
     },
     {
+      id: 'Notificações',
       title: "Notificações",
       icon: Bell,
       settings: [
@@ -65,24 +111,25 @@ export default function SettingsPage() {
           <div className="lg:col-span-1 space-y-6">
             <div className="hub-card hub-gradient-border p-2 bg-black/20">
               {[
-                { label: 'Geral', icon: Globe, active: true },
-                { label: 'Faturamento', icon: CreditCard },
-                { label: 'Equipe', icon: Database },
-                { label: 'Integrações', icon: Zap },
-                { label: 'Segurança', icon: Lock }
+                { id: 'Geral', label: 'Geral', icon: Globe },
+                { id: 'Faturamento', label: 'Faturamento', icon: CreditCard },
+                { id: 'Equipe', label: 'Equipe', icon: Database },
+                { id: 'Integrações', label: 'Integrações', icon: Zap },
+                { id: 'Segurança', label: 'Segurança', icon: Lock }
               ].map((item, i) => (
                 <button 
                   key={i} 
+                  onClick={() => setActiveTab(item.id)}
                   className={cn(
                     "w-full flex items-center justify-between p-4 rounded-xl transition-all group",
-                    item.active ? "bg-white/5 text-white border border-white/10" : "hover:bg-white/5 text-[var(--hub-muted)]"
+                    activeTab === item.id ? "bg-white/5 text-white border border-white/10" : "hover:bg-white/5 text-[var(--hub-muted)]"
                   )}
                 >
                   <div className="flex items-center gap-4">
-                    <item.icon className={cn("h-4 w-4", item.active ? "text-[var(--hub-primary)]" : "opacity-40")} />
+                    <item.icon className={cn("h-4 w-4", activeTab === item.id ? "text-[var(--hub-primary)]" : "opacity-40")} />
                     <span className="text-[10px] font-black uppercase tracking-[0.2em]">{item.label}</span>
                   </div>
-                  {!item.active && <ChevronRight className="h-4 w-4 opacity-10 group-hover:opacity-40" />}
+                  {activeTab !== item.id && <ChevronRight className="h-4 w-4 opacity-10 group-hover:opacity-40" />}
                 </button>
               ))}
             </div>
@@ -99,7 +146,76 @@ export default function SettingsPage() {
           </div>
 
           <div className="lg:col-span-2 space-y-8">
-            {sections.map((section, i) => (
+            {activeTab === 'Segurança' && (
+              <div className="hub-card hub-gradient-border overflow-hidden bg-black/20">
+                <div className="px-10 py-6 border-b border-[var(--hub-border)] bg-black/40 flex items-center gap-4">
+                  <div className="h-8 w-8 rounded-lg bg-black/40 border border-[var(--hub-border)] flex items-center justify-center">
+                    <Lock className="h-4 w-4 text-[var(--hub-muted)]" />
+                  </div>
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-white italic">Alterar Senha Master</h3>
+                </div>
+                <div className="p-10">
+                  <form onSubmit={handlePasswordUpdate} className="space-y-6 max-w-md">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-white uppercase tracking-tighter italic">Nova Senha</label>
+                      <div className="relative">
+                        <Input 
+                          type={showNewPassword ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Mínimo 8 caracteres"
+                          className="bg-black/40 border-[var(--hub-border)] text-white h-12 rounded-xl"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--hub-muted)] hover:text-white transition-colors"
+                        >
+                          {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-white uppercase tracking-tighter italic">Confirmar Nova Senha</label>
+                      <div className="relative">
+                        <Input 
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Repita a nova senha"
+                          className="bg-black/40 border-[var(--hub-border)] text-white h-12 rounded-xl"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--hub-muted)] hover:text-white transition-colors"
+                        >
+                          {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+                    <Button 
+                      type="submit" 
+                      disabled={isUpdating}
+                      className="w-full h-12 hub-bg-primary hover:opacity-90 text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-[var(--hub-primary)]/20 rounded-xl"
+                    >
+                      {isUpdating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Atualizando...
+                        </>
+                      ) : (
+                        "Atualizar Senha Definitiva"
+                      )}
+                    </Button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {sections.filter(s => activeTab === 'Geral' ? s.id === 'Geral' : (activeTab === 'Segurança' ? s.id === 'Segurança' : s.id === activeTab)).map((section, i) => (
               <div key={i} className="hub-card hub-gradient-border overflow-hidden bg-black/20">
                 <div className="px-10 py-6 border-b border-[var(--hub-border)] bg-black/40 flex items-center gap-4">
                   <div className="h-8 w-8 rounded-lg bg-black/40 border border-[var(--hub-border)] flex items-center justify-center">

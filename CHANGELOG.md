@@ -1,9 +1,12 @@
 # Changelog - PUB ECOM HUB
 
-## [1.7.5] - 2026-08-23
+## [1.8.0] - 2026-08-23
+### Adicionado
+- **Segurança Master**: Implementada funcionalidade de alteração de senha definitiva para a conta MASTER diretamente via interface de configurações.
+- **Server Functions**: Criada `updateMasterPassword` utilizando `supabaseAdmin` para garantir o reset mesmo sob restrições de política do GoTrue.
 ### Alterado
-- **Migração Supabase**: Removidas restrições de ID de projeto hardcoded em `LoginPage.tsx`, `catalog.ts` e `supabase/client.ts` para permitir a transição para o Supabase oficial.
-- **Segurança Auth**: Generalizada a validação de issuer do token JWT para suportar URLs dinâmicas do Supabase.
+- **Dashboard Settings**: Nova seção de "Segurança" adicionada à `SettingsPage.tsx` com formulário de alteração de senha e feedback visual via `sonner`.
+- **Migração Supabase**: Removidas restrições de ID de projeto hardcoded em `LoginPage.tsx`, `catalog.ts` e `supabase/client.ts`.
 
 ## [1.7.4] - 2026-08-23
 ### Corrigido
