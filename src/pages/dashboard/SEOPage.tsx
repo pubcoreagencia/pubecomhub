@@ -51,7 +51,7 @@ export default function SEOPage() {
                   <td className="px-8 py-5 text-center">
                     <span className={cn(
                       "text-[9px] font-black uppercase tracking-widest",
-                      k.trend.startsWith('+') ? "text-emerald-500" : "text-rose-500"
+                      k.trend.startsWith('+') ? "text-red-500" : "text-rose-500"
                     )}>{k.trend}</span>
                   </td>
                 </tr>
