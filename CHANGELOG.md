@@ -43,21 +43,16 @@
 
 ...
 
-## [2026-08-23] - Segurança e Acesso Administrativo
-- **Fix**: Impedido que usuários alterem a própria role via RLS na tabela `profiles`.
-- **Hardening**: Restrita permissão de execução da função `has_role` para `service_role`.
-- **Fix**: Configurada `security_invoker = true` em views sensíveis para evitar vazamento de dados via planejador de consulta.
-- **UI**: Atualizado e-mail padrão de login para `contato.pubcore@gmail.com`.
-- **Docs**: Atualizado `PROJECT_CONTEXT.md` com as novas credenciais e baseline de segurança.
+## [1.7.3] - 2026-08-23
+### Segurança
+- **Hardening Final (RLS & SQL Functions)**: 
+  - Revogada permissão de execução (`EXECUTE`) das funções `is_master()`, `has_role()` e `prevent_role_escalation()` para `PUBLIC` e `authenticated`, restringindo ao `service_role` e `postgres`.
+  - Configurado `security_invoker = true` nas views `available_master_products`, `public_store_products` e `public_suppliers`, garantindo conformidade com PostgreSQL 15+ e aplicação correta de RLS em sub-consultas.
+  - Endurecida política de `UPDATE` na tabela `profiles` com cláusula `WITH CHECK` para impedir alteração de `role` mesmo se o trigger falhar.
+- **SSRF Protection**: Auditado `urlValidator.ts` e `catalogProxy.ts` confirmando validação de domínio e bloqueio de IPs privados em operações de backend.
+- **Autorização TanStack**: Validado `DashboardGuard` para acesso exclusivo `MASTER` e `catalogProxy` com autorização multi-nível (MASTER global, LOJISTA proprietário).
 
-## [2026-08-23] - Segurança e Acesso Administrativo
-- **Fix**: Impedido que usuários alterem a própria role via RLS na tabela `profiles`.
-- **Hardening**: Restrita permissão de execução da função `has_role` para `service_role`.
-- **Fix**: Configurada `security_invoker = true` em views sensíveis para evitar vazamento de dados via planejador de consulta.
-- **UI**: Atualizado e-mail padrão de login para `contato.pubcore@gmail.com`.
-- **Docs**: Atualizado `PROJECT_CONTEXT.md` com as novas credenciais e baseline de segurança.
+### UI/UX
+- **Auth**: Atualizados placeholders e labels de login para refletir o usuário master oficial `contato.pubcore@gmail.com`.
+- **Docs**: Atualizado `PROJECT_CONTEXT.md` com o baseline de segurança validado e credenciais oficiais.
 
-## [2026-08-23] - Hardening de Segurança (Sprint Final)
-- **Fix (Lint 0029)**: Revogada permissão de execução da função `is_master()` para usuários `authenticated` e `PUBLIC`.
-- **Security**: Restrita permissão de execução da função `prevent_role_escalation()` apenas para roles administrativas.
-- **Hardening**: Reforçada a configuração `security_invoker` em todas as views públicas do Master Catalog.
