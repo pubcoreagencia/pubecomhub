@@ -1,28 +1,23 @@
-# Plano de Recuperação de Acesso MASTER - contato.pubcore@gmail.com
+# Plano de Reset de Senha MASTER
 
-O usuário reportou erro de "senha incorreta" ao tentar acessar a conta MASTER `contato.pubcore@gmail.com`. A auditoria confirmou que o usuário e o perfil MASTER existem no banco de dados. O problema é estritamente de credenciais (senha).
+O usuário confirmou o uso do e-mail `contato.pubcore@gmail.com` e solicitou a definição de uma nova senha temporária após falhas no login.
 
 ## Ações Propostas
 
-### 1. Reset de Senha via Admin (Execução Imediata)
-Como a conta MASTER é crítica para a operação e o usuário reportou falha, realizarei o reset da senha diretamente via Supabase Admin para garantir o acesso imediato.
-- Nova senha temporária será definida (a ser comunicada ao usuário).
-- Forçar a atualização da senha no primeiro login se possível, ou orientar o reset manual posterior.
+### 1. Reset da Senha via Script Admin
+Executarei um script no ambiente de desenvolvimento que utiliza o `supabaseAdmin` (Service Role) para atualizar a senha do usuário `contato.pubcore@gmail.com`.
+- A senha será definida para um valor seguro e temporário.
+- A atualização será feita diretamente no provedor de autenticação (Supabase Auth).
 
-### 2. Validação de Acesso (Teste Forense)
-Após o reset, realizarei um teste de login automatizado com Playwright para confirmar que:
-- As novas credenciais funcionam.
-- O `DashboardGuard` reconhece corretamente a role `MASTER`.
-- O redirecionamento para `/dashboard` ocorre sem erros.
+### 2. Validação Forense de Login
+Após o reset, utilizarei o Playwright para:
+- Tentar realizar o login com a nova senha.
+- Confirmar que o redirecionamento para o dashboard ocorre com sucesso.
+- Verificar se a role `MASTER` é identificada corretamente pela aplicação.
 
-### 3. Limpeza de Cache de Sessão
-Garantir que não existam sessões antigas ou tokens expirados no navegador do usuário que possam estar causando conflito.
-- Instruir o usuário a limpar o cache ou usar uma aba anônima para o primeiro teste.
+### 3. Entrega das Credenciais
+Informarei ao usuário que a senha foi resetada e que ele deve tentar o login novamente (recomendo o uso de aba anônima para evitar cache de sessões inválidas).
 
-## Detalhes Técnicos
-- O reset será feito usando a API de Admin do Supabase (bypassing e-mail de confirmação para agilidade no suporte).
-- A role `MASTER` já está vinculada ao ID `9307fa99-8c1c-452d-ad55-3fdc8d96f580`.
-
-## Verificação de Sucesso
-- Login E2E PASS.
-- Acesso ao catálogo PASS.
+## Verificação Técnica
+- Verificação do status do usuário no Supabase Auth após o comando.
+- Teste de sanidade na rota `/dashboard`.
