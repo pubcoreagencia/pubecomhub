@@ -24,8 +24,45 @@ import { updateMasterPassword } from '@/lib/api/auth-admin.functions';
 import { toast } from 'sonner';
 
 export default function SettingsPage() {
+  const [activeTab, setActiveTab] = React.useState('Geral');
+  const [showNewPassword, setShowNewPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [newPassword, setNewPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [isUpdating, setIsUpdating] = React.useState(false);
+
+  const updatePasswordFn = useServerFn(updateMasterPassword);
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword.length < 8) {
+      toast.error("A senha deve ter pelo menos 8 caracteres.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("As senhas não coincidem.");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await updatePasswordFn({ data: { newPassword } });
+      toast.success("Senha alterada com sucesso!");
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      console.error('Update password error:', error);
+      toast.error(error.message || "Erro ao alterar a senha.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const sections = [
     {
+      id: 'Geral',
       title: "Geral",
       icon: Globe,
       settings: [
@@ -35,6 +72,7 @@ export default function SettingsPage() {
       ]
     },
     {
+      id: 'Segurança',
       title: "Segurança & API",
       icon: Shield,
       settings: [
@@ -44,6 +82,7 @@ export default function SettingsPage() {
       ]
     },
     {
+      id: 'Notificações',
       title: "Notificações",
       icon: Bell,
       settings: [
