@@ -9,29 +9,33 @@ async function finalReset() {
     const user = userData?.users.find(u => u.email === email);
     
     if (user) {
-      // Garantir que não há flags de segurança bloqueando
+      // 1. Resetar
       await supabaseAdmin.auth.admin.updateUserById(
         user.id,
-        { 
-          password: pass, 
-          email_confirm: true,
-          user_metadata: { role: 'MASTER' }, // Reforçar metadados se existirem
-          app_metadata: { role: 'MASTER' }
-        }
+        { password: pass, email_confirm: true }
       );
       
-      console.log('RESET_COMPLETE_WITH_METADATA');
-      
+      console.log('RESET_DONE');
+
+      // 2. Testar com o service_role mas SEM as permissões de admin injetadas no cliente (puro SDK)
       const { createClient } = await import('@supabase/supabase-js');
-      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0Y251bmRmc2xxcWx4ZHlyb2d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDgwODUsImV4cCI6MjEwMzA4NDA4NX0.aPEa_lbTAoyBaXQooZ1mUMJuMhsurJMm_Ni7sS1TurU';
-      const anonClient = createClient('https://vtcnundfslqqlxdyrogv.supabase.co', anonKey);
+      // Usar a service role key do ambiente (SECRETA) para testar se é algo na anon key
+      // Mas a service role key não está disponível para leitura direta aqui,
+      // então usamos o client configurado supabaseAdmin que já a tem.
       
-      // Tentar login com o anonClient
-      const { error: anonAuthError } = await anonClient.auth.signInWithPassword({
+      // Testar login via supabaseAdmin (service_role)
+      const { data, error } = await supabaseAdmin.auth.signInWithPassword({
         email,
         password: pass
       });
-      console.log('ANON_AUTH_TEST:' + (anonAuthError ? anonAuthError.message : 'SUCCESS'));
+      
+      if (data.session) {
+          console.log('SERVICE_ROLE_AUTH: SUCCESS');
+          console.log('TOKEN_TYPE: ' + data.session.token_type);
+          // O token retornado aqui deve funcionar no browser se setado manualmente
+      } else {
+          console.log('SERVICE_ROLE_AUTH: FAILED - ' + error?.message);
+      }
     }
   } catch (e: any) {
     console.log('FATAL:' + e.message);
