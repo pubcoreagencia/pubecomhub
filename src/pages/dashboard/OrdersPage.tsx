@@ -19,7 +19,7 @@ export default function OrdersPage() {
     switch (status) {
       case 'paid':
         return (
-          <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+          <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-500 border border-red-500/20">
             Pago
           </span>
         );
