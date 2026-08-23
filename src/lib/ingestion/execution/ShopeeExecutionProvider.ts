@@ -2,13 +2,14 @@ import { ExecutionProvider, ExecutionResult } from "./ExecutionProvider";
 // @ts-ignore - Importing from .server file which might not be resolved correctly by build tools but is handled by the worker environment
 import { runShopeeWorker } from "../workers/ShopeeWorker.server";
 import { CloudflareExecutionProvider } from "./CloudflareExecutionProvider";
+import { getCatalogWorkerUrl } from "@/server/env";
 
 export class ShopeeExecutionProvider implements ExecutionProvider<any> {
   async execute(params: Record<string, any>): Promise<ExecutionResult<any>> {
     const { url, limit = 50, shopId } = params;
     
     // Check if external worker is configured
-    const workerUrl = process.env['CATALOG_WORKER_URL'];
+    const workerUrl = getCatalogWorkerUrl();
 
     
     if (workerUrl) {

@@ -1,20 +1,12 @@
-﻿import { ExecutionProvider, ExecutionResult } from "./ExecutionProvider";
+import { ExecutionProvider, ExecutionResult } from "./ExecutionProvider";
+import { getCatalogWorkerToken, getCatalogWorkerUrl } from "@/server/env";
 
 export class CloudflareExecutionProvider implements ExecutionProvider<any> {
   async execute(params: Record<string, any>): Promise<ExecutionResult<any>> {
     const { url, limit = 50, shopId } = params;
     
-    const workerUrl = (
-      process.env['CATALOG_WORKER_URL'] || 
-      process.env['VITE_CATALOG_API_URL'] || 
-      'https://pub-ecom-catalog-worker.contato-pubcore.workers.dev'
-    ).replace(/\/+$/, '');
-
-    const workerToken = (
-      process.env['CATALOG_WORKER_TOKEN'] || 
-      process.env['VITE_CATALOG_API_TOKEN'] || 
-      ''
-    ).trim();
+    const workerUrl = getCatalogWorkerUrl();
+    const workerToken = getCatalogWorkerToken();
 
     console.log(`[CloudflareExecutionProvider] Routing request to external worker: ${workerUrl}`);
 

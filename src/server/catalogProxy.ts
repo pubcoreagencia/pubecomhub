@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { setServerEnv, getServerEnv, getCatalogWorkerToken, getCatalogWorkerUrl, getSupabaseCredentials } from './env';
 
 export interface ProxyAuthResult {
   authenticated: boolean;
@@ -11,7 +12,7 @@ export interface ProxyAuthResult {
 /**
  * Validates the caller's Supabase Bearer JWT token and retrieves their role from profiles
  */
-export async function validateSupabaseCaller(request: Request, envObj: Record<string, any>): Promise<ProxyAuthResult> {
+export async function validateSupabaseCaller(request: Request, envObj?: Record<string, any>): Promise<ProxyAuthResult> {
   const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return {
@@ -30,8 +31,9 @@ export async function validateSupabaseCaller(request: Request, envObj: Record<st
     };
   }
 
-  const supabaseUrl = envObj['SUPABASE_URL'] || process.env['SUPABASE_URL'] || '';
-  const supabaseKey = envObj['SUPABASE_SERVICE_ROLE_KEY'] || process.env['SUPABASE_SERVICE_ROLE_KEY'] || envObj['SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'] || '';
+  const creds = getSupabaseCredentials();
+  const supabaseUrl = envObj?.['SUPABASE_URL'] || creds.url;
+  const supabaseKey = envObj?.['SUPABASE_SERVICE_ROLE_KEY'] || envObj?.['SUPABASE_PUBLISHABLE_KEY'] || creds.key;
 
   if (!supabaseUrl || !supabaseKey) {
     return {
@@ -100,7 +102,11 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
     return null;
   }
 
-  const envObj = (typeof env === 'object' && env !== null ? env : {}) as Record<string, any>;
+  if (env) {
+    setServerEnv(env);
+  }
+
+  const envObj = getServerEnv();
 
   // 1. Authenticate caller with Supabase
   const auth = await validateSupabaseCaller(request, envObj);
@@ -152,8 +158,9 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
         );
       }
 
-      const supabaseUrl = envObj['SUPABASE_URL'] || process.env['SUPABASE_URL'] || '';
-      const supabaseKey = envObj['SUPABASE_SERVICE_ROLE_KEY'] || process.env['SUPABASE_SERVICE_ROLE_KEY'] || envObj['SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'] || '';
+      const creds = getSupabaseCredentials();
+      const supabaseUrl = envObj['SUPABASE_URL'] || creds.url;
+      const supabaseKey = envObj['SUPABASE_SERVICE_ROLE_KEY'] || envObj['SUPABASE_PUBLISHABLE_KEY'] || creds.key;
 
       const supabase = createClient(supabaseUrl, supabaseKey, {
         auth: { persistSession: false, autoRefreshToken: false },
@@ -192,21 +199,8 @@ export async function handleCatalogProxy(request: Request, env?: unknown): Promi
   }
 
   // 3. Load server-side Catalog Worker Token
-  const workerUrl = (
-    envObj['CATALOG_WORKER_URL'] ||
-    process.env['CATALOG_WORKER_URL'] ||
-    envObj['VITE_CATALOG_API_URL'] ||
-    process.env['VITE_CATALOG_API_URL'] ||
-    'https://pub-ecom-catalog-worker.contato-pubcore.workers.dev'
-  ).replace(/\/+$/, '');
-
-  const workerToken = (
-    envObj['CATALOG_WORKER_TOKEN'] ||
-    process.env['CATALOG_WORKER_TOKEN'] ||
-    envObj['VITE_CATALOG_API_TOKEN'] ||
-    process.env['VITE_CATALOG_API_TOKEN'] ||
-    ''
-  ).trim();
+  const workerUrl = getCatalogWorkerUrl();
+  const workerToken = getCatalogWorkerToken();
 
   if (!workerToken) {
     return new Response(
