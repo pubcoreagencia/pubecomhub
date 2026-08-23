@@ -18,13 +18,28 @@ export const LoginPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if session already exists
-    supabase.auth.getSession().then(({ data }) => {
-      if (data?.session) {
-        navigate({ to: '/dashboard' });
-      } else {
-        setCheckingSession(false);
+    // Check if session already exists and is valid on the official Supabase
+    supabase.auth.getSession().then(async ({ data }) => {
+      const session = data?.session;
+      if (session?.user && session.access_token) {
+        try {
+          const parts = session.access_token.split('.');
+          const rawPayload = parts[1];
+          if (parts.length >= 2 && rawPayload) {
+            const base64 = rawPayload.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonStr = typeof atob !== 'undefined' ? atob(base64) : Buffer.from(base64, 'base64').toString('utf-8');
+            const payload = JSON.parse(jsonStr);
+            const now = Math.floor(Date.now() / 1000);
+            if (payload.iss && payload.iss.includes('vtcnundfslqqlxdyrogv') && payload.exp > now) {
+              navigate({ to: '/dashboard' });
+              return;
+            }
+          }
+        } catch {}
+        // Stale or non-official session -> clear it
+        await supabase.auth.signOut();
       }
+      setCheckingSession(false);
     }).catch(() => {
       setCheckingSession(false);
     });

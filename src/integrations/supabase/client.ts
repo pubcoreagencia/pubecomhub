@@ -28,7 +28,28 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 
+function cleanStaleStorage() {
+  if (typeof window === 'undefined') return;
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        if (!key.includes('vtcnundfslqqlxdyrogv')) {
+          keysToRemove.push(key);
+        }
+      }
+    }
+    keysToRemove.forEach((k) => {
+      console.warn(`[SupabaseAuth] Limpando chave de sessão não-oficial: ${k}`);
+      localStorage.removeItem(k);
+    });
+  } catch {}
+}
+
 function createSupabaseClient() {
+  cleanStaleStorage();
+
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
   const SUPABASE_URL = import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'];
@@ -49,7 +70,7 @@ function createSupabaseClient() {
       fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
     },
     auth: {
-      storage: brokeredPreviewStorage(),
+      storage: typeof window !== 'undefined' ? localStorage : undefined,
       persistSession: true,
       autoRefreshToken: true,
     }

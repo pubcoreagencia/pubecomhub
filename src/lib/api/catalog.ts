@@ -78,10 +78,44 @@ export class CatalogApi {
     // Automatically obtain and inject the authenticated Supabase session access token
     if (!headers.has('Authorization') && !headers.has('authorization')) {
       try {
-        const { data } = await supabase.auth.getSession();
-        const token = data?.session?.access_token;
+        let { data } = await supabase.auth.getSession();
+        let session = data?.session;
+
+        // If session is expiring soon or expired, attempt refresh
+        if (session) {
+          const now = Math.floor(Date.now() / 1000);
+          if (session.expires_at && session.expires_at - now < 30) {
+            const refreshRes = await supabase.auth.refreshSession();
+            if (refreshRes.data?.session) {
+              session = refreshRes.data.session;
+            }
+          }
+        }
+
+        const token = session?.access_token;
 
         if (token) {
+          // Forensic validation of token issuer
+          try {
+            const parts = token.split('.');
+            const rawPayload = parts[1];
+            if (parts.length >= 2 && rawPayload) {
+              const base64 = rawPayload.replace(/-/g, '+').replace(/_/g, '/');
+              const jsonStr = typeof atob !== 'undefined' ? atob(base64) : Buffer.from(base64, 'base64').toString('utf-8');
+              const payload = JSON.parse(jsonStr);
+              if (payload.iss && !payload.iss.includes('vtcnundfslqqlxdyrogv')) {
+                console.warn('[CatalogApi] Token de emissor não-oficial detectado:', payload.iss);
+                await supabase.auth.signOut();
+                const err = new Error('Sessão vinculada a outro projeto Supabase. Faça login novamente no Supabase oficial.') as any;
+                err.status = 401;
+                err.isAuthError = true;
+                throw err;
+              }
+            }
+          } catch (jwtErr: any) {
+            if (jwtErr?.isAuthError) throw jwtErr;
+          }
+
           headers.set('Authorization', `Bearer ${token}`);
         } else if (typeof window !== 'undefined') {
           // If in browser and not authenticated, fail early with a clear message
