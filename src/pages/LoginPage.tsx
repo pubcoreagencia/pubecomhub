@@ -102,30 +102,30 @@ export const LoginPage = () => {
 
   if (checkingSession) {
     return (
-      <div className="min-h-screen bg-[#020817] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-red-500" />
       </div>
     );
   }
-
+  
   return (
-    <div className="min-h-screen bg-[#020817] text-white flex items-center justify-center p-4 selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-black text-white flex items-center justify-center p-4 selection:bg-red-500/30">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 mb-2">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-600/20 mb-2">
             <CircleDollarSign className="h-7 w-7" />
           </div>
           <h1 className="text-2xl font-black tracking-tight text-white uppercase italic">PUB ECOM</h1>
-          <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest">
+          <p className="text-xs font-bold text-red-500 uppercase tracking-widest">
             Acesso Operacional Master
           </p>
         </div>
 
-        <Card className="bg-[#0a0f1d] border-emerald-500/20 shadow-2xl">
+        <Card className="bg-black border-red-500/20 shadow-2xl shadow-red-500/5">
           <CardHeader className="space-y-1">
             <CardTitle className="text-lg font-black uppercase tracking-wider text-white flex items-center justify-between">
               <span>{mode === 'login' ? 'Entrar no Sistema' : 'Recuperar Acesso'}</span>
-              {mode === 'recovery' && <KeyRound className="w-5 h-5 text-emerald-400" />}
+              {mode === 'recovery' && <KeyRound className="w-5 h-5 text-red-500" />}
             </CardTitle>
             <CardDescription className="text-xs text-slate-400">
               {mode === 'login' 
@@ -146,7 +146,7 @@ export const LoginPage = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={loading}
-                      className="pl-10 bg-black/50 border-slate-800 text-white focus:border-emerald-500 h-11"
+                      className="pl-10 bg-black/50 border-slate-800 text-white focus:border-red-500 h-11"
                       autoComplete="email"
                       required
                     />
@@ -163,7 +163,7 @@ export const LoginPage = () => {
                         setErrorMsg(null);
                         setSuccessMsg(null);
                       }}
-                      className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer uppercase tracking-wider"
+                      className="text-[10px] font-bold text-red-500 hover:text-red-400 hover:underline cursor-pointer uppercase tracking-wider"
                     >
                       Esqueci a senha
                     </button>
@@ -176,7 +176,7 @@ export const LoginPage = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={loading}
-                      className="pl-10 bg-black/50 border-slate-800 text-white focus:border-emerald-500 h-11"
+                      className="pl-10 bg-black/50 border-slate-800 text-white focus:border-red-500 h-11"
                       autoComplete="current-password"
                       required
                     />
@@ -193,7 +193,7 @@ export const LoginPage = () => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-11 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-xs shadow-lg shadow-emerald-500/10 mt-2 cursor-pointer"
+                  className="w-full h-11 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-widest text-xs shadow-lg shadow-red-600/10 mt-2 cursor-pointer"
                 >
                   {loading ? (
                     <>
@@ -220,7 +220,7 @@ export const LoginPage = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       disabled={loading}
-                      className="pl-10 bg-black/50 border-slate-800 text-white focus:border-emerald-500 h-11"
+                      className="pl-10 bg-black/50 border-slate-800 text-white focus:border-red-500 h-11"
                       autoComplete="email"
                       required
                     />
@@ -235,8 +235,8 @@ export const LoginPage = () => {
                 )}
 
                 {successMsg && (
-                  <div className="p-3 bg-emerald-950/30 border border-emerald-500/30 rounded-lg text-xs text-emerald-300 font-medium flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <div className="p-3 bg-red-950/30 border border-red-500/30 rounded-lg text-xs text-red-300 font-medium flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-red-500 shrink-0" />
                     <span>{successMsg}</span>
                   </div>
                 )}
@@ -244,7 +244,7 @@ export const LoginPage = () => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-11 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-xs shadow-lg shadow-emerald-500/10 mt-2 cursor-pointer"
+                  className="w-full h-11 bg-red-600 hover:bg-red-500 text-white font-black uppercase tracking-widest text-xs shadow-lg shadow-red-600/10 mt-2 cursor-pointer"
                 >
                   {loading ? (
                     <>
