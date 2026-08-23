@@ -6,18 +6,18 @@
 
 :root {
   /* Official PUB Ops Hub OKLCH Palette */
-  --hub-bg: oklch(0.145 0.004 285.8);
-  --hub-sidebar-bg: oklch(0.12 0.004 285.8);
-  --hub-card: oklch(0.18 0.005 285.8);
-  --hub-card-hover: oklch(0.20 0.006 285.8);
-  --hub-primary: oklch(69.6% .17 162.5); /* Emerald Green Accent */
-  --hub-primary-foreground: oklch(0.145 0.004 285.8);
-  --hub-foreground: oklch(0.95 0.01 285.8);
-  --hub-muted: oklch(0.60 0.02 285.8);
-  --hub-border: oklch(0.25 0.01 285.8);
-  --hub-accent: oklch(0.25 0.02 162.5 / 0.1);
-  --hub-success: oklch(0.75 0.15 150);
-  --hub-error: oklch(0.65 0.20 25);
+  --hub-bg: #000000;
+  --hub-sidebar-bg: #000000;
+  --hub-card: #0a0a0a;
+  --hub-card-hover: #111111;
+  --hub-primary: #ff0000; /* Red Accent */
+  --hub-primary-foreground: #ffffff;
+  --hub-foreground: #ffffff;
+  --hub-muted: #666666;
+  --hub-border: #222222;
+  --hub-accent: rgba(255, 0, 0, 0.1);
+  --hub-success: #22c55e;
+  --hub-error: #ef4444;
   
   /* Layout Constants */
   --hub-sidebar-width: 260px;
