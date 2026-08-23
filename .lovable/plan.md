@@ -1,23 +1,30 @@
-# Plano de Reset de Senha MASTER
+# Plan - Alteração de Senha Master
 
-O usuário confirmou o uso do e-mail `contato.pubcore@gmail.com` e solicitou a definição de uma nova senha temporária após falhas no login.
+O objetivo é permitir que o usuário MASTER altere sua senha temporária para uma definitiva diretamente pela interface, garantindo segurança e autonomia.
 
-## Ações Propostas
+## User Review Required
 
-### 1. Reset da Senha via Script Admin
-Executarei um script no ambiente de desenvolvimento que utiliza o `supabaseAdmin` (Service Role) para atualizar a senha do usuário `contato.pubcore@gmail.com`.
-- A senha será definida para um valor seguro e temporário.
-- A atualização será feita diretamente no provedor de autenticação (Supabase Auth).
+> [!IMPORTANT]
+> A alteração de senha é uma operação crítica. Uma vez alterada, a senha anterior (`PubEcomMaster_2026`) deixará de funcionar imediatamente. Certifique-se de anotar a nova senha.
 
-### 2. Validação Forense de Login
-Após o reset, utilizarei o Playwright para:
-- Tentar realizar o login com a nova senha.
-- Confirmar que o redirecionamento para o dashboard ocorre com sucesso.
-- Verificar se a role `MASTER` é identificada corretamente pela aplicação.
+## Proposed Changes
 
-### 3. Entrega das Credenciais
-Informarei ao usuário que a senha foi resetada e que ele deve tentar o login novamente (recomendo o uso de aba anônima para evitar cache de sessões inválidas).
+### Backend (Server Functions)
+- Criar `src/lib/api/auth-admin.functions.ts` para hospedar a função de servidor `updateMasterPassword`.
+- A função utilizará o `supabaseAdmin` para realizar o reset, contornando limitações do SDK cliente em alguns ambientes.
+- Implementar verificação rigorosa de middleware para garantir que apenas o usuário com role `MASTER` execute a ação.
 
-## Verificação Técnica
-- Verificação do status do usuário no Supabase Auth após o comando.
-- Teste de sanidade na rota `/dashboard`.
+### Frontend (Configurações)
+- Refatorar `src/pages/dashboard/SettingsPage.tsx` para incluir uma nova seção de "Segurança da Conta".
+- Adicionar um formulário de alteração de senha com validação de força.
+- Integrar a chamada à `updateMasterPassword` com feedback visual (Success/Error).
+
+### Memória e Segurança
+- Documentar a estratégia de recuperação e a função em `mem://features/password-recovery.md`.
+- Atualizar o `PROJECT_CONTEXT.md` com as novas capacidades administrativas.
+
+## Technical Details
+
+- **Tooling:** TanStack Start `createServerFn`.
+- **Security:** `supabaseAdmin.auth.admin.updateUserById` via server-side execution.
+- **Validation:** Zod para garantir que a nova senha atenda aos requisitos mínimos.
