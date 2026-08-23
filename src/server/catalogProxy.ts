@@ -50,9 +50,10 @@ export async function validateSupabaseCaller(request: Request, envObj?: Record<s
 
     const { data: userData, error: userError } = await supabase.auth.getUser(token);
     if (userError || !userData?.user) {
+      console.error('[validateSupabaseCaller] Supabase getUser error:', userError?.message || userError);
       return {
         authenticated: false,
-        error: 'Unauthorized: Token de autenticação inválido ou expirado.',
+        error: `Unauthorized: Token de autenticação inválido ou expirado. (${userError?.message || 'Sessão não encontrada'})`,
         statusCode: 401,
       };
     }
