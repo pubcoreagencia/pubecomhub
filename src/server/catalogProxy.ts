@@ -91,23 +91,23 @@ export function isAllowedOrigin(origin: string | null): boolean {
   try {
     const url = new URL(origin);
     const host = url.hostname;
-    // Allow Lovable preview domains (*.lovableproject.com, *.lovable.app, *.lovable.dev)
-    if (
-      host === 'lovableproject.com' ||
-      host.endsWith('.lovableproject.com') ||
-      host === 'lovable.app' ||
-      host.endsWith('.lovable.app') ||
-      host === 'lovable.dev' ||
-      host.endsWith('.lovable.dev')
-    ) {
-      return true;
-    }
     // Allow local development (localhost, 127.0.0.1)
     if (host === 'localhost' || host === '127.0.0.1') {
       return true;
     }
-    // Allow production workers.dev domain
-    if (host.endsWith('.workers.dev')) {
+    // Allow Cloudflare Workers & Pages domains
+    if (host.endsWith('.workers.dev') || host.endsWith('.pages.dev')) {
+      return true;
+    }
+    // Allow official production domains
+    if (
+      host === 'pubecomhub.com' ||
+      host.endsWith('.pubecomhub.com') ||
+      host === 'pubecom.com.br' ||
+      host.endsWith('.pubecom.com.br') ||
+      host === 'pubcore.com.br' ||
+      host.endsWith('.pubcore.com.br')
+    ) {
       return true;
     }
     return false;

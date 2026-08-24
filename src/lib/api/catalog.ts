@@ -11,15 +11,9 @@ function getApiBaseUrl(): string {
   // In browser runtime:
   if (typeof window !== 'undefined') {
     const hostname = window.location?.hostname || '';
-    // When running inside Lovable preview or localhost dev without custom override:
-    // Route API requests to the production Hub Worker backend
-    if (
-      hostname.includes('lovableproject.com') ||
-      hostname.includes('lovable.app') ||
-      hostname.includes('lovable.dev') ||
-      hostname === 'localhost' ||
-      hostname === '127.0.0.1'
-    ) {
+    // When running in local development without custom override:
+    // Route API requests to the Cloudflare Hub Worker backend
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'https://pubcoreagencia-pubecomhub.contato-pubcore.workers.dev';
     }
 
@@ -144,7 +138,7 @@ export class CatalogApi {
       const errorData = await response.json().catch(() => ({}));
       if (response.status === 401 || errorData.isAuthError) {
         const error = new Error(
-          errorData.error || 'Catalog API: autenticação não configurada ou sessão expirada no Preview.'
+          errorData.error || 'Catalog API: autenticação não configurada ou sessão expirada.'
         ) as any;
         error.status = 401;
         error.isAuthError = true;

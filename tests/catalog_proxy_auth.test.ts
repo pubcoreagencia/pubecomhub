@@ -341,12 +341,12 @@ describe('Catalog Proxy Authentication & RBAC Forensics (HTTP real)', () => {
     });
   });
 
-  describe('5. CORS & Lovable Preview Origin Dynamic Allowlist', () => {
-    it('responde 204 com headers CORS para preflight OPTIONS vindo de *.lovableproject.com', async () => {
+  describe('5. CORS & Standalone Origin Dynamic Allowlist', () => {
+    it('responde 204 com headers CORS para preflight OPTIONS vindo de localhost', async () => {
       const req = new Request('https://pubcoreagencia-pubecomhub.contato-pubcore.workers.dev/api/ingestion/shopee', {
         method: 'OPTIONS',
         headers: {
-          'Origin': 'https://preview-12345.lovableproject.com',
+          'Origin': 'http://localhost:5173',
           'Access-Control-Request-Method': 'POST',
           'Access-Control-Request-Headers': 'authorization, content-type',
         },
@@ -355,29 +355,29 @@ describe('Catalog Proxy Authentication & RBAC Forensics (HTTP real)', () => {
       const res = await handleCatalogProxy(req, mockEnv);
       expect(res).not.toBeNull();
       expect(res!.status).toBe(204);
-      expect(res!.headers.get('access-control-allow-origin')).toBe('https://preview-12345.lovableproject.com');
+      expect(res!.headers.get('access-control-allow-origin')).toBe('http://localhost:5173');
       expect(res!.headers.get('access-control-allow-credentials')).toBe('true');
     });
 
-    it('responde 204 com headers CORS para preflight OPTIONS vindo de *.lovable.app', async () => {
+    it('responde 204 com headers CORS para preflight OPTIONS vindo de domínio .workers.dev / .pages.dev', async () => {
       const req = new Request('https://pubcoreagencia-pubecomhub.contato-pubcore.workers.dev/api/ingestion/shopee', {
         method: 'OPTIONS',
         headers: {
-          'Origin': 'https://my-app.lovable.app',
+          'Origin': 'https://pubcoreagencia-pubecomhub.pages.dev',
         },
       });
 
       const res = await handleCatalogProxy(req, mockEnv);
       expect(res).not.toBeNull();
       expect(res!.status).toBe(204);
-      expect(res!.headers.get('access-control-allow-origin')).toBe('https://my-app.lovable.app');
+      expect(res!.headers.get('access-control-allow-origin')).toBe('https://pubcoreagencia-pubecomhub.pages.dev');
     });
 
-    it('injeta headers CORS na resposta de ingestão para origem Lovable', async () => {
+    it('injeta headers CORS na resposta de ingestão para origem autorizada', async () => {
       const req = new Request('https://pubcoreagencia-pubecomhub.contato-pubcore.workers.dev/api/ingestion/shopee', {
         method: 'POST',
         headers: {
-          'Origin': 'https://preview-sandbox.lovableproject.com',
+          'Origin': 'https://pubecomhub.com',
           'authorization': `Bearer ${MASTER_TOKEN}`,
           'content-type': 'application/json',
         },
@@ -387,7 +387,7 @@ describe('Catalog Proxy Authentication & RBAC Forensics (HTTP real)', () => {
       const res = await handleCatalogProxy(req, mockEnv);
       expect(res).not.toBeNull();
       expect(res!.status).toBe(200);
-      expect(res!.headers.get('access-control-allow-origin')).toBe('https://preview-sandbox.lovableproject.com');
+      expect(res!.headers.get('access-control-allow-origin')).toBe('https://pubecomhub.com');
       expect(res!.headers.get('access-control-allow-credentials')).toBe('true');
     });
   });

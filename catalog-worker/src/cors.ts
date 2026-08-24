@@ -1,7 +1,10 @@
 export const allowedOrigins = [
+  'http://localhost:5173',
   'http://localhost:8080',
-  'https://pubecomhub.lovable.app',
-  /^https:\/\/.*\.lovable\.app$/,
+  'http://localhost:3000',
+  'https://pubecomhub.com',
+  /^https:\/\/.*\.workers\.dev$/,
+  /^https:\/\/.*\.pages\.dev$/,
 ];
 
 export function getCorsHeaders(origin: string | null) {

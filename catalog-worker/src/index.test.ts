@@ -60,15 +60,15 @@ describe('Catalog Worker CORS', () => {
     expect(resp.headers.get('Access-Control-Allow-Origin')).toBeNull();
   });
 
-  it('should allow Lovable preview origins', async () => {
+  it('should allow Cloudflare Pages and Workers preview origins', async () => {
     const req = new Request('http://localhost/health', {
       method: 'GET',
       headers: {
-        'Origin': 'https://id-preview--5a549c2b-43f8-4f2a-a8f0-ecc3df73320e.lovable.app'
+        'Origin': 'https://pubcoreagencia-pubecomhub.pages.dev'
       }
     });
 
     const resp = await worker.fetch(req, env as any);
-    expect(resp.headers.get('Access-Control-Allow-Origin')).toBe('https://id-preview--5a549c2b-43f8-4f2a-a8f0-ecc3df73320e.lovable.app');
+    expect(resp.headers.get('Access-Control-Allow-Origin')).toBe('https://pubcoreagencia-pubecomhub.pages.dev');
   });
 });
