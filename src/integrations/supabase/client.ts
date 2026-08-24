@@ -47,11 +47,11 @@ function createSupabaseClient() {
   const rawUrl = import.meta.env['VITE_SUPABASE_URL'];
   const rawKey = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'];
 
-  // Never accept Lovable-injected Supabase configuration.
-  const SUPABASE_URL = rawUrl?.includes('vtcnundfslqqlxdyrogv')
+  // Strictly enforce official Supabase instance: vtcnundfslqqlxdyrogv
+  const SUPABASE_URL = rawUrl && rawUrl.includes('vtcnundfslqqlxdyrogv')
     ? rawUrl
     : OFFICIAL_SUPABASE_URL;
-  const SUPABASE_PUBLISHABLE_KEY = rawKey && !rawUrl?.includes('rouxgtjonfncswsqlcgz')
+  const SUPABASE_PUBLISHABLE_KEY = rawKey && rawKey.length > 20
     ? rawKey
     : OFFICIAL_SUPABASE_PUBLISHABLE_KEY;
 
