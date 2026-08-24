@@ -306,10 +306,27 @@ async function persistToD1(db: any, shopId: string, username: string, items: any
       .run();
   }
 
+  // Update store total count after upserting products
+  const storeTotalRow = await db
+    .prepare("SELECT COUNT(*) as total FROM products WHERE store_id = ?")
+    .bind(storeId)
+    .first();
+  const realStoreProductCount = storeTotalRow?.total || items.length;
+
+  await db
+    .prepare(
+      `UPDATE stores SET product_count = ?, last_sync_at = datetime('now'), last_sync_status = 'success', updated_at = datetime('now') WHERE id = ?`,
+    )
+    .bind(realStoreProductCount, storeId)
+    .run();
+
   return {
     total: items.length,
     created: createdCount,
     updated: updatedCount,
+    unchanged: 0,
+    failed: 0,
+    storeProductCount: realStoreProductCount,
     storageProvider: "d1",
   };
 }
@@ -540,8 +557,8 @@ export default {
         try {
           const body: any = await request.json();
           const targetUrl = body.url;
-          const limit = body.limit || 1;
-          const pageSize = body.pageSize || 1;
+          const limit = Math.min(Math.max(parseInt(body.limit || "1"), 1), 100);
+          const pageSize = body.pageSize ? Math.min(parseInt(body.pageSize), 100) : limit;
 
           if (!targetUrl) {
             return new Response(JSON.stringify({ success: false, errors: ["URL is required"] }), {
