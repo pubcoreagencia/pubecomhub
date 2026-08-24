@@ -177,6 +177,35 @@ export class CatalogApi {
     return data;
   }
 
+  async createStore(
+    url: string,
+    name?: string,
+  ): Promise<{ success: boolean; store: Store; message?: string }> {
+    const data = await this.request<any>("/api/catalog/stores", {
+      method: "POST",
+      body: JSON.stringify({ url, name }),
+    });
+    return {
+      success: data.success ?? true,
+      store: normalizeStore(data.store),
+      message: data.message,
+    };
+  }
+
+  async updateStoreStatus(
+    storeId: string,
+    status: "active" | "inactive",
+  ): Promise<{ success: boolean; store: Store }> {
+    const data = await this.request<any>(`/api/catalog/stores/${encodeURIComponent(storeId)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+    return {
+      success: data.success ?? true,
+      store: normalizeStore(data.store),
+    };
+  }
+
   async getStores(): Promise<Store[]> {
     const data = await this.request<any>("/api/catalog/stores");
     const rawList = data.items || data.stores || [];
@@ -197,11 +226,12 @@ export class CatalogApi {
     return Array.isArray(rawList) ? rawList.map(normalizeProduct) : [];
   }
 
-  async refreshStore(storeId: string): Promise<SyncResponse> {
+  async refreshStore(storeId: string, limit: 1 | 10 | 50 | 100 = 10): Promise<SyncResponse> {
     const data = await this.request<any>(
       `/api/catalog/stores/${encodeURIComponent(storeId)}/refresh`,
       {
         method: "POST",
+        body: JSON.stringify({ limit }),
       },
     );
 
@@ -216,7 +246,7 @@ export class CatalogApi {
         updated: syncInfo.updated ?? 0,
         unchanged: syncInfo.unchanged ?? 0,
         failed: syncInfo.failed ?? 0,
-        provider: syncInfo.provider || "apify",
+        provider: syncInfo.provider || "shopee",
         duration: syncInfo.durationMs ?? syncInfo.duration ?? 0,
         syncRunId: syncInfo.syncRunId,
       },

@@ -116,4 +116,156 @@ describe("Catalog Worker CORS", () => {
     expect(json.items[0].title).toBe("Sandalia Babuche Infantil");
     expect(json.items[0].images).toEqual(["https://cf.shopee.com.br/file/img1.jpg"]);
   });
+
+  it("should list stores from D1 via GET /v1/catalog/stores", async () => {
+    const mockDb = {
+      exec: vi.fn().mockResolvedValue({}),
+      prepare: vi.fn().mockReturnValue({
+        all: vi.fn().mockResolvedValue({
+          results: [
+            {
+              id: "shopee:1729928484",
+              name: "Zentta Babuche",
+              username: "zenttababuche",
+              source: "shopee",
+              shop_id: "1729928484",
+              status: "active",
+              sync_state: "success",
+              product_count: 10,
+              last_sync_at: "2026-08-24T12:00:00Z",
+              last_sync_status: "success",
+            },
+          ],
+        }),
+      }),
+    };
+
+    const req = new Request("http://localhost/v1/catalog/stores", {
+      method: "GET",
+      headers: { Authorization: "Bearer test-token" },
+    });
+
+    const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
+    expect(resp.status).toBe(200);
+    const json = await resp.json();
+    expect(json.success).toBe(true);
+    expect(json.items).toHaveLength(1);
+    expect(json.items[0].name).toBe("Zentta Babuche");
+  });
+
+  it("should reject refresh when limit is invalid (not 1, 10, 50, 100)", async () => {
+    const mockDb = {
+      exec: vi.fn().mockResolvedValue({}),
+      prepare: vi.fn(),
+    };
+
+    const req = new Request("http://localhost/v1/catalog/stores/shopee:1729928484/refresh", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer test-token",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ limit: 25 }), // invalid limit
+    });
+
+    const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
+    expect(resp.status).toBe(400);
+    const json = await resp.json();
+    expect(json.success).toBe(false);
+    expect(json.error).toContain("Limite inválido");
+  });
+
+  it("should return 409 Conflict when a refresh is already running on that store", async () => {
+    const mockDb = {
+      exec: vi.fn().mockResolvedValue({}),
+      prepare: vi.fn().mockImplementation((query: string) => {
+        if (query.includes("SELECT * FROM stores")) {
+          return {
+            bind: vi.fn().mockReturnValue({
+              first: vi.fn().mockResolvedValue({
+                id: "shopee:1729928484",
+                status: "active",
+                sync_state: "running",
+              }),
+            }),
+          };
+        }
+        if (query.includes("UPDATE stores SET sync_state = 'running'")) {
+          return {
+            bind: vi.fn().mockReturnValue({
+              run: vi.fn().mockResolvedValue({
+                meta: { changes: 0 }, // atomic lock failed because already running
+              }),
+            }),
+          };
+        }
+        return {
+          bind: vi.fn().mockReturnValue({
+            first: vi.fn().mockResolvedValue(null),
+            all: vi.fn().mockResolvedValue({ results: [] }),
+            run: vi.fn().mockResolvedValue({}),
+          }),
+        };
+      }),
+    };
+
+    const req = new Request("http://localhost/v1/catalog/stores/shopee:1729928484/refresh", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer test-token",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ limit: 10 }),
+    });
+
+    const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
+    expect(resp.status).toBe(409);
+    const json = await resp.json();
+    expect(json.success).toBe(false);
+    expect(json.error).toContain("Sincronização já está em andamento");
+  });
+
+  it("should update store status via PATCH /v1/catalog/stores/:storeId", async () => {
+    const mockDb = {
+      exec: vi.fn().mockResolvedValue({}),
+      prepare: vi.fn().mockImplementation((query: string) => {
+        if (query.includes("UPDATE stores SET status")) {
+          return {
+            bind: vi.fn().mockReturnValue({
+              run: vi.fn().mockResolvedValue({ meta: { changes: 1 } }),
+            }),
+          };
+        }
+        if (query.includes("SELECT * FROM stores WHERE id")) {
+          return {
+            bind: vi.fn().mockReturnValue({
+              first: vi.fn().mockResolvedValue({
+                id: "shopee:1729928484",
+                name: "Zentta Babuche",
+                status: "inactive",
+                sync_state: "idle",
+                product_count: 10,
+              }),
+            }),
+          };
+        }
+        return { bind: vi.fn().mockReturnValue({ run: vi.fn().mockResolvedValue({}) }) };
+      }),
+    };
+
+    const req = new Request("http://localhost/v1/catalog/stores/shopee:1729928484", {
+      method: "PATCH",
+      headers: {
+        Authorization: "Bearer test-token",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status: "inactive" }),
+    });
+
+    const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
+    expect(resp.status).toBe(200);
+    const json = await resp.json();
+    expect(json.success).toBe(true);
+    expect(json.store.status).toBe("inactive");
+  });
 });

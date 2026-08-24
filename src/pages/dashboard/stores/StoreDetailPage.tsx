@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Clock,
   ExternalLink,
+  Power,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { catalogApi } from "@/lib/api/catalog";
@@ -24,6 +25,8 @@ export default function StoreDetailPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [togglingStatus, setTogglingStatus] = useState(false);
+  const [selectedLimit, setSelectedLimit] = useState<1 | 10 | 50 | 100>(10);
   const [syncResult, setSyncResult] = useState<SyncResponse["results"] | null>(null);
 
   const fetchData = async () => {
@@ -56,23 +59,45 @@ export default function StoreDetailPage() {
     fetchData();
   }, [storeId]);
 
+  const handleToggleStatus = async () => {
+    if (!store || togglingStatus) return;
+    const newStatus = store.status === "active" ? "inactive" : "active";
+    setTogglingStatus(true);
+
+    try {
+      const res = await catalogApi.updateStoreStatus(store.id, newStatus);
+      if (res.success) {
+        setStore(res.store);
+        toast.success(`Loja ${newStatus === "active" ? "ativada" : "desativada"} com sucesso.`);
+      }
+    } catch (err: any) {
+      toast.error(`Erro ao alterar status: ${err.message || String(err)}`);
+    } finally {
+      setTogglingStatus(false);
+    }
+  };
+
   const handleRefresh = async () => {
     if (refreshing) return;
+    if (store?.status !== "active") {
+      toast.error("Loja inativa. Ative a loja antes de iniciar a sincronização.");
+      return;
+    }
 
     setRefreshing(true);
     setSyncResult(null);
-    toast.info("Sincronização em andamento...");
+    toast.info(`Sincronizando loja (limite: ${selectedLimit} produtos)...`);
 
     try {
-      const response = await catalogApi.refreshStore(storeId);
+      const response = await catalogApi.refreshStore(storeId, selectedLimit);
       if (response.success) {
         setSyncResult(response.results || null);
-        toast.success("Sincronização concluída com sucesso");
-        await fetchData(); // Recarregar dados
+        toast.success("Sincronização concluída com sucesso!");
+        await fetchData();
       }
     } catch (error: any) {
       if (error.status === 409) {
-        toast.warning("Sincronização já está em andamento no servidor");
+        toast.warning("Sincronização já está em andamento no servidor para esta loja.");
       } else if (error.status === 401 || error.isAuthError) {
         toast.error(
           error.message ||
@@ -81,7 +106,7 @@ export default function StoreDetailPage() {
       } else if (error.status === 403) {
         toast.error(
           error.message ||
-            "Acesso negado: você não é o proprietário desta loja para atualizar o catálogo.",
+            "Acesso negado: você não tem permissão MASTER para atualizar o catálogo.",
         );
       } else {
         toast.error(`Falha ao sincronizar: ${error.data?.message || error.message}`);
@@ -95,7 +120,7 @@ export default function StoreDetailPage() {
     return (
       <Shell>
         <div className="flex items-center justify-center min-h-[400px]">
-          <RefreshCw className="h-8 w-8 text-red-500 animate-spin" />
+          <RefreshCw className="h-8 w-8 text-[var(--hub-primary)] animate-spin" />
         </div>
       </Shell>
     );
@@ -134,72 +159,104 @@ export default function StoreDetailPage() {
                   className={cn(
                     "px-2 py-0.5 rounded-[4px] text-[8px] font-black uppercase",
                     store.status === "active"
-                      ? "bg-red-500/20 text-red-500"
-                      : "bg-red-500/20 text-red-500",
+                      ? "bg-[var(--hub-primary)]/20 text-[var(--hub-primary)]"
+                      : "bg-slate-500/20 text-slate-400",
                   )}
                 >
                   {store.status}
                 </span>
               </div>
               <p className="text-[10px] text-[var(--hub-muted)] font-black uppercase tracking-[0.2em]">
-                {store.source} · {store.username} · ID: {store.shopId}
+                {store.source} · {store.username || "sem username"} · ID: {store.shopId}
               </p>
             </div>
           </div>
 
-          <Button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="bg-[var(--hub-primary)] hover:bg-[var(--hub-primary)]/80 text-[var(--hub-primary-foreground)] font-black uppercase tracking-wider h-12 px-8"
-          >
-            {refreshing ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Sincronizando...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2" /> Atualizar Catálogo
-              </>
-            )}
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Status Toggle Button */}
+            <Button
+              variant="outline"
+              onClick={handleToggleStatus}
+              disabled={togglingStatus || refreshing}
+              className="h-11 text-[10px] font-bold uppercase tracking-wider border-[var(--hub-border)]"
+            >
+              <Power className="h-3.5 w-3.5 mr-2 text-[var(--hub-muted)]" />
+              {store.status === "active" ? "Desativar Loja" : "Ativar Loja"}
+            </Button>
+
+            {/* Limit Selector */}
+            <div className="flex items-center bg-black/40 border border-[var(--hub-border)] rounded-lg p-1">
+              {[1, 10, 50, 100].map((lim) => (
+                <button
+                  key={lim}
+                  type="button"
+                  onClick={() => setSelectedLimit(lim as any)}
+                  className={`px-3 py-1.5 text-[9px] font-black uppercase rounded transition-all ${
+                    selectedLimit === lim
+                      ? "bg-[var(--hub-primary)] text-black"
+                      : "text-[var(--hub-muted)] hover:text-white"
+                  }`}
+                >
+                  {lim}
+                </button>
+              ))}
+            </div>
+
+            {/* Refresh Button */}
+            <Button
+              onClick={handleRefresh}
+              disabled={refreshing || store.status !== "active"}
+              className="bg-[var(--hub-primary)] hover:bg-[var(--hub-primary)]/80 text-[var(--hub-primary-foreground)] font-black uppercase tracking-wider h-11 px-6"
+            >
+              {refreshing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Sincronizando...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" /> Sincronizar ({selectedLimit})
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Sync Summary Alert */}
         {syncResult && (
-          <div className="hub-card border-red-500/30 bg-red-500/5 p-6 space-y-4 animate-in fade-in slide-in-from-top-4">
-            <div className="flex items-center gap-3 text-red-500">
+          <div className="hub-card border-[var(--hub-primary)]/30 bg-[var(--hub-primary)]/5 p-6 space-y-4 animate-in fade-in slide-in-from-top-4">
+            <div className="flex items-center gap-3 text-[var(--hub-primary)]">
               <CheckCircle className="h-5 w-5" />
               <h3 className="text-sm font-black uppercase tracking-widest">
-                Resultado da Sincronização Real
+                Resultado da Sincronização
               </h3>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div>
-                <p className="text-[9px] text-red-500/60 font-black uppercase tracking-widest">
+                <p className="text-[9px] text-[var(--hub-muted)] font-black uppercase tracking-widest">
                   Encontrados
                 </p>
                 <p className="text-xl font-black text-white italic">{syncResult.productsFound}</p>
               </div>
               <div>
-                <p className="text-[9px] text-red-500/60 font-black uppercase tracking-widest">
+                <p className="text-[9px] text-emerald-400/80 font-black uppercase tracking-widest">
                   Criados
                 </p>
-                <p className="text-xl font-black text-white italic">{syncResult.created}</p>
+                <p className="text-xl font-black text-emerald-400 italic">{syncResult.created}</p>
               </div>
               <div>
-                <p className="text-[9px] text-red-500/60 font-black uppercase tracking-widest">
+                <p className="text-[9px] text-blue-400/80 font-black uppercase tracking-widest">
                   Atualizados
                 </p>
-                <p className="text-xl font-black text-white italic">{syncResult.updated}</p>
+                <p className="text-xl font-black text-blue-400 italic">{syncResult.updated}</p>
               </div>
               <div>
-                <p className="text-[9px] text-red-500/60 font-black uppercase tracking-widest">
-                  Falhas
+                <p className="text-[9px] text-[var(--hub-muted)] font-black uppercase tracking-widest">
+                  Inalterados
                 </p>
-                <p className="text-xl font-black text-red-500 italic">{syncResult.failed}</p>
+                <p className="text-xl font-black text-white italic">{syncResult.unchanged}</p>
               </div>
               <div>
-                <p className="text-[9px] text-red-500/60 font-black uppercase tracking-widest">
+                <p className="text-[9px] text-[var(--hub-muted)] font-black uppercase tracking-widest">
                   Duração
                 </p>
                 <p className="text-xl font-black text-white italic">
@@ -215,7 +272,7 @@ export default function StoreDetailPage() {
           <div className="hub-card hub-gradient-border p-6 space-y-2">
             <Package className="h-4 w-4 text-[var(--hub-muted)] mb-2" />
             <p className="text-[9px] text-[var(--hub-muted)] font-black uppercase tracking-widest">
-              Produtos
+              Produtos Sincronizados
             </p>
             <p className="text-2xl font-black text-white italic">{store.productCount}</p>
           </div>
@@ -226,9 +283,9 @@ export default function StoreDetailPage() {
             </p>
             <p
               className={cn(
-                "text-2xl font-black italic",
+                "text-2xl font-black italic uppercase",
                 store.syncState === "success"
-                  ? "text-red-500"
+                  ? "text-emerald-400"
                   : store.syncState === "running"
                     ? "text-blue-500"
                     : "text-white",
@@ -252,7 +309,7 @@ export default function StoreDetailPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between px-2">
             <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-white italic">
-              Catálogo de Produtos Real
+              Catálogo de Produtos da Loja ({products.length})
             </h3>
             <span className="text-[9px] font-black text-[var(--hub-muted)] uppercase tracking-widest italic opacity-40">
               D1 Master Storage
@@ -313,7 +370,8 @@ export default function StoreDetailPage() {
                   colSpan={6}
                   className="px-5 py-20 text-center text-[var(--hub-muted)] italic text-[11px] uppercase tracking-widest"
                 >
-                  Nenhum produto encontrado neste catálogo real.
+                  Nenhum produto sincronizado para esta loja. Clique em &quot;Sincronizar&quot;
+                  acima.
                 </td>
               </tr>
             )}
