@@ -14,21 +14,21 @@ export interface AuthContext {
  */
 export async function validateStoreAccess(auth: AuthContext, storeId?: string): Promise<boolean> {
   // 1. MASTER is globally authorized
-  if (auth.role === 'MASTER') {
+  if (auth.role === "MASTER") {
     return true;
   }
 
   // 2. LOJISTA is authorized only for their own stores
-  if (auth.role === 'LOJISTA') {
+  if (auth.role === "LOJISTA") {
     if (!storeId) {
-      return false; 
+      return false;
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: store, error } = await supabaseAdmin
-      .from('stores')
-      .select('owner_id')
-      .eq('id', storeId)
+      .from("stores")
+      .select("owner_id")
+      .eq("id", storeId)
       .maybeSingle();
 
     if (error || !store) return false;
@@ -44,5 +44,5 @@ export async function validateStoreAccess(auth: AuthContext, storeId?: string): 
  * requirement: MASTER: autorizado globalmente.
  */
 export async function validateIngestionAccess(auth: AuthContext): Promise<boolean> {
-  return auth.role === 'MASTER';
+  return auth.role === "MASTER";
 }

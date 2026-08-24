@@ -18,18 +18,18 @@ const ALLOWED_DOMAIN_PATTERNS = [
 ];
 
 const BLOCKED_HOSTS = new Set([
-  'localhost',
-  '127.0.0.1',
-  '0.0.0.0',
-  '::1',
-  '169.254.169.254', // Cloud instance metadata
-  'metadata.google.internal',
-  'instance-data',
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+  "::1",
+  "169.254.169.254", // Cloud instance metadata
+  "metadata.google.internal",
+  "instance-data",
 ]);
 
 function isPrivateIp(ip: string): boolean {
-  const parts = ip.split('.').map(Number);
-  if (parts.length !== 4 || parts.some(p => isNaN(p) || p < 0 || p > 255)) {
+  const parts = ip.split(".").map(Number);
+  if (parts.length !== 4 || parts.some((p) => isNaN(p) || p < 0 || p > 255)) {
     return false;
   }
   if (parts[0] === 127) return true; // Loopback
@@ -42,7 +42,7 @@ function isPrivateIp(ip: string): boolean {
 }
 
 export function isAllowedTargetUrl(rawUrl: string): boolean {
-  if (!rawUrl || typeof rawUrl !== 'string') return false;
+  if (!rawUrl || typeof rawUrl !== "string") return false;
 
   const trimmed = rawUrl.trim();
   if (!/^https?:\/\//i.test(trimmed)) return false;
@@ -54,7 +54,7 @@ export function isAllowedTargetUrl(rawUrl: string): boolean {
     return false;
   }
 
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
 
   // Reject credentials in URL (e.g., http://user:pass@host)
   if (parsed.username || parsed.password) return false;
@@ -65,7 +65,7 @@ export function isAllowedTargetUrl(rawUrl: string): boolean {
   if (isPrivateIp(hostname)) return false;
 
   // Reject IPv6 loopback / link-local / private
-  if (hostname.includes(':') || hostname.startsWith('[') || hostname.endsWith(']')) return false;
+  if (hostname.includes(":") || hostname.startsWith("[") || hostname.endsWith("]")) return false;
 
-  return ALLOWED_DOMAIN_PATTERNS.some(pattern => pattern.test(hostname));
+  return ALLOWED_DOMAIN_PATTERNS.some((pattern) => pattern.test(hostname));
 }

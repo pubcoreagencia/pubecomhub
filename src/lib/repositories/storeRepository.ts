@@ -1,20 +1,16 @@
-import { Store, IStoreRepository } from '@/types';
-import { mockStores } from '@/data/mock';
-import { supabase } from '@/integrations/supabase/client';
+import { Store, IStoreRepository } from "@/types";
+import { mockStores } from "@/data/mock";
+import { supabase } from "@/integrations/supabase/client";
 
 export class StoreRepository implements IStoreRepository {
   private useMock = true;
 
   async getById(id: string): Promise<Store | null> {
     if (this.useMock) {
-      return mockStores.find(s => s.id === id) || null;
+      return mockStores.find((s) => s.id === id) || null;
     }
 
-    const { data, error } = await supabase
-      .from('stores')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from("stores").select("*").eq("id", id).single();
 
     if (error) return null;
     return this.mapDbStoreToType(data);
@@ -22,13 +18,10 @@ export class StoreRepository implements IStoreRepository {
 
   async getByOwner(ownerId: string): Promise<Store[]> {
     if (this.useMock) {
-      return mockStores.filter(s => s.ownerId === ownerId);
+      return mockStores.filter((s) => s.ownerId === ownerId);
     }
 
-    const { data, error } = await supabase
-      .from('stores')
-      .select('*')
-      .eq('owner_id', ownerId);
+    const { data, error } = await supabase.from("stores").select("*").eq("owner_id", ownerId);
 
     if (error) throw error;
     return (data || []).map(this.mapDbStoreToType);
@@ -36,14 +29,14 @@ export class StoreRepository implements IStoreRepository {
 
   async getBySubdomain(subdomain: string): Promise<Store | null> {
     if (this.useMock) {
-      return mockStores.find(s => s.subdomain === subdomain) || null;
+      return mockStores.find((s) => s.subdomain === subdomain) || null;
     }
 
     const { data, error } = await supabase
-      .from('stores')
-      .select('*')
-      .eq('subdomain', subdomain)
-      .eq('status', 'active')
+      .from("stores")
+      .select("*")
+      .eq("subdomain", subdomain)
+      .eq("status", "active")
       .maybeSingle();
 
     if (error) return null;
@@ -56,7 +49,7 @@ export class StoreRepository implements IStoreRepository {
       name: dbStore.name,
       ownerId: dbStore.owner_id,
       subdomain: dbStore.subdomain,
-      status: dbStore.status as 'active' | 'inactive',
+      status: dbStore.status as "active" | "inactive",
       created_at: dbStore.created_at,
     };
   }

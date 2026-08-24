@@ -20,10 +20,10 @@ export interface Store {
   id: string; // canonicalId: e.g. "shopee:1729928484"
   name: string;
   username: string;
-  source: 'shopee' | string;
+  source: "shopee" | string;
   shopId: string;
-  status: 'active' | 'inactive' | 'error';
-  syncState: 'idle' | 'running' | 'success' | 'partial' | 'failed' | 'error';
+  status: "active" | "inactive" | "error";
+  syncState: "idle" | "running" | "success" | "partial" | "failed" | "error";
   productCount: number;
   lastSyncAt: string | null;
   lastSyncStatus: string | null;

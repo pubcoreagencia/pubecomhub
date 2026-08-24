@@ -1,6 +1,6 @@
-import { chromium } from '@cloudflare/playwright';
-import { getCorsHeaders, handleOptions } from './cors';
-import { isAllowedTargetUrl } from './security';
+import { chromium } from "@cloudflare/playwright";
+import { getCorsHeaders, handleOptions } from "./cors";
+import { isAllowedTargetUrl } from "./security";
 
 export interface Env {
   BROWSER: any;
@@ -27,12 +27,15 @@ interface DiagnosticResult {
   productLinkShopIds: string[];
 }
 
-async function resolveShopIdWithDiagnostics(page: any, targetUrl: string): Promise<DiagnosticResult> {
-  const cleanUrl = targetUrl.split('#')[0].split('?')[0];
-  const urlParts = cleanUrl.split('/').filter(Boolean);
-  const username = urlParts[urlParts.length - 1] || '';
-  
-  await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+async function resolveShopIdWithDiagnostics(
+  page: any,
+  targetUrl: string,
+): Promise<DiagnosticResult> {
+  const cleanUrl = targetUrl.split("#")[0].split("?")[0];
+  const urlParts = cleanUrl.split("/").filter(Boolean);
+  const username = urlParts[urlParts.length - 1] || "";
+
+  await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
   const finalPageUrl = page.url();
 
   const diag = await page.evaluate(async (uname: string) => {
@@ -55,11 +58,11 @@ async function resolveShopIdWithDiagnostics(page: any, targetUrl: string): Promi
 
     try {
       // Strategy: Product Link Extraction
-      const links = Array.from(document.querySelectorAll('a[href]'));
+      const links = Array.from(document.querySelectorAll("a[href]"));
       const productRegex = /i\.(\d{4,})\.(\d{4,})(?:[/?#]|$)/i;
       const shopIdMap: Record<string, number> = {};
-      
-      links.forEach(link => {
+
+      links.forEach((link) => {
         const href = (link as HTMLAnchorElement).href;
         const match = href.match(productRegex);
         if (match && match[1]) {
@@ -80,21 +83,21 @@ async function resolveShopIdWithDiagnostics(page: any, targetUrl: string): Promi
 
       // POST /api/v4/shop/get_shop_base_v2 (only if not found or for diagnostics)
       if (!results.shopId) {
-        const postResp = await fetch('https://shopee.com.br/api/v4/shop/get_shop_base_v2', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const postResp = await fetch("https://shopee.com.br/api/v4/shop/get_shop_base_v2", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             request_source: "mobile_shop_home_page",
             livestream_params: {},
-            username: uname
-          })
+            username: uname,
+          }),
         });
-        
+
         results.shopBaseStatus = postResp.status;
-        results.shopBaseContentType = postResp.headers.get('content-type');
+        results.shopBaseContentType = postResp.headers.get("content-type");
         const postText = await postResp.text();
         results.shopBaseResponseSize = postText.length;
-        
+
         try {
           const postJson = JSON.parse(postText);
           results.shopBaseKeys = Object.keys(postJson);
@@ -104,16 +107,20 @@ async function resolveShopIdWithDiagnostics(page: any, targetUrl: string): Promi
             results.shopBaseHasShopId = true;
             results.shopId = sid.toString();
           }
-        } catch {}
+        } catch {
+          // ignore JSON parse error in diagnostic probe
+        }
       }
 
       // GET /api/v4/shop/get_shop_base?username=<username>
       if (!results.shopId) {
-        const getResp = await fetch(`https://shopee.com.br/api/v4/shop/get_shop_base?username=${uname}`);
+        const getResp = await fetch(
+          `https://shopee.com.br/api/v4/shop/get_shop_base?username=${uname}`,
+        );
         results.fallbackGetStatus = getResp.status;
         const getText = await getResp.text();
         results.fallbackGetResponseSize = getText.length;
-        
+
         try {
           const getJson = JSON.parse(getText);
           results.fallbackGetKeys = Object.keys(getJson);
@@ -123,7 +130,9 @@ async function resolveShopIdWithDiagnostics(page: any, targetUrl: string): Promi
             results.fallbackGetHasShopId = true;
             results.shopId = sid.toString();
           }
-        } catch {}
+        } catch {
+          // ignore JSON parse error in diagnostic probe
+        }
       }
     } catch (e) {
       console.error("Diagnostic error:", e);
@@ -134,67 +143,77 @@ async function resolveShopIdWithDiagnostics(page: any, targetUrl: string): Promi
 
   return {
     ...diag,
-    strategy: diag.shopId ? (diag.productLinkShopIds.length > 0 && diag.shopId === diag.productLinkShopIds[0] ? 'product-link' : 'shop-base-diagnostic') : 'none',
+    strategy: diag.shopId
+      ? diag.productLinkShopIds.length > 0 && diag.shopId === diag.productLinkShopIds[0]
+        ? "product-link"
+        : "shop-base-diagnostic"
+      : "none",
     username,
-    finalPageUrl
+    finalPageUrl,
   };
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    const origin = request.headers.get('Origin');
+    const origin = request.headers.get("Origin");
     const corsHeaders = getCorsHeaders(origin);
 
     // 1. Handle Preflight
-    if (request.method === 'OPTIONS') {
+    if (request.method === "OPTIONS") {
       return handleOptions(request);
     }
 
     // Wrap the inner logic to add CORS to all responses
     const handleRequest = async () => {
       // Health Check
-      if (url.pathname === '/health' && request.method === 'GET') {
+      if (url.pathname === "/health" && request.method === "GET") {
         return new Response(JSON.stringify({ ok: true, service: "pub-ecom-catalog-worker" }), {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { "Content-Type": "application/json" },
         });
       }
 
       // Auth Check
-      const authHeader = request.headers.get('Authorization');
+      const authHeader = request.headers.get("Authorization");
       if (!authHeader || authHeader !== `Bearer ${env.CATALOG_WORKER_TOKEN}`) {
-        return new Response(JSON.stringify({ success: false, errors: ['Unauthorized'] }), { 
+        return new Response(JSON.stringify({ success: false, errors: ["Unauthorized"] }), {
           status: 401,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { "Content-Type": "application/json" },
         });
       }
 
       // Debug Browser Limits
-      if (url.pathname === '/debug/browser' && request.method === 'GET') {
+      if (url.pathname === "/debug/browser" && request.method === "GET") {
         try {
           const [sessions, history, limits] = await Promise.all([
             (chromium as any).sessions?.(env.BROWSER) || [],
             (chromium as any).history?.(env.BROWSER) || [],
-            (chromium as any).limits?.(env.BROWSER) || {}
+            (chromium as any).limits?.(env.BROWSER) || {},
           ]);
 
-          return new Response(JSON.stringify({
-            sessions,
-            history,
-            limits
-          }), {
-            headers: { 'Content-Type': 'application/json' }
-          });
+          return new Response(
+            JSON.stringify({
+              sessions,
+              history,
+              limits,
+            }),
+            {
+              headers: { "Content-Type": "application/json" },
+            },
+          );
         } catch (error: any) {
-          return new Response(JSON.stringify({
-            success: false,
-            errors: [error.message]
-          }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+          return new Response(
+            JSON.stringify({
+              success: false,
+              errors: [error.message],
+            }),
+            { status: 500, headers: { "Content-Type": "application/json" } },
+          );
         }
       }
 
       // Ingestion Flow
-      if (url.pathname === '/ingestion/shopee' && request.method === 'POST') {
+      if (url.pathname === "/ingestion/shopee" && request.method === "POST") {
         try {
           const body: any = await request.json();
           const targetUrl = body.url;
@@ -202,12 +221,20 @@ export default {
           const pageSize = body.pageSize || 1;
 
           if (!targetUrl) {
-            return new Response(JSON.stringify({ success: false, errors: ['URL is required'] }), { status: 400 });
+            return new Response(JSON.stringify({ success: false, errors: ["URL is required"] }), {
+              status: 400,
+            });
           }
 
           // SSRF Protection: enforce strict hostname allow-list BEFORE any browser navigation
           if (!isAllowedTargetUrl(targetUrl)) {
-            return new Response(JSON.stringify({ success: false, errors: ['Forbidden: URL is not an allowed Shopee target'] }), { status: 400 });
+            return new Response(
+              JSON.stringify({
+                success: false,
+                errors: ["Forbidden: URL is not an allowed Shopee target"],
+              }),
+              { status: 400 },
+            );
           }
 
           const browser = await chromium.launch(env.BROWSER);
@@ -227,28 +254,32 @@ export default {
               });
               if (resolvedShopId) {
                 resolvedShopId = resolvedShopId.toString();
-                method = 'preloaded_state';
+                method = "preloaded_state";
               }
             }
 
             if (!resolvedShopId) {
               resolvedShopId = await page.evaluate(() => {
-                const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
+                const scripts = Array.from(
+                  document.querySelectorAll('script[type="application/ld+json"]'),
+                );
                 for (const script of scripts as HTMLScriptElement[]) {
                   try {
-                    const data = JSON.parse(script.textContent || '{}');
-                    if (data['@type'] === 'Store' && data['url']?.includes('shop/')) {
-                      return data['url'].split('shop/')[1];
+                    const data = JSON.parse(script.textContent || "{}");
+                    if (data["@type"] === "Store" && data["url"]?.includes("shop/")) {
+                      return data["url"].split("shop/")[1];
                     }
-                  } catch {}
+                  } catch {
+                    // ignore malformed JSON-LD script block
+                  }
                 }
                 return null;
               });
-              if (resolvedShopId) method = 'json_ld';
+              if (resolvedShopId) method = "json_ld";
             }
 
             const metadata = {
-              provider: 'cloudflare-browser-run',
+              provider: "cloudflare-browser-run",
               shopIdStrategy: method,
               username: diag.username,
               finalPageUrl: diag.finalPageUrl,
@@ -265,60 +296,71 @@ export default {
               fallbackGetKeys: diag.fallbackGetKeys,
               fallbackGetHasData: diag.fallbackGetHasData,
               fallbackGetHasShopId: diag.fallbackGetHasShopId,
-              executionTimeMs: Date.now() - startTime
+              executionTimeMs: Date.now() - startTime,
             };
 
             if (!resolvedShopId) {
-              return new Response(JSON.stringify({
-                success: false,
-                source: 'shopee',
-                shopId: null,
-                items: [],
-                metadata,
-                errors: ['unable to resolve Shopee ShopID']
-              }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+              return new Response(
+                JSON.stringify({
+                  success: false,
+                  source: "shopee",
+                  shopId: null,
+                  items: [],
+                  metadata,
+                  errors: ["unable to resolve Shopee ShopID"],
+                }),
+                { status: 404, headers: { "Content-Type": "application/json" } },
+              );
             }
 
-            const searchResult = await page.evaluate(async ({ sid, lmt, psz }: { sid: string, lmt: number, psz: number }) => {
-              try {
-                const resp = await fetch('https://shopee.com.br/api/v4/search/search_items', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    shopid: parseInt(sid),
-                    limit: lmt,
-                    offset: 0,
-                    pageSize: psz
-                  })
-                });
-                const json = await resp.json() as any;
-                return { status: resp.status, items: json.items || [] };
-              } catch (e) {
-                return { status: 0, error: String(e) };
-              }
-            }, { sid: resolvedShopId, lmt: limit, psz: pageSize });
+            const searchResult = await page.evaluate(
+              async ({ sid, lmt, psz }: { sid: string; lmt: number; psz: number }) => {
+                try {
+                  const resp = await fetch("https://shopee.com.br/api/v4/search/search_items", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      shopid: parseInt(sid),
+                      limit: lmt,
+                      offset: 0,
+                      pageSize: psz,
+                    }),
+                  });
+                  const json = (await resp.json()) as any;
+                  return { status: resp.status, items: json.items || [] };
+                } catch (e) {
+                  return { status: 0, error: String(e) };
+                }
+              },
+              { sid: resolvedShopId, lmt: limit, psz: pageSize },
+            );
 
-            return new Response(JSON.stringify({
-              success: true,
-              source: 'shopee',
-              shopId: resolvedShopId,
-              items: searchResult.items || [],
-              metadata,
-              errors: []
-            }), { headers: { 'Content-Type': 'application/json' } });
-
+            return new Response(
+              JSON.stringify({
+                success: true,
+                source: "shopee",
+                shopId: resolvedShopId,
+                items: searchResult.items || [],
+                metadata,
+                errors: [],
+              }),
+              { headers: { "Content-Type": "application/json" } },
+            );
           } finally {
             await browser.close();
           }
         } catch (error: any) {
-          return new Response(JSON.stringify({
-            success: false,
-            errors: [error.message]
-          }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+          return new Response(
+            JSON.stringify({
+              success: false,
+              errors: [error.message],
+            }),
+            { status: 500, headers: { "Content-Type": "application/json" } },
+          );
         }
       }
 
-      return new Response('Not Found', { status: 404 });
+      return new Response("Not Found", { status: 404 });
     };
 
     // Execute handler and append CORS headers to all responses

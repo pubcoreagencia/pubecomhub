@@ -1,36 +1,36 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { PGlite } from '@electric-sql/pglite';
+import { describe, it, expect, beforeAll } from "vitest";
+import { PGlite } from "@electric-sql/pglite";
 
-describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
+describe("Real PostgreSQL Engine RLS Hardening Suite (PGlite)", () => {
   let pg: PGlite;
 
-  const MASTER_UID = '00000000-0000-0000-0000-000000000001';
-  const LOJISTA_A_UID = '11111111-1111-1111-1111-111111111111';
-  const LOJISTA_B_UID = '22222222-2222-2222-2222-222222222222';
-  const FORNECEDOR_A_UID = '33333333-3333-3333-3333-333333333333';
-  const FORNECEDOR_B_UID = '44444444-4444-4444-4444-444444444444';
-  const INFLUENCER_A_UID = '55555555-5555-5555-5555-555555555555';
-  const INFLUENCER_B_UID = '66666666-6666-6666-6666-666666666666';
-  const AFFILIATE_A_UID = '77777777-7777-7777-7777-777777777777';
+  const MASTER_UID = "00000000-0000-0000-0000-000000000001";
+  const LOJISTA_A_UID = "11111111-1111-1111-1111-111111111111";
+  const LOJISTA_B_UID = "22222222-2222-2222-2222-222222222222";
+  const FORNECEDOR_A_UID = "33333333-3333-3333-3333-333333333333";
+  const FORNECEDOR_B_UID = "44444444-4444-4444-4444-444444444444";
+  const INFLUENCER_A_UID = "55555555-5555-5555-5555-555555555555";
+  const INFLUENCER_B_UID = "66666666-6666-6666-6666-666666666666";
+  const AFFILIATE_A_UID = "77777777-7777-7777-7777-777777777777";
 
-  const STORE_A_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-  const STORE_B_ID = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-  const SUPPLIER_A_ID = 'caaaaaaa-0000-0000-0000-000000000001';
-  const SUPPLIER_B_ID = 'cbbbbbbb-0000-0000-0000-000000000002';
+  const STORE_A_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+  const STORE_B_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+  const SUPPLIER_A_ID = "caaaaaaa-0000-0000-0000-000000000001";
+  const SUPPLIER_B_ID = "cbbbbbbb-0000-0000-0000-000000000002";
 
-  const MP_A_ID = 'baaaaaaa-0000-0000-0000-000000000001';
-  const MP_B_ID = 'baaaaaaa-0000-0000-0000-000000000002';
+  const MP_A_ID = "baaaaaaa-0000-0000-0000-000000000001";
+  const MP_B_ID = "baaaaaaa-0000-0000-0000-000000000002";
 
-  const PROD_A_ID = 'daaaaaaa-0000-0000-0000-000000000001';
-  const PROD_B_ID = 'daaaaaaa-0000-0000-0000-000000000002';
+  const PROD_A_ID = "daaaaaaa-0000-0000-0000-000000000001";
+  const PROD_B_ID = "daaaaaaa-0000-0000-0000-000000000002";
 
-  const CUST_A_ID = 'eaaaaaaa-0000-0000-0000-000000000001';
-  const CUST_B_ID = 'eaaaaaaa-0000-0000-0000-000000000002';
+  const CUST_A_ID = "eaaaaaaa-0000-0000-0000-000000000001";
+  const CUST_B_ID = "eaaaaaaa-0000-0000-0000-000000000002";
 
-  const EVT_A_ID = 'faaaaaaa-0000-0000-0000-000000000001';
-  const EVT_B_ID = 'faaaaaaa-0000-0000-0000-000000000002';
+  const EVT_A_ID = "faaaaaaa-0000-0000-0000-000000000001";
+  const EVT_B_ID = "faaaaaaa-0000-0000-0000-000000000002";
 
-  async function asUser(uid: string | null, role: 'authenticated' | 'anon' = 'authenticated') {
+  async function asUser(uid: string | null, role: "authenticated" | "anon" = "authenticated") {
     await pg.exec(`SET ROLE web_user;`);
     if (uid) {
       await pg.query(`SELECT set_config('request.jwt.claim.sub', '${uid}', false)`);
@@ -481,19 +481,31 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
     `);
   });
 
-  describe('0. SQL Audit on all 11 Business Tables in pg_class and pg_policies', () => {
-    it('All 11 business tables must have relrowsecurity = true in pg_class', async () => {
+  describe("0. SQL Audit on all 11 Business Tables in pg_class and pg_policies", () => {
+    it("All 11 business tables must have relrowsecurity = true in pg_class", async () => {
       const tables = [
-        'profiles', 'stores', 'suppliers', 'master_products', 'products',
-        'customers', 'marketing_events', 'orders', 'commissions', 'wallets', 'wallet_transactions'
+        "profiles",
+        "stores",
+        "suppliers",
+        "master_products",
+        "products",
+        "customers",
+        "marketing_events",
+        "orders",
+        "commissions",
+        "wallets",
+        "wallet_transactions",
       ];
 
-      const res = await pg.query<{ relname: string; relrowsecurity: boolean }>(`
+      const res = await pg.query<{ relname: string; relrowsecurity: boolean }>(
+        `
         SELECT relname, relrowsecurity 
         FROM pg_class 
         JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
         WHERE pg_namespace.nspname = 'public' AND relname = ANY($1)
-      `, [tables]);
+      `,
+        [tables],
+      );
 
       expect(res.rows.length).toBe(11);
       for (const row of res.rows) {
@@ -501,8 +513,13 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
       }
     });
 
-    it('Zero policies on business tables must contain permissive USING (true) or WITH CHECK (true)', async () => {
-      const res = await pg.query<{ tablename: string; policyname: string; qual: string; with_check: string }>(`
+    it("Zero policies on business tables must contain permissive USING (true) or WITH CHECK (true)", async () => {
+      const res = await pg.query<{
+        tablename: string;
+        policyname: string;
+        qual: string;
+        with_check: string;
+      }>(`
         SELECT tablename, policyname, qual, with_check 
         FROM pg_policies 
         WHERE schemaname = 'public'
@@ -510,125 +527,135 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
 
       for (const p of res.rows) {
         if (p.qual) {
-          expect(p.qual.trim()).not.toBe('true');
-          expect(p.qual.trim()).not.toBe('(true)');
+          expect(p.qual.trim()).not.toBe("true");
+          expect(p.qual.trim()).not.toBe("(true)");
         }
         if (p.with_check) {
-          expect(p.with_check.trim()).not.toBe('true');
-          expect(p.with_check.trim()).not.toBe('(true)');
+          expect(p.with_check.trim()).not.toBe("true");
+          expect(p.with_check.trim()).not.toBe("(true)");
         }
       }
     });
   });
 
-  describe('1. Suppliers RLS & Commercial View', () => {
-    it('MASTER can read all suppliers (A and B)', async () => {
+  describe("1. Suppliers RLS & Commercial View", () => {
+    it("MASTER can read all suppliers (A and B)", async () => {
       await asUser(MASTER_UID);
-      const res = await pg.query<{ id: string }>('SELECT id FROM public.suppliers');
+      const res = await pg.query<{ id: string }>("SELECT id FROM public.suppliers");
       expect(res.rows.length).toBe(2);
     });
 
-    it('FORNECEDOR A can read only own supplier (A) and NOT supplier B', async () => {
+    it("FORNECEDOR A can read only own supplier (A) and NOT supplier B", async () => {
       await asUser(FORNECEDOR_A_UID);
-      const res = await pg.query<{ id: string }>('SELECT id FROM public.suppliers');
+      const res = await pg.query<{ id: string }>("SELECT id FROM public.suppliers");
       expect(res.rows.length).toBe(1);
       expect(res.rows[0].id).toBe(SUPPLIER_A_ID);
     });
 
-    it('LOJISTA gets 0 rows from base suppliers table (DENY)', async () => {
+    it("LOJISTA gets 0 rows from base suppliers table (DENY)", async () => {
       await asUser(LOJISTA_A_UID);
-      const res = await pg.query('SELECT * FROM public.suppliers');
+      const res = await pg.query("SELECT * FROM public.suppliers");
       expect(res.rows.length).toBe(0);
     });
 
-    it('ANON gets 0 rows from base suppliers table (DENY)', async () => {
-      await asUser(null, 'anon');
-      const res = await pg.query('SELECT * FROM public.suppliers');
+    it("ANON gets 0 rows from base suppliers table (DENY)", async () => {
+      await asUser(null, "anon");
+      const res = await pg.query("SELECT * FROM public.suppliers");
       expect(res.rows.length).toBe(0);
     });
 
-    it('public_suppliers view is accessible by authenticated users, exposes only non-sensitive catalog fields without private notes', async () => {
+    it("public_suppliers view is accessible by authenticated users, exposes only non-sensitive catalog fields without private notes", async () => {
       await asUser(LOJISTA_A_UID);
-      const res = await pg.query<any>('SELECT * FROM public.public_suppliers');
+      const res = await pg.query<any>("SELECT * FROM public.public_suppliers");
       expect(res.rows.length).toBe(2);
-      expect(res.rows[0].name).toBe('Fornecedor A LTDA');
+      expect(res.rows[0].name).toBe("Fornecedor A LTDA");
       expect(res.rows[0].profile_id).toBeUndefined();
     });
   });
 
-  describe('2. Master Products RLS & Commercial View', () => {
-    it('MASTER can read all master products with supplier_cost', async () => {
+  describe("2. Master Products RLS & Commercial View", () => {
+    it("MASTER can read all master products with supplier_cost", async () => {
       await asUser(MASTER_UID);
-      const res = await pg.query<{ sku: string; supplier_cost: number }>('SELECT sku, supplier_cost FROM public.master_products');
+      const res = await pg.query<{ sku: string; supplier_cost: number }>(
+        "SELECT sku, supplier_cost FROM public.master_products",
+      );
       expect(res.rows.length).toBe(2);
       expect(Number(res.rows[0].supplier_cost)).toBeGreaterThan(0);
     });
 
-    it('FORNECEDOR A can read own master products and NOT product from Supplier B', async () => {
+    it("FORNECEDOR A can read own master products and NOT product from Supplier B", async () => {
       await asUser(FORNECEDOR_A_UID);
-      const res = await pg.query<{ sku: string; supplier_cost: number }>('SELECT sku, supplier_cost FROM public.master_products');
+      const res = await pg.query<{ sku: string; supplier_cost: number }>(
+        "SELECT sku, supplier_cost FROM public.master_products",
+      );
       expect(res.rows.length).toBe(1);
-      expect(res.rows[0].sku).toBe('SKU-A1');
-      expect(Number(res.rows[0].supplier_cost)).toBe(18.50);
+      expect(res.rows[0].sku).toBe("SKU-A1");
+      expect(Number(res.rows[0].supplier_cost)).toBe(18.5);
     });
 
-    it('LOJISTA gets 0 rows on base master_products table (direct supplier_cost access DENIED)', async () => {
+    it("LOJISTA gets 0 rows on base master_products table (direct supplier_cost access DENIED)", async () => {
       await asUser(LOJISTA_A_UID);
-      const res = await pg.query('SELECT * FROM public.master_products');
+      const res = await pg.query("SELECT * FROM public.master_products");
       expect(res.rows.length).toBe(0);
     });
 
-    it('LOJISTA reads available_master_products view where supplier_cost is absent and private metadata is sanitized', async () => {
+    it("LOJISTA reads available_master_products view where supplier_cost is absent and private metadata is sanitized", async () => {
       await asUser(LOJISTA_A_UID);
-      const res = await pg.query<any>('SELECT * FROM public.available_master_products');
+      const res = await pg.query<any>("SELECT * FROM public.available_master_products");
       expect(res.rows.length).toBe(2);
       expect(res.rows[0].supplier_cost).toBeUndefined();
-      expect(Number(res.rows[0].base_price_pub)).toBe(39.90);
-      expect(res.rows[0].metadata?.external_id).toBe('1729928484');
-      expect(res.rows[0].metadata?.brand).toBe('Zentta');
+      expect(Number(res.rows[0].base_price_pub)).toBe(39.9);
+      expect(res.rows[0].metadata?.external_id).toBe("1729928484");
+      expect(res.rows[0].metadata?.brand).toBe("Zentta");
       expect(res.rows[0].metadata?.supplier_secret_note).toBeUndefined();
       expect(res.rows[0].metadata?.private_margin).toBeUndefined();
     });
   });
 
-  describe('3. Products RLS & Storefront View', () => {
-    it('LOJISTA A reads Store A products with cost & margin, but gets 0 rows for Store B', async () => {
+  describe("3. Products RLS & Storefront View", () => {
+    it("LOJISTA A reads Store A products with cost & margin, but gets 0 rows for Store B", async () => {
       await asUser(LOJISTA_A_UID);
-      const res = await pg.query<{ cost: number; profit_margin: number; store_id: string }>('SELECT cost, profit_margin, store_id FROM public.products');
+      const res = await pg.query<{ cost: number; profit_margin: number; store_id: string }>(
+        "SELECT cost, profit_margin, store_id FROM public.products",
+      );
       expect(res.rows.length).toBe(1);
-      expect(Number(res.rows[0].cost)).toBe(39.90);
-      expect(Number(res.rows[0].profit_margin)).toBe(40.00);
+      expect(Number(res.rows[0].cost)).toBe(39.9);
+      expect(Number(res.rows[0].profit_margin)).toBe(40.0);
       expect(res.rows[0].store_id).toBe(STORE_A_ID);
     });
 
-    it('ANON gets 0 rows on base products table (DENY)', async () => {
-      await asUser(null, 'anon');
-      const res = await pg.query('SELECT * FROM public.products');
+    it("ANON gets 0 rows on base products table (DENY)", async () => {
+      await asUser(null, "anon");
+      const res = await pg.query("SELECT * FROM public.products");
       expect(res.rows.length).toBe(0);
     });
 
-    it('public_store_products view strictly excludes cost, profit_margin, and supplier_id', async () => {
-      await asUser(null, 'anon');
-      const res = await pg.query<any>(`SELECT * FROM public.public_store_products WHERE store_id = '${STORE_A_ID}'`);
+    it("public_store_products view strictly excludes cost, profit_margin, and supplier_id", async () => {
+      await asUser(null, "anon");
+      const res = await pg.query<any>(
+        `SELECT * FROM public.public_store_products WHERE store_id = '${STORE_A_ID}'`,
+      );
       expect(res.rows.length).toBe(1);
-      expect(res.rows[0].name).toBe('Babuche Conforto Alpha');
-      expect(Number(res.rows[0].price)).toBe(79.90);
+      expect(res.rows[0].name).toBe("Babuche Conforto Alpha");
+      expect(Number(res.rows[0].price)).toBe(79.9);
       expect(res.rows[0].cost).toBeUndefined();
       expect(res.rows[0].profit_margin).toBeUndefined();
       expect(res.rows[0].supplier_id).toBeUndefined();
     });
   });
 
-  describe('4. Customers Multi-Tenant RLS & Injection Prevention', () => {
-    it('LOJISTA A reads only Store A customers, getting 0 rows for Store B', async () => {
+  describe("4. Customers Multi-Tenant RLS & Injection Prevention", () => {
+    it("LOJISTA A reads only Store A customers, getting 0 rows for Store B", async () => {
       await asUser(LOJISTA_A_UID);
-      const res = await pg.query<{ email: string; store_id: string }>('SELECT email, store_id FROM public.customers');
+      const res = await pg.query<{ email: string; store_id: string }>(
+        "SELECT email, store_id FROM public.customers",
+      );
       expect(res.rows.length).toBe(1);
-      expect(res.rows[0].email).toBe('cliente.a@privado.com');
+      expect(res.rows[0].email).toBe("cliente.a@privado.com");
       expect(res.rows[0].store_id).toBe(STORE_A_ID);
     });
 
-    it('Cross-tenant INSERT by authenticated LOJISTA A into Store B is DENIED by PostgreSQL', async () => {
+    it("Cross-tenant INSERT by authenticated LOJISTA A into Store B is DENIED by PostgreSQL", async () => {
       await asUser(LOJISTA_A_UID);
       let errorThrown = false;
       try {
@@ -638,13 +665,13 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         `);
       } catch (err: any) {
         errorThrown = true;
-        expect(err.message).toContain('violates row-level security policy');
+        expect(err.message).toContain("violates row-level security policy");
       }
       expect(errorThrown).toBe(true);
     });
 
-    it('ANON checkout customer insertion succeeds for active store, but fails for non-existent/inactive store', async () => {
-      await asUser(null, 'anon');
+    it("ANON checkout customer insertion succeeds for active store, but fails for non-existent/inactive store", async () => {
+      await asUser(null, "anon");
       const res = await pg.query(`
         INSERT INTO public.customers (id, store_id, name, email, phone)
         VALUES ('eaaaaaaa-0000-0000-0000-000000000088', '${STORE_A_ID}', 'Checkout Anon', 'anon@buyer.com', '123')
@@ -664,16 +691,18 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
     });
   });
 
-  describe('5. Marketing Events Multi-Tenant RLS & Relational Consistency', () => {
-    it('LOJISTA A reads only Store A marketing events', async () => {
+  describe("5. Marketing Events Multi-Tenant RLS & Relational Consistency", () => {
+    it("LOJISTA A reads only Store A marketing events", async () => {
       await asUser(LOJISTA_A_UID);
-      const res = await pg.query<{ id: string; store_id: string }>('SELECT id, store_id FROM public.marketing_events');
+      const res = await pg.query<{ id: string; store_id: string }>(
+        "SELECT id, store_id FROM public.marketing_events",
+      );
       expect(res.rows.length).toBe(1);
       expect(res.rows[0].id).toBe(EVT_A_ID);
       expect(res.rows[0].store_id).toBe(STORE_A_ID);
     });
 
-    it('Cross-tenant INSERT by LOJISTA A into Store B is DENIED by PostgreSQL', async () => {
+    it("Cross-tenant INSERT by LOJISTA A into Store B is DENIED by PostgreSQL", async () => {
       await asUser(LOJISTA_A_UID);
       let errorThrown = false;
       try {
@@ -683,13 +712,13 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         `);
       } catch (err: any) {
         errorThrown = true;
-        expect(err.message).toContain('violates row-level security policy');
+        expect(err.message).toContain("violates row-level security policy");
       }
       expect(errorThrown).toBe(true);
     });
 
-    it('ANON pixel tracking requires active store AND customer belonging to that same store', async () => {
-      await asUser(null, 'anon');
+    it("ANON pixel tracking requires active store AND customer belonging to that same store", async () => {
+      await asUser(null, "anon");
       const valid = await pg.query(`
         INSERT INTO public.marketing_events (id, store_id, customer_id, event_type)
         VALUES ('faaaaaaa-0000-0000-0000-000000000088', '${STORE_A_ID}', '${CUST_A_ID}', 'ADD_TO_CART')
@@ -704,139 +733,146 @@ describe('Real PostgreSQL Engine RLS Hardening Suite (PGlite)', () => {
         `);
       } catch (err: any) {
         errorThrown = true;
-        expect(err.message).toContain('violates row-level security policy');
+        expect(err.message).toContain("violates row-level security policy");
       }
       expect(errorThrown).toBe(true);
     });
   });
 
-  describe('6. Orders Base Table & Influencer View RLS Hardening', () => {
-    it('LOJISTA A reads only Store A orders with cost and net_profit', async () => {
+  describe("6. Orders Base Table & Influencer View RLS Hardening", () => {
+    it("LOJISTA A reads only Store A orders with cost and net_profit", async () => {
       await asUser(LOJISTA_A_UID);
-      const res = await pg.query<{ amount: number; cost: number; net_profit: number }>('SELECT amount, cost, net_profit FROM public.orders');
+      const res = await pg.query<{ amount: number; cost: number; net_profit: number }>(
+        "SELECT amount, cost, net_profit FROM public.orders",
+      );
       expect(res.rows.length).toBe(1);
-      expect(Number(res.rows[0].amount)).toBe(79.90);
-      expect(Number(res.rows[0].cost)).toBe(39.90);
-      expect(Number(res.rows[0].net_profit)).toBe(30.00);
+      expect(Number(res.rows[0].amount)).toBe(79.9);
+      expect(Number(res.rows[0].cost)).toBe(39.9);
+      expect(Number(res.rows[0].net_profit)).toBe(30.0);
     });
 
-    it('LOJISTA B gets 0 rows for Store A orders on base table', async () => {
+    it("LOJISTA B gets 0 rows for Store A orders on base table", async () => {
       await asUser(LOJISTA_B_UID);
-      const res = await pg.query<{ id: string; store_id: string }>(`SELECT id, store_id FROM public.orders WHERE store_id = '${STORE_A_ID}'`);
+      const res = await pg.query<{ id: string; store_id: string }>(
+        `SELECT id, store_id FROM public.orders WHERE store_id = '${STORE_A_ID}'`,
+      );
       expect(res.rows.length).toBe(0);
     });
 
-    it('FORNECEDOR gets 0 rows on base orders table (DENY)', async () => {
+    it("FORNECEDOR gets 0 rows on base orders table (DENY)", async () => {
       await asUser(FORNECEDOR_A_UID);
-      const res = await pg.query('SELECT * FROM public.orders');
+      const res = await pg.query("SELECT * FROM public.orders");
       expect(res.rows.length).toBe(0);
     });
 
-    it('INFLUENCER gets 0 rows directly on base orders table (DENY)', async () => {
+    it("INFLUENCER gets 0 rows directly on base orders table (DENY)", async () => {
       await asUser(INFLUENCER_A_UID);
-      const res = await pg.query('SELECT * FROM public.orders');
+      const res = await pg.query("SELECT * FROM public.orders");
       expect(res.rows.length).toBe(0);
     });
 
-    it('INFLUENCER A sees ONLY own assigned orders in influencer_orders view', async () => {
+    it("INFLUENCER A sees ONLY own assigned orders in influencer_orders view", async () => {
       await asUser(INFLUENCER_A_UID);
-      const res = await pg.query<any>('SELECT * FROM public.influencer_orders');
+      const res = await pg.query<any>("SELECT * FROM public.influencer_orders");
       expect(res.rows.length).toBe(1);
       expect(res.rows[0].influencer_id).toBe(INFLUENCER_A_UID);
-      expect(Number(res.rows[0].amount)).toBe(79.90);
+      expect(Number(res.rows[0].amount)).toBe(79.9);
       expect(res.rows[0].cost).toBeUndefined();
       expect(res.rows[0].net_profit).toBeUndefined();
       expect(res.rows[0].financial_metadata).toBeUndefined();
     });
 
-    it('INFLUENCER B gets 0 rows from influencer_orders view for Influencer A orders', async () => {
+    it("INFLUENCER B gets 0 rows from influencer_orders view for Influencer A orders", async () => {
       await asUser(INFLUENCER_B_UID);
-      const res = await pg.query<any>('SELECT * FROM public.influencer_orders');
+      const res = await pg.query<any>("SELECT * FROM public.influencer_orders");
       expect(res.rows.length).toBe(0);
     });
 
-    it('AFFILIATE A sees only orders assigned to affiliate_id in influencer_orders view', async () => {
+    it("AFFILIATE A sees only orders assigned to affiliate_id in influencer_orders view", async () => {
       await asUser(AFFILIATE_A_UID);
-      const res = await pg.query<any>('SELECT * FROM public.influencer_orders');
+      const res = await pg.query<any>("SELECT * FROM public.influencer_orders");
       expect(res.rows.length).toBe(1);
       expect(res.rows[0].affiliate_id).toBe(AFFILIATE_A_UID);
-      expect(Number(res.rows[0].amount)).toBe(189.90);
+      expect(Number(res.rows[0].amount)).toBe(189.9);
     });
 
-    it('LOJISTA gets 0 rows from influencer_orders view unless explicitly assigned as influencer/affiliate', async () => {
+    it("LOJISTA gets 0 rows from influencer_orders view unless explicitly assigned as influencer/affiliate", async () => {
       await asUser(LOJISTA_A_UID);
-      const res = await pg.query<any>('SELECT * FROM public.influencer_orders');
+      const res = await pg.query<any>("SELECT * FROM public.influencer_orders");
       expect(res.rows.length).toBe(0);
     });
   });
 
-  describe('7. Commissions and Wallets RLS', () => {
-    it('INFLUENCER A sees only own commissions and wallet', async () => {
+  describe("7. Commissions and Wallets RLS", () => {
+    it("INFLUENCER A sees only own commissions and wallet", async () => {
       await asUser(INFLUENCER_A_UID);
-      const comms = await pg.query<{ id: string; amount: number }>('SELECT id, amount FROM public.commissions');
+      const comms = await pg.query<{ id: string; amount: number }>(
+        "SELECT id, amount FROM public.commissions",
+      );
       expect(comms.rows.length).toBe(1);
-      expect(Number(comms.rows[0].amount)).toBe(15.00);
+      expect(Number(comms.rows[0].amount)).toBe(15.0);
 
-      const wallet = await pg.query<{ balance: number }>('SELECT balance FROM public.wallets');
+      const wallet = await pg.query<{ balance: number }>("SELECT balance FROM public.wallets");
       expect(wallet.rows.length).toBe(1);
-      expect(Number(wallet.rows[0].balance)).toBe(150.00);
+      expect(Number(wallet.rows[0].balance)).toBe(150.0);
     });
 
-    it('INFLUENCER B gets 0 rows for INFLUENCER A commissions and wallet', async () => {
+    it("INFLUENCER B gets 0 rows for INFLUENCER A commissions and wallet", async () => {
       await asUser(INFLUENCER_B_UID);
-      const comms = await pg.query('SELECT * FROM public.commissions');
+      const comms = await pg.query("SELECT * FROM public.commissions");
       expect(comms.rows.length).toBe(0);
 
-      const wallet = await pg.query('SELECT * FROM public.wallets');
+      const wallet = await pg.query("SELECT * FROM public.wallets");
       expect(wallet.rows.length).toBe(0);
     });
   });
 
-  describe('8. Role Escalation Prevention Hardening (Finding 1)', () => {
-    it('LOJISTA attempting to promote self to MASTER is strictly DENIED by trigger/RLS', async () => {
+  describe("8. Role Escalation Prevention Hardening (Finding 1)", () => {
+    it("LOJISTA attempting to promote self to MASTER is strictly DENIED by trigger/RLS", async () => {
       await asUser(LOJISTA_A_UID);
       await expect(
-        pg.query(`UPDATE public.profiles SET role = 'MASTER' WHERE id = '${LOJISTA_A_UID}'`)
+        pg.query(`UPDATE public.profiles SET role = 'MASTER' WHERE id = '${LOJISTA_A_UID}'`),
       ).rejects.toThrow(/Forbidden/);
     });
 
-    it('FORNECEDOR attempting to promote self to MASTER is strictly DENIED', async () => {
+    it("FORNECEDOR attempting to promote self to MASTER is strictly DENIED", async () => {
       await asUser(FORNECEDOR_A_UID);
       await expect(
-        pg.query(`UPDATE public.profiles SET role = 'MASTER' WHERE id = '${FORNECEDOR_A_UID}'`)
+        pg.query(`UPDATE public.profiles SET role = 'MASTER' WHERE id = '${FORNECEDOR_A_UID}'`),
       ).rejects.toThrow(/Forbidden/);
     });
 
-    it('INFLUENCER attempting to promote self to MASTER is strictly DENIED', async () => {
+    it("INFLUENCER attempting to promote self to MASTER is strictly DENIED", async () => {
       await asUser(INFLUENCER_A_UID);
       await expect(
-        pg.query(`UPDATE public.profiles SET role = 'MASTER' WHERE id = '${INFLUENCER_A_UID}'`)
+        pg.query(`UPDATE public.profiles SET role = 'MASTER' WHERE id = '${INFLUENCER_A_UID}'`),
       ).rejects.toThrow(/Forbidden/);
     });
 
-    it('LOJISTA attempting to update someone else profile is DENIED (0 rows updated)', async () => {
+    it("LOJISTA attempting to update someone else profile is DENIED (0 rows updated)", async () => {
       await asUser(LOJISTA_A_UID);
-      const res = await pg.query(`UPDATE public.profiles SET name = 'Hacked Name' WHERE id = '${LOJISTA_B_UID}' RETURNING id`);
+      const res = await pg.query(
+        `UPDATE public.profiles SET name = 'Hacked Name' WHERE id = '${LOJISTA_B_UID}' RETURNING id`,
+      );
       expect(res.rows.length).toBe(0);
     });
 
-    it('MASTER is ALLOWED to change user roles', async () => {
+    it("MASTER is ALLOWED to change user roles", async () => {
       await asUser(MASTER_UID);
       const res = await pg.query<{ id: string; role: string }>(
-        `UPDATE public.profiles SET role = 'FORNECEDOR' WHERE id = '${LOJISTA_B_UID}' RETURNING id, role`
+        `UPDATE public.profiles SET role = 'FORNECEDOR' WHERE id = '${LOJISTA_B_UID}' RETURNING id, role`,
       );
       expect(res.rows.length).toBe(1);
-      expect(res.rows[0].role).toBe('FORNECEDOR');
+      expect(res.rows[0].role).toBe("FORNECEDOR");
     });
 
-    it('LOJISTA is ALLOWED to update own non-privileged profile data (name, email)', async () => {
+    it("LOJISTA is ALLOWED to update own non-privileged profile data (name, email)", async () => {
       await asUser(LOJISTA_A_UID);
       const res = await pg.query<{ id: string; name: string }>(
-        `UPDATE public.profiles SET name = 'Lojista Updated Name' WHERE id = '${LOJISTA_A_UID}' RETURNING id, name`
+        `UPDATE public.profiles SET name = 'Lojista Updated Name' WHERE id = '${LOJISTA_A_UID}' RETURNING id, name`,
       );
       expect(res.rows.length).toBe(1);
-      expect(res.rows[0].name).toBe('Lojista Updated Name');
+      expect(res.rows[0].name).toBe("Lojista Updated Name");
     });
   });
-
 });

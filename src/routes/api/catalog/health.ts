@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { handleCatalogProxy, handleCorsPreflight } from '@/server/catalogProxy';
+import { createFileRoute } from "@tanstack/react-router";
+import { handleCatalogProxy, handleCorsPreflight } from "@/server/catalogProxy";
 
-export const Route = createFileRoute('/api/catalog/health')({
+export const Route = createFileRoute("/api/catalog/health")({
   server: {
     handlers: {
       OPTIONS: async ({ request }): Promise<Response> => {
@@ -10,7 +10,10 @@ export const Route = createFileRoute('/api/catalog/health')({
       },
       GET: async ({ request }): Promise<Response> => {
         const response = await handleCatalogProxy(request);
-        return response || new Response(JSON.stringify({ error: 'Endpoint não encontrado' }), { status: 404 });
+        return (
+          response ||
+          new Response(JSON.stringify({ error: "Endpoint não encontrado" }), { status: 404 })
+        );
       },
     },
   },

@@ -1,5 +1,4 @@
 import { ExecutionProvider, ExecutionResult } from "./ExecutionProvider";
-// @ts-ignore - Importing from .server file which might not be resolved correctly by build tools but is handled by the worker environment
 import { runShopeeWorker } from "../workers/ShopeeWorker.server";
 import { CloudflareExecutionProvider } from "./CloudflareExecutionProvider";
 import { getCatalogWorkerUrl } from "@/server/env";
@@ -7,25 +6,27 @@ import { getCatalogWorkerUrl } from "@/server/env";
 export class ShopeeExecutionProvider implements ExecutionProvider<any> {
   async execute(params: Record<string, any>): Promise<ExecutionResult<any>> {
     const { url, limit = 50, shopId } = params;
-    
+
     // Check if external worker is configured
     const workerUrl = getCatalogWorkerUrl();
 
-    
     if (workerUrl) {
       console.log(`[ShopeeExecutionProvider] Using Cloudflare External Worker: ${workerUrl}`);
       try {
         const cloudflareProvider = new CloudflareExecutionProvider();
         return await cloudflareProvider.execute(params);
       } catch (error: any) {
-        console.warn(`[ShopeeExecutionProvider] External worker failed, logging error:`, error.message);
+        console.warn(
+          `[ShopeeExecutionProvider] External worker failed, logging error:`,
+          error.message,
+        );
         // We don't automatically fallback to local Playwright if the external worker was intended,
         // as local Playwright is likely to fail with 403 in the same environment.
         return {
           data: [],
           totalFound: 0,
           errors: [`Falha no Worker Externo: ${error.message}`],
-          metadata: { error: true, provider: 'cloudflare' }
+          metadata: { error: true, provider: "cloudflare" },
         };
       }
     }
@@ -38,7 +39,7 @@ export class ShopeeExecutionProvider implements ExecutionProvider<any> {
         url,
         shopId,
         limit,
-        pageSize: 30
+        pageSize: 30,
       });
 
       return {
@@ -47,19 +48,18 @@ export class ShopeeExecutionProvider implements ExecutionProvider<any> {
         errors: result.errors,
         metadata: {
           shopId: result.shopId,
-          source: 'shopee_worker_local',
-          executionTime: result.executionTime
-        }
+          source: "shopee_worker_local",
+          executionTime: result.executionTime,
+        },
       };
     } catch (error: any) {
       console.error(`[ShopeeExecutionProvider] Local worker execution failed:`, error);
       return {
         data: [],
         totalFound: 0,
-        errors: [error.message || 'Erro desconhecido na execução do worker local'],
-        metadata: { error: true, provider: 'local' }
+        errors: [error.message || "Erro desconhecido na execução do worker local"],
+        metadata: { error: true, provider: "local" },
       };
     }
   }
 }
-

@@ -1,4 +1,3 @@
-
 export class PricingService {
   /**
    * Calcula o preço base PUB a partir do custo do fornecedor.
@@ -12,7 +11,10 @@ export class PricingService {
   }
 
   static normalize(price: number | string): number {
-    const val = typeof price === 'string' ? parseFloat(price.replace(/[^\d.,]/g, '').replace(',', '.')) : price;
+    const val =
+      typeof price === "string"
+        ? parseFloat(price.replace(/[^\d.,]/g, "").replace(",", "."))
+        : price;
     return isNaN(val) ? 0 : val;
   }
 }

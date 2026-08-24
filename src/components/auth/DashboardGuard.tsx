@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, Outlet } from '@tanstack/react-router';
-import { supabase } from '@/integrations/supabase/client';
-import { Loader2, ShieldAlert, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import React, { useEffect, useState } from "react";
+import { useNavigate, Outlet } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2, ShieldAlert, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export const DashboardGuard = () => {
   const [loading, setLoading] = useState(true);
@@ -19,23 +19,23 @@ export const DashboardGuard = () => {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         if (sessionError || !sessionData?.session) {
           if (isMounted) {
-            navigate({ to: '/login' });
+            navigate({ to: "/login" });
           }
           return;
         }
 
         const userId = sessionData.session.user.id;
         const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', userId)
+          .from("profiles")
+          .select("role")
+          .eq("id", userId)
           .maybeSingle();
 
-        const role = profile?.role || 'LOJISTA';
+        const role = profile?.role || "LOJISTA";
 
         if (isMounted) {
           setUserRole(role);
-          if (role === 'MASTER') {
+          if (role === "MASTER") {
             setIsAuthorized(true);
           } else {
             setIsAuthorized(false);
@@ -44,7 +44,7 @@ export const DashboardGuard = () => {
         }
       } catch {
         if (isMounted) {
-          navigate({ to: '/login' });
+          navigate({ to: "/login" });
         }
       }
     };
@@ -52,9 +52,9 @@ export const DashboardGuard = () => {
     checkAuth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
+      if (event === "SIGNED_OUT") {
         if (isMounted) {
-          navigate({ to: '/login' });
+          navigate({ to: "/login" });
         }
       }
     });
@@ -85,18 +85,20 @@ export const DashboardGuard = () => {
               Acesso Negado
             </CardTitle>
             <CardDescription className="text-xs text-slate-400">
-              O painel operacional exige permissões de administrador <strong className="text-white">MASTER</strong>.
+              O painel operacional exige permissões de administrador{" "}
+              <strong className="text-white">MASTER</strong>.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-center">
             <p className="text-xs text-slate-400">
-              Seu perfil atual é <span className="font-mono text-amber-400 font-bold">{userRole}</span>.
+              Seu perfil atual é{" "}
+              <span className="font-mono text-amber-400 font-bold">{userRole}</span>.
             </p>
             <Button
               variant="outline"
               onClick={async () => {
                 await supabase.auth.signOut();
-                navigate({ to: '/login' });
+                navigate({ to: "/login" });
               }}
               className="border-slate-800 hover:bg-red-500/10 hover:text-red-400 text-xs uppercase font-bold w-full"
             >

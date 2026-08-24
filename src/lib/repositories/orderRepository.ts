@@ -1,6 +1,6 @@
-import { Order, IOrderRepository } from '@/types';
-import { mockOrders } from '@/data/mock';
-import { supabase } from '@/integrations/supabase/client';
+import { Order, IOrderRepository } from "@/types";
+import { mockOrders } from "@/data/mock";
+import { supabase } from "@/integrations/supabase/client";
 
 export class OrderRepository implements IOrderRepository {
   private useMock = true; // Toggle for easy migration
@@ -11,9 +11,11 @@ export class OrderRepository implements IOrderRepository {
     }
 
     const { data, error } = await supabase
-      .from('orders')
-      .select('id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, cost, shipping, tax, discount, status, fulfillment_status, tracking_code, payment_method, financial_metadata, net_profit, created_at')
-      .order('created_at', { ascending: false });
+      .from("orders")
+      .select(
+        "id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, cost, shipping, tax, discount, status, fulfillment_status, tracking_code, payment_method, financial_metadata, net_profit, created_at",
+      )
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
     return (data || []).map(this.mapDbOrderToType);
@@ -25,10 +27,12 @@ export class OrderRepository implements IOrderRepository {
     }
 
     const { data, error } = await supabase
-      .from('orders')
-      .select('id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, cost, shipping, tax, discount, status, fulfillment_status, tracking_code, payment_method, financial_metadata, net_profit, created_at')
-      .eq('store_id', storeId)
-      .order('created_at', { ascending: false });
+      .from("orders")
+      .select(
+        "id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, cost, shipping, tax, discount, status, fulfillment_status, tracking_code, payment_method, financial_metadata, net_profit, created_at",
+      )
+      .eq("store_id", storeId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
     return (data || []).map(this.mapDbOrderToType);
@@ -39,20 +43,23 @@ export class OrderRepository implements IOrderRepository {
    */
   async getByInfluencer(influencerId: string): Promise<Order[]> {
     if (this.useMock) {
-      return mockOrders.filter((o: Order) => o.influencerId === influencerId).map(o => {
-        const { cost, net_profit, financialMetadata, ...safeOrder } = o;
-        return {
-          ...safeOrder,
-          cost: 0,
-        };
-      });
+      return mockOrders
+        .filter((o: Order) => o.influencerId === influencerId)
+        .map((o) => {
+          const { cost, net_profit, financialMetadata, ...safeOrder } = o;
+          return {
+            ...safeOrder,
+            cost: 0,
+          };
+        });
     }
 
-    const { data, error } = await (supabase
-      .from('influencer_orders' as any) as any)
-      .select('id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, shipping, tax, discount, status, fulfillment_status, tracking_code, created_at' as any)
-      .eq('influencer_id' as any, influencerId)
-      .order('created_at', { ascending: false });
+    const { data, error } = await (supabase.from("influencer_orders" as any) as any)
+      .select(
+        "id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, shipping, tax, discount, status, fulfillment_status, tracking_code, created_at" as any,
+      )
+      .eq("influencer_id" as any, influencerId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
     return (data || []).map((row: any) => ({
@@ -74,7 +81,7 @@ export class OrderRepository implements IOrderRepository {
     }));
   }
 
-  async create(order: Omit<Order, 'id' | 'createdAt'>): Promise<Order> {
+  async create(order: Omit<Order, "id" | "createdAt">): Promise<Order> {
     if (this.useMock) {
       const newOrder: Order = {
         ...order,
@@ -85,7 +92,7 @@ export class OrderRepository implements IOrderRepository {
     }
 
     const { data, error } = await supabase
-      .from('orders')
+      .from("orders")
       .insert({
         external_id: order.external_id ?? null,
         store_id: order.storeId,
@@ -99,7 +106,9 @@ export class OrderRepository implements IOrderRepository {
         discount: order.discount,
         status: order.status,
       })
-      .select('id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, cost, shipping, tax, discount, status, fulfillment_status, tracking_code, payment_method, financial_metadata, net_profit, created_at')
+      .select(
+        "id, external_id, store_id, customer_id, influencer_id, affiliate_id, amount, cost, shipping, tax, discount, status, fulfillment_status, tracking_code, payment_method, financial_metadata, net_profit, created_at",
+      )
       .single();
 
     if (error) throw error;

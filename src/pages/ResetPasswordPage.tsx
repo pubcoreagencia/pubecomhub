@@ -1,15 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Lock, Loader2, AlertCircle, CircleDollarSign, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Lock,
+  Loader2,
+  AlertCircle,
+  CircleDollarSign,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
+import { toast } from "sonner";
 
 export const ResetPasswordPage = () => {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -27,7 +34,7 @@ export const ResetPasswordPage = () => {
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === 'PASSWORD_RECOVERY' || session) && isMounted) {
+      if ((event === "PASSWORD_RECOVERY" || session) && isMounted) {
         setReady(true);
       }
     });
@@ -47,17 +54,17 @@ export const ResetPasswordPage = () => {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPassword || !confirmPassword) {
-      setErrorMsg('Preencha a nova senha e a confirmação.');
+      setErrorMsg("Preencha a nova senha e a confirmação.");
       return;
     }
 
     if (newPassword.length < 6) {
-      setErrorMsg('A senha deve ter no mínimo 6 caracteres.');
+      setErrorMsg("A senha deve ter no mínimo 6 caracteres.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setErrorMsg('As senhas não coincidem.');
+      setErrorMsg("As senhas não coincidem.");
       return;
     }
 
@@ -70,20 +77,20 @@ export const ResetPasswordPage = () => {
       });
 
       if (error) {
-        setErrorMsg(error.message || 'Falha ao redefinir a senha.');
-        toast.error('Erro ao redefinir senha.');
+        setErrorMsg(error.message || "Falha ao redefinir a senha.");
+        toast.error("Erro ao redefinir senha.");
         setLoading(false);
         return;
       }
 
       setSuccess(true);
-      toast.success('Senha atualizada com sucesso!');
+      toast.success("Senha atualizada com sucesso!");
       setTimeout(() => {
-        navigate({ to: '/dashboard' });
+        navigate({ to: "/dashboard" });
       }, 2000);
     } catch (err: any) {
-      setErrorMsg(err?.message || 'Erro inesperado ao redefinir senha.');
-      toast.error('Erro de conexão.');
+      setErrorMsg(err?.message || "Erro inesperado ao redefinir senha.");
+      toast.error("Erro de conexão.");
     } finally {
       setLoading(false);
     }
@@ -104,7 +111,9 @@ export const ResetPasswordPage = () => {
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg shadow-red-600/20 mb-2">
             <CircleDollarSign className="h-7 w-7" />
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-white uppercase italic">PUB ECOM</h1>
+          <h1 className="text-2xl font-black tracking-tight text-white uppercase italic">
+            PUB ECOM
+          </h1>
           <p className="text-xs font-bold text-red-500 uppercase tracking-widest">
             Redefinição de Senha
           </p>
@@ -112,7 +121,9 @@ export const ResetPasswordPage = () => {
 
         <Card className="bg-black border-red-500/20 shadow-2xl shadow-red-500/5">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-lg font-black uppercase tracking-wider text-white">Criar Nova Senha</CardTitle>
+            <CardTitle className="text-lg font-black uppercase tracking-wider text-white">
+              Criar Nova Senha
+            </CardTitle>
             <CardDescription className="text-xs text-slate-400">
               Digite e confirme sua nova senha de acesso
             </CardDescription>
@@ -124,12 +135,16 @@ export const ResetPasswordPage = () => {
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <h3 className="text-base font-bold text-white">Senha Redefinida!</h3>
-                <p className="text-xs text-slate-400">Redirecionando para o painel principal em instantes...</p>
+                <p className="text-xs text-slate-400">
+                  Redirecionando para o painel principal em instantes...
+                </p>
               </div>
             ) : (
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nova Senha</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Nova Senha
+                  </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
                     <Input
@@ -146,7 +161,9 @@ export const ResetPasswordPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Confirmar Nova Senha</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Confirmar Nova Senha
+                  </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
                     <Input

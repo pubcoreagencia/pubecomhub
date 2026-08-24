@@ -1,9 +1,4 @@
-import { 
-  ImportPreview, 
-  NormalizedProduct, 
-  RawProduct, 
-  ImportStatus 
-} from "./types";
+import { ImportPreview, NormalizedProduct, RawProduct, ImportStatus } from "./types";
 import { SourceResolver } from "./SourceResolver";
 import { PricingService } from "../services/PricingService";
 import { masterProductRepository } from "../repositories/masterProductRepository";
@@ -13,13 +8,13 @@ export class CatalogIngestionService {
 
   async analyzeSource(url: string): Promise<ImportPreview> {
     const adapter = this.resolver.resolve(url);
-    
+
     if (!adapter) {
       throw new Error("Nenhum adapter encontrado para esta URL.");
     }
 
     const rawProducts = await adapter.discover(url);
-    
+
     const items: NormalizedProduct[] = [];
     let duplicatesCount = 0;
 
@@ -35,7 +30,7 @@ export class CatalogIngestionService {
         sku: raw.sku || `SKU-${raw.externalId}`,
         images: raw.images,
         category: raw.category ?? null,
-        metadata: raw.metadata ?? null
+        metadata: raw.metadata ?? null,
       };
 
       // Real Deduplication Check
@@ -43,12 +38,12 @@ export class CatalogIngestionService {
       if (existing) {
         duplicatesCount++;
       }
-      
+
       items.push(normalized);
     }
 
     // Extract metadata from raw results if available
-    const firstRawMetadata = rawProducts[0]?.metadata?.['worker_metadata'];
+    const firstRawMetadata = rawProducts[0]?.metadata?.["worker_metadata"];
 
     return {
       supplierName: "Fornecedor Detectado",
@@ -62,14 +57,14 @@ export class CatalogIngestionService {
       metadata: {
         shopId: firstRawMetadata?.shopId || null,
         executionTime: firstRawMetadata?.executionTime || 0,
-        errors: firstRawMetadata?.errors || []
-      }
+        errors: firstRawMetadata?.errors || [],
+      },
     };
   }
 
   async confirmImport(items: NormalizedProduct[], supplierId: string): Promise<void> {
     console.log(`[CatalogIngestionService] Confirming import for ${items.length} items`);
-    
+
     for (const item of items) {
       try {
         await masterProductRepository.upsert({
@@ -81,13 +76,13 @@ export class CatalogIngestionService {
           category: item.category,
           supplierCost: item.supplierCost,
           basePricePub: item.basePricePub,
-          status: 'active',
+          status: "active",
           isAvailable: true,
           metadata: {
             ...item.metadata,
             external_id: item.externalId,
-            source_url: item.sourceUrl
-          }
+            source_url: item.sourceUrl,
+          },
         });
       } catch (error) {
         console.error(`[CatalogIngestionService] Failed to import item ${item.sku}:`, error);
