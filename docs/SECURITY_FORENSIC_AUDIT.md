@@ -7,7 +7,9 @@ Este documento detalha a investigação forense, a causa raiz arquitetural, a lo
 ## Matriz Forense Consolidada dos 10 Findings
 
 ### Finding 1 (CRITICAL)
-**Finding:** *Any signed-in user can promote themselves to admin (MASTER) role*
+
+**Finding:** _Any signed-in user can promote themselves to admin (MASTER) role_
+
 - **Caminho / Arquivo Responsável:** `supabase/migrations/20260821133522_bd50e737-45a7-400c-b3e6-ee0865368a85.sql` e `supabase/migrations/20260822140000_final_rls_hardening.sql`.
 - **Causa Raiz:** A policy de UPDATE em `public.profiles` permitia ao próprio usuário atualizar seu registro sem cláusula `WITH CHECK` restritiva de role, possibilitando a execução de `UPDATE profiles SET role = 'MASTER' WHERE id = auth.uid()`.
 - **Correção Estrutural:**
@@ -19,7 +21,9 @@ Este documento detalha a investigação forense, a causa raiz arquitetural, a lo
 ---
 
 ### Finding 2 (CRITICAL)
-**Finding:** *Marketing event data can be read and modified by any authenticated user*
+
+**Finding:** _Marketing event data can be read and modified by any authenticated user_
+
 - **Caminho / Arquivo Responsável:** `supabase/migrations/20260821141909_799b9536-eddb-44c9-bbbb-a592c042077a.sql` e `supabase/migrations/20260822140000_final_rls_hardening.sql`.
 - **Causa Raiz:** A migration inicial definia `CREATE POLICY "Authenticated users can manage marketing events" ON public.marketing_events FOR ALL TO authenticated USING (true);`.
 - **Correção Estrutural:**
@@ -31,7 +35,9 @@ Este documento detalha a investigação forense, a causa raiz arquitetural, a lo
 ---
 
 ### Finding 3 (CRITICAL)
-**Finding:** *Unauthenticated proxy lets anyone spend your paid catalog-scraping credits*
+
+**Finding:** _Unauthenticated proxy lets anyone spend your paid catalog-scraping credits_
+
 - **Caminho / Arquivo Responsável:** `src/server/catalogProxy.ts` e `src/server.ts`.
 - **Causa Raiz:** O proxy `/ingestion/*` e `/v1/catalog/*` recebia requisições sem validar o JWT Supabase do chamador, injetando o `CATALOG_WORKER_TOKEN` e disparando operações de scraping no Cloudflare Worker.
 - **Correção Estrutural:**
@@ -44,7 +50,9 @@ Este documento detalha a investigação forense, a causa raiz arquitetural, a lo
 ---
 
 ### Finding 4 (CRITICAL)
-**Finding:** *All customer contact information exposed to any logged-in user*
+
+**Finding:** _All customer contact information exposed to any logged-in user_
+
 - **Caminho / Arquivo Responsável:** `supabase/migrations/20260821133522_bd50e737-45a7-400c-b3e6-ee0865368a85.sql` e `supabase/migrations/20260822140000_final_rls_hardening.sql`.
 - **Causa Raiz:** A migration inicial continha `CREATE POLICY "Authenticated users can view customers" ON public.customers FOR SELECT TO authenticated USING (true);`.
 - **Correção Estrutural:**
@@ -56,7 +64,9 @@ Este documento detalha a investigação forense, a causa raiz arquitetural, a lo
 ---
 
 ### Finding 5 (WARNING)
-**Finding:** *Product cost and profit margin data publicly exposed*
+
+**Finding:** _Product cost and profit margin data publicly exposed_
+
 - **Caminho / Arquivo Responsável:** `supabase/migrations/20260821133522_bd50e737-45a7-400c-b3e6-ee0865368a85.sql`, `src/lib/repositories/productRepository.ts` e `supabase/migrations/20260822140000_final_rls_hardening.sql`.
 - **Causa Raiz:** A migration inicial continha `CREATE POLICY "Public can view products" ON public.products FOR SELECT TO anon, authenticated USING (true);`.
 - **Correção Estrutural:**
@@ -68,7 +78,9 @@ Este documento detalha a investigação forense, a causa raiz arquitetural, a lo
 ---
 
 ### Finding 6 (WARNING)
-**Finding:** *Catalog scraper can be aimed at arbitrary internal/external URLs (SSRF)*
+
+**Finding:** _Catalog scraper can be aimed at arbitrary internal/external URLs (SSRF)_
+
 - **Caminho / Arquivo Responsável:** `src/lib/ingestion/security/urlValidator.ts`, `src/lib/catalog.functions.ts`, `src/lib/ingestion/SourceResolver.ts`, `src/lib/ingestion/adapters/ShopeeAdapter.ts`.
 - **Causa Raiz:** O scraper aceitava URLs arbitrárias passadas como parâmetro sem validação estrita de hostname, protocolo e faixas de IP privadas/internas.
 - **Correção Estrutural:**
@@ -81,7 +93,9 @@ Este documento detalha a investigação forense, a causa raiz arquitetural, a lo
 ---
 
 ### Finding 7 (WARNING)
-**Finding:** *Master product catalog including supplier cost visible to all authenticated users*
+
+**Finding:** _Master product catalog including supplier cost visible to all authenticated users_
+
 - **Caminho / Arquivo Responsável:** `supabase/migrations/20260821141909_799b9536-eddb-44c9-bbbb-a592c042077a.sql` e `supabase/migrations/20260822140000_final_rls_hardening.sql`.
 - **Causa Raiz:** A migration inicial continha `CREATE POLICY "Master products are viewable by all authenticated users" ON public.master_products FOR SELECT TO authenticated USING (true);`.
 - **Correção Estrutural:**
@@ -92,7 +106,9 @@ Este documento detalha a investigação forense, a causa raiz arquitetural, a lo
 ---
 
 ### Finding 8 (WARNING)
-**Finding:** *Supplier directory fully visible to any authenticated account*
+
+**Finding:** _Supplier directory fully visible to any authenticated account_
+
 - **Caminho / Arquivo Responsável:** `supabase/migrations/20260821133522_bd50e737-45a7-400c-b3e6-ee0865368a85.sql` e `supabase/migrations/20260822140000_final_rls_hardening.sql`.
 - **Causa Raiz:** A migration inicial continha `CREATE POLICY "Authenticated users can view suppliers" ON public.suppliers FOR SELECT TO authenticated USING (true);`.
 - **Correção Estrutural:**
@@ -103,7 +119,9 @@ Este documento detalha a investigação forense, a causa raiz arquitetural, a lo
 ---
 
 ### Finding 9 (WARNING)
-**Finding:** *Order and catalog-import server functions never verify who is calling*
+
+**Finding:** _Order and catalog-import server functions never verify who is calling_
+
 - **Caminho / Arquivo Responsável:** `src/lib/catalog.functions.ts`, `src/lib/order.functions.ts` e `src/lib/worker-factory.functions.ts`.
 - **Causa Raiz:** As server functions criadas com `createServerFn` não possuíam middleware de autenticação e não realizavam checagem de autorização no backend.
 - **Correção Estrutural:**
@@ -118,7 +136,9 @@ Este documento detalha a investigação forense, a causa raiz arquitetural, a lo
 ---
 
 ### Finding 10 (WARNING)
-**Finding:** *Service-role Supabase client imported at module top-level in bundled route files*
+
+**Finding:** _Service-role Supabase client imported at module top-level in bundled route files_
+
 - **Caminho / Arquivo Responsável:** `src/routes/api/catalog/stores/$storeId.refresh.ts`, `src/routes/api/ingestion/shopee.ts`, `src/lib/ingestion/security/authorization.server.ts`.
 - **Causa Raiz:** Arquivos de rota do TanStack Router (`src/routes/**`) continham a declaração top-level `import { supabaseAdmin } from '@/integrations/supabase/client.server'`, fazendo com que o analisador estático do bundler detectasse referências ao client service_role em arquivos de rotas roteadas.
 - **Correção Estrutural:**
@@ -130,7 +150,9 @@ Este documento detalha a investigação forense, a causa raiz arquitetural, a lo
 ---
 
 ### Dependência Auditada
-**Item:** *53 packages • 1 known vulnerability*
+
+**Item:** _53 packages • 1 known vulnerability_
+
 - **Investigação:** Auditadas as 53 dependências diretas listadas no `package.json`.
 - **Status do npm audit:** `npm audit --json` reporta **0 vulnerabilidades** no grafo de dependências atual com `@tanstack/react-start: 1.168.48`.
 

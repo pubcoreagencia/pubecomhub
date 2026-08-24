@@ -4,7 +4,7 @@ import { getCatalogWorkerToken, getCatalogWorkerUrl } from "@/server/env";
 export class CloudflareExecutionProvider implements ExecutionProvider<any> {
   async execute(params: Record<string, any>): Promise<ExecutionResult<any>> {
     const { url, limit = 50, shopId } = params;
-    
+
     const workerUrl = getCatalogWorkerUrl();
     const workerToken = getCatalogWorkerToken();
 
@@ -12,16 +12,16 @@ export class CloudflareExecutionProvider implements ExecutionProvider<any> {
 
     try {
       const response = await fetch(`${workerUrl}/ingestion/shopee`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          ...(workerToken ? { 'Authorization': `Bearer ${workerToken}` } : {}),
+          "Content-Type": "application/json",
+          ...(workerToken ? { Authorization: `Bearer ${workerToken}` } : {}),
         },
         body: JSON.stringify({
           url,
           limit,
           shopId,
-          pageSize: 30
+          pageSize: 30,
         }),
       });
 
@@ -38,10 +38,10 @@ export class CloudflareExecutionProvider implements ExecutionProvider<any> {
         errors: result.errors || [],
         metadata: {
           shopId: result.shopId,
-          source: 'cloudflare_browser_run',
+          source: "cloudflare_browser_run",
           executionTime: result.metadata?.executionTime || 0,
-          external: true
-        }
+          external: true,
+        },
       };
     } catch (error: any) {
       console.error(`[CloudflareExecutionProvider] External execution failed:`, error);

@@ -17,21 +17,21 @@ const ALLOWED_DOMAIN_PATTERNS = [
 ];
 
 const BLOCKED_HOSTS = new Set([
-  'localhost',
-  '127.0.0.1',
-  '0.0.0.0',
-  '::1',
-  '169.254.169.254', // AWS/GCP/Azure instance metadata
-  'metadata.google.internal',
-  'instance-data',
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+  "::1",
+  "169.254.169.254", // AWS/GCP/Azure instance metadata
+  "metadata.google.internal",
+  "instance-data",
 ]);
 
 /**
  * Checks if an IPv4 address belongs to a private or link-local range (RFC 1918 / RFC 3927)
  */
 function isPrivateIp(ip: string): boolean {
-  const parts = ip.split('.').map(Number);
-  if (parts.length !== 4 || parts.some(p => isNaN(p) || p < 0 || p > 255)) {
+  const parts = ip.split(".").map(Number);
+  if (parts.length !== 4 || parts.some((p) => isNaN(p) || p < 0 || p > 255)) {
     return false;
   }
 
@@ -57,7 +57,7 @@ function isPrivateIp(ip: string): boolean {
 }
 
 export function isAllowedTargetUrl(rawUrl: string): boolean {
-  if (!rawUrl || typeof rawUrl !== 'string') {
+  if (!rawUrl || typeof rawUrl !== "string") {
     return false;
   }
 
@@ -75,7 +75,7 @@ export function isAllowedTargetUrl(rawUrl: string): boolean {
     return false;
   }
 
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
     return false;
   }
 
@@ -97,12 +97,12 @@ export function isAllowedTargetUrl(rawUrl: string): boolean {
   }
 
   // Reject IPv6 loopback / link-local / private
-  if (hostname.includes(':') || hostname.startsWith('[') || hostname.endsWith(']')) {
+  if (hostname.includes(":") || hostname.startsWith("[") || hostname.endsWith("]")) {
     return false;
   }
 
   // Validate hostname against whitelist
-  const isWhitelisted = ALLOWED_DOMAIN_PATTERNS.some(pattern => pattern.test(hostname));
+  const isWhitelisted = ALLOWED_DOMAIN_PATTERNS.some((pattern) => pattern.test(hostname));
   if (!isWhitelisted) {
     return false;
   }

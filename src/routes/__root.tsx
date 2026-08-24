@@ -37,7 +37,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
 
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -75,10 +74,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "PUB ECOM — Operação Centralizada" },
-      { name: "description", content: "Plataforma premium para gestão de e-commerce, live commerce e audiência." },
+      {
+        name: "description",
+        content: "Plataforma premium para gestão de e-commerce, live commerce e audiência.",
+      },
       { name: "author", content: "PUB ECOM" },
       { property: "og:title", content: "PUB ECOM — Operação Centralizada" },
-      { property: "og:description", content: "Plataforma premium para gestão de e-commerce, live commerce e audiência." },
+      {
+        property: "og:description",
+        content: "Plataforma premium para gestão de e-commerce, live commerce e audiência.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@pubecom" },

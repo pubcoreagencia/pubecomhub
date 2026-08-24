@@ -18,7 +18,7 @@
   --hub-accent: rgba(255, 0, 0, 0.1);
   --hub-success: #22c55e;
   --hub-error: #ef4444;
-  
+
   /* Layout Constants */
   --hub-sidebar-width: 260px;
   --hub-header-height: 64px;
@@ -28,7 +28,7 @@
   background-color: var(--hub-bg);
   color: var(--hub-foreground);
   min-height: 100vh;
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -49,8 +49,12 @@
   content: "";
   position: absolute;
   inset: -1px;
-  background: linear-gradient(to bottom right, var(--hub-border), transparent, var(--hub-primary)/20);
+  background: linear-gradient(
+    to bottom right,
+    var(--hub-border),
+    transparent,
+    var(--hub-primary) / 20
+  );
   border-radius: inherit;
   z-index: -1;
 }
-

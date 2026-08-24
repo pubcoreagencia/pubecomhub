@@ -1,4 +1,4 @@
-export type UserRole = 'MASTER' | 'LOJISTA' | 'FORNECEDOR' | 'AFILIADO' | 'INFLUENCER';
+export type UserRole = "MASTER" | "LOJISTA" | "FORNECEDOR" | "AFILIADO" | "INFLUENCER";
 
 export interface User {
   id: string;
@@ -13,7 +13,7 @@ export interface Store {
   name: string;
   ownerId: string;
   subdomain: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   created_at?: string;
 }
 
@@ -34,7 +34,7 @@ export interface MasterProduct {
   category: string | null;
   supplierCost: number;
   basePricePub: number;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   isAvailable: boolean;
   metadata: Record<string, any> | null;
   created_at?: string;
@@ -54,7 +54,7 @@ export interface Product {
   customDescription?: string;
   customImageUrl?: string;
   profitMargin?: number | undefined;
-  status?: 'active' | 'inactive' | undefined;
+  status?: "active" | "inactive" | undefined;
   created_at?: string;
 }
 
@@ -80,7 +80,18 @@ export interface Order {
   shipping: number;
   tax: number;
   discount: number;
-  status: 'pending_payment' | 'paid' | 'processing' | 'supplier_ordered' | 'supplier_confirmed' | 'shipped' | 'in_transit' | 'delivered' | 'cancelled' | 'refunded' | 'payment_failed';
+  status:
+    | "pending_payment"
+    | "paid"
+    | "processing"
+    | "supplier_ordered"
+    | "supplier_confirmed"
+    | "shipped"
+    | "in_transit"
+    | "delivered"
+    | "cancelled"
+    | "refunded"
+    | "payment_failed";
   fulfillmentStatus?: string;
   trackingCode?: string;
   paymentMethod?: string;
@@ -94,8 +105,8 @@ export interface Commission {
   orderId: string;
   profileId: string;
   amount: number;
-  type: 'influencer' | 'affiliate';
-  status: 'pending' | 'paid';
+  type: "influencer" | "affiliate";
+  status: "pending" | "paid";
   created_at: string;
 }
 
@@ -110,7 +121,7 @@ export interface Wallet {
 export interface WalletTransaction {
   id: string;
   walletId: string;
-  type: 'credit' | 'debit';
+  type: "credit" | "debit";
   amount: number;
   description?: string;
   referenceId?: string;
@@ -127,21 +138,21 @@ export interface OrderTracking {
   created_at: string;
 }
 
-export type MarketingEventType = 
-  | 'PAGE_VIEW' 
-  | 'PRODUCT_VIEW' 
-  | 'ADD_TO_CART' 
-  | 'CHECKOUT_STARTED' 
-  | 'PIX_CREATED' 
-  | 'PIX_EXPIRED' 
-  | 'PAYMENT_FAILED' 
-  | 'PAYMENT_APPROVED' 
-  | 'ORDER_CREATED' 
-  | 'ORDER_PROCESSING' 
-  | 'ORDER_SHIPPED' 
-  | 'ORDER_DELIVERED' 
-  | 'ORDER_CANCELLED' 
-  | 'REFUND_CREATED';
+export type MarketingEventType =
+  | "PAGE_VIEW"
+  | "PRODUCT_VIEW"
+  | "ADD_TO_CART"
+  | "CHECKOUT_STARTED"
+  | "PIX_CREATED"
+  | "PIX_EXPIRED"
+  | "PAYMENT_FAILED"
+  | "PAYMENT_APPROVED"
+  | "ORDER_CREATED"
+  | "ORDER_PROCESSING"
+  | "ORDER_SHIPPED"
+  | "ORDER_DELIVERED"
+  | "ORDER_CANCELLED"
+  | "REFUND_CREATED";
 
 export interface MarketingEvent {
   id: string;
@@ -183,7 +194,7 @@ export interface IOrderRepository {
   getAll(): Promise<Order[]>;
   getByStore(storeId: string): Promise<Order[]>;
   getByInfluencer(influencerId: string): Promise<Order[]>;
-  create(order: Omit<Order, 'id' | 'createdAt'>): Promise<Order>;
+  create(order: Omit<Order, "id" | "createdAt">): Promise<Order>;
 }
 
 export interface IProductRepository {

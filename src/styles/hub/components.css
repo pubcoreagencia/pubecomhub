@@ -8,7 +8,7 @@
 
 .hub-card:hover {
   background-color: var(--hub-card-hover);
-  border-color: var(--hub-primary)/30;
+  border-color: var(--hub-primary) / 30;
 }
 
 .outline-text-red {

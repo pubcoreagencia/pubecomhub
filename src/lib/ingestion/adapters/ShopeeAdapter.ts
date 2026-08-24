@@ -10,9 +10,9 @@ export class ShopeeAdapter implements CatalogSourceAdapter {
   private maxProductsPerImport = 50;
 
   constructor() {
-    // In production, we use ShopeeExecutionProvider. 
+    // In production, we use ShopeeExecutionProvider.
     // We could use an environment variable to toggle this.
-    const isMock = process.env['VITE_INGESTION_MOCK'] === 'true';
+    const isMock = process.env["VITE_INGESTION_MOCK"] === "true";
     this.executionProvider = isMock ? new MockExecutionProvider() : new ShopeeExecutionProvider();
   }
 
@@ -30,31 +30,31 @@ export class ShopeeAdapter implements CatalogSourceAdapter {
   private extractShopId(url: string): string | null {
     const shopIdMatch = url.match(/\/shop\/(\d+)/);
     if (shopIdMatch) return shopIdMatch[1] || null;
-    
+
     const productMatch = url.match(/\/product\/(\d+)/);
     if (productMatch) return productMatch[1] || null;
-    
+
     return null;
   }
 
   async discover(url: string): Promise<RawProduct[]> {
     validateTargetUrl(url);
     console.log(`[ShopeeAdapter] Starting discovery for: ${url}`);
-    
+
     const shopId = this.extractShopId(url);
-    
+
     try {
       const result = await this.executionProvider.execute({
         url,
         shopId,
-        limit: this.maxProductsPerImport
+        limit: this.maxProductsPerImport,
       });
 
       if (result.errors.length > 0) {
         console.warn(`[ShopeeAdapter] Worker reported errors:`, result.errors);
       }
 
-      return result.data.map(item => ({
+      return result.data.map((item) => ({
         externalId: item.itemid.toString(),
         url: `https://shopee.com.br/product/${item.shopid}/${item.itemid}`,
         title: item.name,
@@ -68,8 +68,8 @@ export class ShopeeAdapter implements CatalogSourceAdapter {
           raw_itemid: item.itemid,
           raw_shopid: item.shopid,
           historical_sold: item.historical_sold,
-          worker_metadata: result.metadata
-        }
+          worker_metadata: result.metadata,
+        },
       }));
     } catch (error: any) {
       console.error(`[ShopeeAdapter] Critical error during discovery:`, error);

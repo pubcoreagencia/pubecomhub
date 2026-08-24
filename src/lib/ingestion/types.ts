@@ -1,19 +1,18 @@
-
-export type ImportStatus = 
-  | 'pending'
-  | 'discovering'
-  | 'extracting'
-  | 'normalizing'
-  | 'preview_ready'
-  | 'approved'
-  | 'completed'
-  | 'partial'
-  | 'failed';
+export type ImportStatus =
+  | "pending"
+  | "discovering"
+  | "extracting"
+  | "normalizing"
+  | "preview_ready"
+  | "approved"
+  | "completed"
+  | "partial"
+  | "failed";
 
 export interface CatalogSource {
   id: string;
   url: string;
-  type: 'shopee' | 'mercado_livre' | 'tiktok_shop' | 'generic';
+  type: "shopee" | "mercado_livre" | "tiktok_shop" | "generic";
   supplierId?: string;
   name?: string;
 }
@@ -65,7 +64,7 @@ export interface SupplierImportItem {
   importId: string;
   rawExternalId: string;
   normalizedData: NormalizedProduct;
-  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'failed';
+  status: "pending" | "approved" | "rejected" | "completed" | "failed";
   errorMessage?: string | null;
 }
 

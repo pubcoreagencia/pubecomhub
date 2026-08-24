@@ -36,4 +36,3 @@ npx vitest run
 # Deploy para Cloudflare Workers
 npm run deploy
 ```
-
