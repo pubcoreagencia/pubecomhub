@@ -391,6 +391,7 @@ export default function StoreDetailPage() {
               "Atualizados",
               "Inalterados",
               "Duração",
+              "Observações",
             ]}
           >
             {syncRuns.map((run) => (
@@ -425,6 +426,23 @@ export default function StoreDetailPage() {
                 </td>
                 <td className="px-5 py-3 text-[10px] text-[var(--hub-muted)] font-mono">
                   {run.durationMs ? `${(run.durationMs / 1000).toFixed(1)}s` : "-"}
+                </td>
+                <td className="px-5 py-3 text-[10px] max-w-[220px]">
+                  {run.errorMessage ? (
+                    <span
+                      className="text-red-400 truncate block font-medium"
+                      title={run.errorMessage}
+                    >
+                      {run.errorMessage.includes("proteção da fonte") ||
+                      run.errorMessage.includes("Anti-bot")
+                        ? "Bloqueado pela proteção da fonte"
+                        : run.errorMessage}
+                    </span>
+                  ) : run.status === "success" && run.discovered === 0 ? (
+                    <span className="text-slate-400 italic">Catálogo vazio</span>
+                  ) : (
+                    <span className="text-emerald-400/70 font-mono">OK</span>
+                  )}
                 </td>
               </tr>
             ))}
