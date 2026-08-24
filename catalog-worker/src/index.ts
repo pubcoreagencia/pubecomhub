@@ -400,11 +400,11 @@ async function persistToD1(
     .prepare("SELECT COUNT(*) as total FROM products WHERE store_id = ?")
     .bind(storeId)
     .first();
-  const realStoreProductCount = storeTotalRow?.total || items.length;
+  const realStoreProductCount = Number(storeTotalRow?.total) || 0;
 
   await db
     .prepare(
-      `UPDATE stores SET product_count = ?, last_sync_at = datetime('now'), last_sync_status = 'success', sync_state = 'success', updated_at = datetime('now') WHERE id = ?`,
+      `UPDATE stores SET product_count = ?, last_sync_at = datetime('now'), last_sync_status = 'success', sync_state = 'idle', updated_at = datetime('now') WHERE id = ?`,
     )
     .bind(realStoreProductCount, storeId)
     .run();
@@ -986,7 +986,7 @@ export default {
             });
           }
 
-          const [recentRunsRes, lastSuccessRes, lastFailedRes] = await Promise.all([
+          const [recentRunsRes, lastSuccessRes, lastFailedRes, prodCountRes] = await Promise.all([
             env.DB.prepare(
               "SELECT * FROM sync_runs WHERE store_id = ? ORDER BY started_at DESC LIMIT 5",
             )
@@ -1002,7 +1002,15 @@ export default {
             )
               .bind(storeId)
               .first(),
+            env.DB.prepare("SELECT COUNT(*) as total FROM products WHERE store_id = ?")
+              .bind(storeId)
+              .first(),
           ]);
+
+          const realProductCount =
+            prodCountRes?.total !== undefined
+              ? Number(prodCountRes.total)
+              : Number(store.product_count) || 0;
 
           const recentRuns = (recentRunsRes.results || []).map((row: any) => ({
             id: row.id,
@@ -1048,7 +1056,7 @@ export default {
                 shopId: store.shop_id,
                 status: store.status,
                 syncState: store.sync_state,
-                productCount: Number(store.product_count) || 0,
+                productCount: realProductCount,
                 lastSyncAt: store.last_sync_at,
                 lastSyncStatus: store.last_sync_status,
               },
@@ -1056,7 +1064,7 @@ export default {
               lastSync: store.last_sync_at,
               lastSuccessfulSync: lastSuccessRes?.started_at || null,
               lastFailedSync: lastFailedRes?.started_at || null,
-              totalProducts: Number(store.product_count) || 0,
+              totalProducts: realProductCount,
               active: store.status === "active",
               health,
               recentRuns,
