@@ -33,7 +33,7 @@
 - **Fase 2G - Resolução de CORS e Preflight**:
   - Implementação de camada CORS centralizada no `catalog-worker` (`cors.ts`).
   - Suporte a requisições `OPTIONS` (Preflight) retornando status 204.
-  - Headers `Access-Control-Allow-Origin` configurados para `localhost`, `lovable.app` e domínio de produção.
+  - Headers `Access-Control-Allow-Origin` configurados para `localhost`, Cloudflare Workers/Pages e domínio de produção.
   - Garantia de headers CORS em todas as respostas (401 Unauthorized, 404 Not Found, etc).
   - Suporte explícito aos headers `Authorization` e `Content-Type`.
   - Suite de testes unitários para validação de fluxos CORS.

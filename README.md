@@ -1,26 +1,39 @@
-# Project Compass
+# PUB ECOM HUB
 
-oi
+Plataforma unificada de gestão de e-commerce, catálogo B2B, intermediação de fornecedores e ingestão operacional da **Pub Core Holding**.
 
-This project was built with [Lovable](https://lovable.dev).
+## Arquitetura
 
-**Live app**: https://pubecomhub.lovable.app
+```
+PUB ECOM
+├── Frontend: TanStack Start + React 19 + Vite + Tailwind CSS
+├── Runtime / Hosting: Cloudflare Workers (@cloudflare/vite-plugin)
+├── Auth & Database: Supabase Oficial (Project ID: vtcnundfslqqlxdyrogv)
+├── Catalog Hub: pubcoreagencia-pubecomhub
+├── Catalog Worker: pub-ecom-catalog-worker
+└── Shopee Scraper: Ingestion Engine + Apify
+```
 
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/5a549c2b-43f8-4f2a-a8f0-ecc3df73320e).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Desenvolvimento Local
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+# Instalar dependências
+npm install
+
+# Iniciar servidor de desenvolvimento
 npm run dev
+
+# Validar TypeScript e construir bundle de produção
+npm run build
+
+# Executar testes unitários e de integração
+npx vitest run
 ```
+
+## Deploy
+
+```sh
+# Deploy para Cloudflare Workers
+npm run deploy
+```
+
