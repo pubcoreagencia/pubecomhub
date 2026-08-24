@@ -237,13 +237,13 @@ async function persistToD1(db: any, shopId: string, username: string, items: any
 
     const productId = `${storeId}:${externalId}`;
     const title = item.name || item.title || "Produto Shopee";
-    
+
     // Shopee raw price is in micro-units (e.g. 2990000 = R$ 29.90), or already decimal
-    let rawPrice = item.price || item.price_min || item.price_before_discount || 0;
+    const rawPrice = item.price || item.price_min || item.price_before_discount || 0;
     const price = rawPrice > 1000 ? rawPrice / 100000 : rawPrice;
-    
+
     const currency = item.currency || "BRL";
-    
+
     let imagesList: string[] = [];
     if (Array.isArray(item.images)) {
       imagesList = item.images.map((img: string) =>
@@ -253,13 +253,13 @@ async function persistToD1(db: any, shopId: string, username: string, items: any
       const img = item.image;
       imagesList = [img.startsWith("http") ? img : `https://cf.shopee.com.br/file/${img}`];
     }
-    
+
     const productUrl =
       item.url ||
       (username
         ? `https://shopee.com.br/${username}/i.${shopId}.${externalId}`
         : `https://shopee.com.br/product/${shopId}/${externalId}`);
-    
+
     const sku = item.sku || `SKU-${externalId}`;
     const category = item.category || "Geral";
     const imagesJson = JSON.stringify(imagesList);
@@ -398,8 +398,12 @@ export default {
         params.push(limit, offset);
 
         const [rowsRes, countRes] = await Promise.all([
-          env.DB.prepare(query).bind(...params).all(),
-          env.DB.prepare(countQuery).bind(...countParams).first(),
+          env.DB.prepare(query)
+            .bind(...params)
+            .all(),
+          env.DB.prepare(countQuery)
+            .bind(...countParams)
+            .first(),
         ]);
 
         const items = (rowsRes.results || []).map((row: any) => {
@@ -445,7 +449,7 @@ export default {
 
         await ensureD1Tables(env.DB);
         const rows = await env.DB.prepare("SELECT * FROM stores ORDER BY updated_at DESC").all();
-        
+
         const items = (rows.results || []).map((row: any) => ({
           id: row.id,
           name: row.name,
@@ -655,14 +659,9 @@ export default {
             );
 
             const items = searchResult.items || [];
-            
+
             // Persist to D1 Database
-            const masterCatalog = await persistToD1(
-              env.DB,
-              resolvedShopId,
-              diag.username,
-              items,
-            );
+            const masterCatalog = await persistToD1(env.DB, resolvedShopId, diag.username, items);
 
             return new Response(
               JSON.stringify({

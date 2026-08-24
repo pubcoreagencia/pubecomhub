@@ -117,4 +117,3 @@ describe("Catalog Worker CORS", () => {
     expect(json.items[0].images).toEqual(["https://cf.shopee.com.br/file/img1.jpg"]);
   });
 });
-
