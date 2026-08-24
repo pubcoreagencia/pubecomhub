@@ -192,8 +192,29 @@ async function ensureD1Tables(db: any) {
         UNIQUE(store_id, external_id)
       );
 
+      CREATE TABLE IF NOT EXISTS sync_runs (
+        id TEXT PRIMARY KEY,
+        store_id TEXT NOT NULL,
+        status TEXT NOT NULL,
+        trigger TEXT NOT NULL DEFAULT 'manual',
+        requested_limit INTEGER NOT NULL DEFAULT 10,
+        discovered INTEGER NOT NULL DEFAULT 0,
+        created INTEGER NOT NULL DEFAULT 0,
+        updated INTEGER NOT NULL DEFAULT 0,
+        unchanged INTEGER NOT NULL DEFAULT 0,
+        failed INTEGER NOT NULL DEFAULT 0,
+        duration_ms INTEGER DEFAULT 0,
+        error_message TEXT,
+        started_at TEXT NOT NULL DEFAULT (datetime('now')),
+        finished_at TEXT,
+        metadata TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
       CREATE INDEX IF NOT EXISTS idx_products_store_id ON products(store_id);
       CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
+      CREATE INDEX IF NOT EXISTS idx_sync_runs_store_id ON sync_runs(store_id);
+      CREATE INDEX IF NOT EXISTS idx_sync_runs_started_at ON sync_runs(started_at);
     `);
   } catch (err) {
     console.error("[ensureD1Tables] Warning:", err);
@@ -216,7 +237,7 @@ async function persistToD1(
   const storeId = `shopee:${shopId}`;
   const storeName = customStoreName || username || `Loja Shopee ${shopId}`;
 
-  // 1. Upsert Store (preserve status and name if existing)
+  // 1. Upsert Store
   await db
     .prepare(
       `INSERT INTO stores (id, name, username, source, shop_id, status, sync_state, product_count, last_sync_at, last_sync_status, updated_at)
@@ -273,7 +294,6 @@ async function persistToD1(
       const category = item.category || "Geral";
       const imagesJson = JSON.stringify(imagesList);
 
-      // Check existing to differentiate created vs updated vs unchanged
       const existing = await db
         .prepare(
           "SELECT title, price, sku, category FROM products WHERE store_id = ? AND external_id = ?",
@@ -387,7 +407,7 @@ async function scrapeShopeeItems(env: Env, targetUrl: string, limit: number) {
               return data["url"].split("shop/")[1];
             }
           } catch {
-            // ignore JSON parse error in diagnostic probe
+            // ignore JSON parse error
           }
         }
         return null;
@@ -723,7 +743,196 @@ export default {
           );
         }
 
-        // 2. POST /v1/catalog/stores/:storeId/refresh (Atomic Sync Engine)
+        // 2. GET /v1/catalog/stores/:storeId/sync-runs
+        if (parts.length === 2 && parts[1] === "sync-runs" && request.method === "GET") {
+          const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "20"), 1), 100);
+          const offset = Math.max(parseInt(url.searchParams.get("offset") || "0"), 0);
+          const statusFilter = (url.searchParams.get("status") || "").trim();
+
+          let query = "SELECT * FROM sync_runs WHERE store_id = ?";
+          let countQuery = "SELECT COUNT(*) as total FROM sync_runs WHERE store_id = ?";
+          const params: any[] = [storeId];
+          const countParams: any[] = [storeId];
+
+          if (statusFilter) {
+            query += " AND status = ?";
+            countQuery += " AND status = ?";
+            params.push(statusFilter);
+            countParams.push(statusFilter);
+          }
+
+          query += " ORDER BY started_at DESC LIMIT ? OFFSET ?";
+          params.push(limit, offset);
+
+          const [rowsRes, countRes] = await Promise.all([
+            env.DB.prepare(query)
+              .bind(...params)
+              .all(),
+            env.DB.prepare(countQuery)
+              .bind(...countParams)
+              .first(),
+          ]);
+
+          const runs = (rowsRes.results || []).map((row: any) => ({
+            id: row.id,
+            storeId: row.store_id,
+            status: row.status,
+            trigger: row.trigger,
+            requestedLimit: Number(row.requested_limit) || 0,
+            discovered: Number(row.discovered) || 0,
+            created: Number(row.created) || 0,
+            updated: Number(row.updated) || 0,
+            unchanged: Number(row.unchanged) || 0,
+            failed: Number(row.failed) || 0,
+            durationMs: Number(row.duration_ms) || 0,
+            errorMessage: row.error_message || null,
+            startedAt: row.started_at,
+            finishedAt: row.finished_at,
+            createdAt: row.created_at,
+          }));
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              runs,
+              total: countRes?.total || runs.length,
+            }),
+            { headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        // 3. GET /v1/catalog/stores/:storeId/sync-runs/:runId
+        if (parts.length === 3 && parts[1] === "sync-runs" && request.method === "GET") {
+          const runId = decodeURIComponent(parts[2] || "");
+          const run = await env.DB.prepare("SELECT * FROM sync_runs WHERE store_id = ? AND id = ?")
+            .bind(storeId, runId)
+            .first();
+
+          if (!run) {
+            return new Response(
+              JSON.stringify({ success: false, error: "Execução não encontrada." }),
+              { status: 404, headers: { "Content-Type": "application/json" } },
+            );
+          }
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              run: {
+                id: run.id,
+                storeId: run.store_id,
+                status: run.status,
+                trigger: run.trigger,
+                requestedLimit: Number(run.requested_limit) || 0,
+                discovered: Number(run.discovered) || 0,
+                created: Number(run.created) || 0,
+                updated: Number(run.updated) || 0,
+                unchanged: Number(run.unchanged) || 0,
+                failed: Number(run.failed) || 0,
+                durationMs: Number(run.duration_ms) || 0,
+                errorMessage: run.error_message || null,
+                startedAt: run.started_at,
+                finishedAt: run.finished_at,
+                createdAt: run.created_at,
+              },
+            }),
+            { headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        // 4. GET /v1/catalog/stores/:storeId/status (Consolidated Operational Status)
+        if (parts.length === 2 && parts[1] === "status" && request.method === "GET") {
+          const store = await env.DB.prepare("SELECT * FROM stores WHERE id = ?")
+            .bind(storeId)
+            .first();
+
+          if (!store) {
+            return new Response(JSON.stringify({ success: false, error: "Loja não encontrada." }), {
+              status: 404,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          const [recentRunsRes, lastSuccessRes, lastFailedRes] = await Promise.all([
+            env.DB.prepare(
+              "SELECT * FROM sync_runs WHERE store_id = ? ORDER BY started_at DESC LIMIT 5",
+            )
+              .bind(storeId)
+              .all(),
+            env.DB.prepare(
+              "SELECT started_at FROM sync_runs WHERE store_id = ? AND status IN ('success', 'partial') ORDER BY started_at DESC LIMIT 1",
+            )
+              .bind(storeId)
+              .first(),
+            env.DB.prepare(
+              "SELECT started_at FROM sync_runs WHERE store_id = ? AND status = 'error' ORDER BY started_at DESC LIMIT 1",
+            )
+              .bind(storeId)
+              .first(),
+          ]);
+
+          const recentRuns = (recentRunsRes.results || []).map((row: any) => ({
+            id: row.id,
+            storeId: row.store_id,
+            status: row.status,
+            trigger: row.trigger,
+            requestedLimit: Number(row.requested_limit) || 0,
+            discovered: Number(row.discovered) || 0,
+            created: Number(row.created) || 0,
+            updated: Number(row.updated) || 0,
+            unchanged: Number(row.unchanged) || 0,
+            failed: Number(row.failed) || 0,
+            durationMs: Number(row.duration_ms) || 0,
+            errorMessage: row.error_message || null,
+            startedAt: row.started_at,
+            finishedAt: row.finished_at,
+            createdAt: row.created_at,
+          }));
+
+          // Derive health accurately
+          let health: "healthy" | "syncing" | "degraded" | "error" | "never_synced" = "healthy";
+          if (store.sync_state === "running") {
+            health = "syncing";
+          } else if (
+            store.sync_state === "error" ||
+            (recentRuns[0]?.status === "error" && !lastSuccessRes)
+          ) {
+            health = "error";
+          } else if (recentRuns[0]?.status === "partial" || recentRuns[0]?.status === "error") {
+            health = "degraded";
+          } else if (Number(store.product_count) === 0 && !lastSuccessRes) {
+            health = "never_synced";
+          }
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              store: {
+                id: store.id,
+                name: store.name,
+                username: store.username,
+                source: store.source,
+                shopId: store.shop_id,
+                status: store.status,
+                syncState: store.sync_state,
+                productCount: Number(store.product_count) || 0,
+                lastSyncAt: store.last_sync_at,
+                lastSyncStatus: store.last_sync_status,
+              },
+              syncState: store.sync_state,
+              lastSync: store.last_sync_at,
+              lastSuccessfulSync: lastSuccessRes?.started_at || null,
+              lastFailedSync: lastFailedRes?.started_at || null,
+              totalProducts: Number(store.product_count) || 0,
+              active: store.status === "active",
+              health,
+              recentRuns,
+            }),
+            { headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        // 5. POST /v1/catalog/stores/:storeId/refresh (Atomic Sync Engine & History Logging)
         if (parts.length === 2 && parts[1] === "refresh" && request.method === "POST") {
           const body: any = await request.json().catch(() => ({}));
           const rawLimit = body.limit !== undefined ? Number(body.limit) : 10;
@@ -784,6 +993,14 @@ export default {
           const syncRunId = crypto.randomUUID();
           const startTime = Date.now();
 
+          // Create sync_run record with 'running' status
+          await env.DB.prepare(
+            `INSERT INTO sync_runs (id, store_id, status, trigger, requested_limit, started_at, created_at)
+             VALUES (?, ?, 'running', ?, ?, datetime('now'), datetime('now'))`,
+          )
+            .bind(syncRunId, storeId, body.trigger || "manual", rawLimit)
+            .run();
+
           try {
             let storeUrl = "";
             try {
@@ -814,6 +1031,25 @@ export default {
             );
 
             const durationMs = Date.now() - startTime;
+            const finalStatus = masterCatalog.failed > 0 ? "partial" : "success";
+
+            // Update sync_run to success/partial
+            await env.DB.prepare(
+              `UPDATE sync_runs
+               SET status = ?, discovered = ?, created = ?, updated = ?, unchanged = ?, failed = ?, duration_ms = ?, finished_at = datetime('now')
+               WHERE id = ?`,
+            )
+              .bind(
+                finalStatus,
+                scrapeResult.items.length,
+                masterCatalog.created,
+                masterCatalog.updated,
+                masterCatalog.unchanged,
+                masterCatalog.failed,
+                durationMs,
+                syncRunId,
+              )
+              .run();
 
             return new Response(
               JSON.stringify({
@@ -835,6 +1071,8 @@ export default {
               { headers: { "Content-Type": "application/json" } },
             );
           } catch (syncErr: any) {
+            const durationMs = Date.now() - startTime;
+
             // Revert state on error
             await env.DB.prepare(
               `UPDATE stores
@@ -842,6 +1080,15 @@ export default {
                WHERE id = ?`,
             )
               .bind(storeId)
+              .run();
+
+            // Update sync_run to error
+            await env.DB.prepare(
+              `UPDATE sync_runs
+               SET status = 'error', duration_ms = ?, error_message = ?, finished_at = datetime('now')
+               WHERE id = ?`,
+            )
+              .bind(durationMs, syncErr.message || "Falha desconhecida", syncRunId)
               .run();
 
             return new Response(
@@ -855,7 +1102,7 @@ export default {
           }
         }
 
-        // 3. GET /v1/catalog/stores/:storeId (Single Store Detail)
+        // 6. GET /v1/catalog/stores/:storeId (Single Store Detail)
         if (parts.length === 1 && request.method === "GET") {
           const store = await env.DB.prepare("SELECT * FROM stores WHERE id = ?")
             .bind(storeId)
@@ -887,7 +1134,7 @@ export default {
           );
         }
 
-        // 4. PATCH /v1/catalog/stores/:storeId (Activate / Deactivate Store)
+        // 7. PATCH /v1/catalog/stores/:storeId (Activate / Deactivate Store)
         if (parts.length === 1 && request.method === "PATCH") {
           const body: any = await request.json().catch(() => ({}));
           const newStatus = body.status === "inactive" ? "inactive" : "active";
@@ -1034,13 +1281,17 @@ export default {
         }
 
         await ensureD1Tables(env.DB);
-        const [prodCount, storeCount] = await Promise.all([
+        const [prodCount, storeCount, activeCount, errorCount] = await Promise.all([
           env.DB.prepare("SELECT COUNT(*) as total FROM products").first(),
           env.DB.prepare("SELECT COUNT(*) as total FROM stores").first(),
+          env.DB.prepare("SELECT COUNT(*) as total FROM stores WHERE status = 'active'").first(),
+          env.DB.prepare("SELECT COUNT(*) as total FROM stores WHERE sync_state = 'error'").first(),
         ]);
 
         const products = prodCount?.total || 0;
         const stores = storeCount?.total || 0;
+        const activeStores = activeCount?.total || 0;
+        const errorStores = errorCount?.total || 0;
 
         return new Response(
           JSON.stringify({
@@ -1048,10 +1299,16 @@ export default {
             stats: {
               products,
               stores,
-              activeStores: stores,
-              errorStores: 0,
+              activeStores,
+              errorStores,
               sources: { shopee: { products, stores } },
-              sync: { idle: stores, running: 0, success: stores, partial: 0, error: 0 },
+              sync: {
+                idle: stores - activeStores,
+                running: 0,
+                success: activeStores,
+                partial: 0,
+                error: errorStores,
+              },
             },
           }),
           { headers: { "Content-Type": "application/json" } },

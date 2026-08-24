@@ -11,14 +11,20 @@ import {
   X,
   Store as StoreIcon,
   Play,
+  Layers,
+  Activity,
+  AlertTriangle,
+  Package,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { catalogApi } from "@/lib/api/catalog";
-import { Store } from "@/lib/api/types";
+import { Store, CatalogStats } from "@/lib/api/types";
 import { toast } from "sonner";
 
 export default function StoresPage() {
   const [stores, setStores] = useState<Store[]>([]);
+  const [stats, setStats] = useState<CatalogStats["stats"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [syncingStoreId, setSyncingStoreId] = useState<string | null>(null);
@@ -30,10 +36,16 @@ export default function StoresPage() {
   const [syncLimit, setSyncLimit] = useState<1 | 10 | 50 | 100>(10);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchStores = async () => {
+  const fetchStoresAndStats = async () => {
     try {
-      const data = await catalogApi.getStores();
-      setStores(data);
+      const [storesData, statsData] = await Promise.all([
+        catalogApi.getStores(),
+        catalogApi.getStats().catch(() => null),
+      ]);
+      setStores(storesData);
+      if (statsData?.stats) {
+        setStats(statsData.stats);
+      }
     } catch (e: any) {
       console.error(e);
       if (e.status === 401 || e.isAuthError) {
@@ -49,7 +61,7 @@ export default function StoresPage() {
   };
 
   useEffect(() => {
-    fetchStores();
+    fetchStoresAndStats();
   }, []);
 
   const handleCreateStore = async (e: React.FormEvent) => {
@@ -69,9 +81,8 @@ export default function StoresPage() {
         setIsModalOpen(false);
         setStoreUrl("");
         setStoreName("");
-        await fetchStores();
+        await fetchStoresAndStats();
 
-        // Opcional: Pergunta se deseja sincronizar agora
         const shouldSync = confirm(
           `Loja cadastrada! Deseja iniciar a primeira sincronização agora com limite de ${syncLimit} produtos?`,
         );
@@ -98,7 +109,7 @@ export default function StoresPage() {
         toast.success(
           `Sincronização concluída! ${res.results?.created || 0} criados, ${res.results?.updated || 0} atualizados.`,
         );
-        await fetchStores();
+        await fetchStoresAndStats();
       }
     } catch (err: any) {
       if (err.status === 409) {
@@ -118,9 +129,80 @@ export default function StoresPage() {
       s.shopId.includes(searchTerm),
   );
 
+  // Derive metrics from real stores list and catalog stats
+  const totalStores = stats?.stores ?? stores.length;
+  const activeStores = stats?.activeStores ?? stores.filter((s) => s.status === "active").length;
+  const syncingStores = stores.filter((s) => s.syncState === "running").length;
+  const errorStores =
+    stats?.errorStores ??
+    stores.filter((s) => s.syncState === "error" || s.syncState === "failed").length;
+  const totalProducts =
+    stats?.products ?? stores.reduce((sum, s) => sum + (Number(s.productCount) || 0), 0);
+  const latestSyncDate = stores
+    .map((s) => s.lastSyncAt)
+    .filter(Boolean)
+    .sort()
+    .reverse()[0];
+
   return (
     <Shell>
       <div className="space-y-6">
+        {/* Observability Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          <div className="hub-card p-4 space-y-1 bg-black/40 border border-[var(--hub-border)]">
+            <div className="flex items-center justify-between text-[var(--hub-muted)]">
+              <span className="text-[9px] font-black uppercase tracking-widest">Total Lojas</span>
+              <Layers className="h-3.5 w-3.5" />
+            </div>
+            <p className="text-xl font-black text-white italic">{totalStores}</p>
+          </div>
+
+          <div className="hub-card p-4 space-y-1 bg-black/40 border border-[var(--hub-border)]">
+            <div className="flex items-center justify-between text-emerald-400/80">
+              <span className="text-[9px] font-black uppercase tracking-widest">Ativas</span>
+              <Activity className="h-3.5 w-3.5" />
+            </div>
+            <p className="text-xl font-black text-emerald-400 italic">{activeStores}</p>
+          </div>
+
+          <div className="hub-card p-4 space-y-1 bg-black/40 border border-[var(--hub-border)]">
+            <div className="flex items-center justify-between text-blue-400/80">
+              <span className="text-[9px] font-black uppercase tracking-widest">Syncing</span>
+              <RefreshCw
+                className={`h-3.5 w-3.5 ${syncingStores > 0 ? "animate-spin text-blue-400" : ""}`}
+              />
+            </div>
+            <p className="text-xl font-black text-blue-400 italic">{syncingStores}</p>
+          </div>
+
+          <div className="hub-card p-4 space-y-1 bg-black/40 border border-[var(--hub-border)]">
+            <div className="flex items-center justify-between text-red-400/80">
+              <span className="text-[9px] font-black uppercase tracking-widest">Com Erro</span>
+              <AlertTriangle className="h-3.5 w-3.5" />
+            </div>
+            <p className="text-xl font-black text-red-400 italic">{errorStores}</p>
+          </div>
+
+          <div className="hub-card p-4 space-y-1 bg-black/40 border border-[var(--hub-border)]">
+            <div className="flex items-center justify-between text-[var(--hub-muted)]">
+              <span className="text-[9px] font-black uppercase tracking-widest">Produtos</span>
+              <Package className="h-3.5 w-3.5" />
+            </div>
+            <p className="text-xl font-black text-white italic">{totalProducts}</p>
+          </div>
+
+          <div className="hub-card p-4 space-y-1 bg-black/40 border border-[var(--hub-border)]">
+            <div className="flex items-center justify-between text-[var(--hub-muted)]">
+              <span className="text-[9px] font-black uppercase tracking-widest">Último Sync</span>
+              <Clock className="h-3.5 w-3.5" />
+            </div>
+            <p className="text-xs font-bold text-white truncate pt-1">
+              {latestSyncDate ? new Date(latestSyncDate).toLocaleTimeString("pt-BR") : "Nunca"}
+            </p>
+          </div>
+        </div>
+
+        {/* Action Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="bg-black/40 px-4 py-2 rounded border border-[var(--hub-border)] flex items-center gap-3 w-80">
@@ -182,7 +264,7 @@ export default function StoresPage() {
                     {loja.syncState === "success" && (
                       <CheckCircle className="h-3 w-3 text-emerald-400" />
                     )}
-                    {loja.syncState === "failed" && (
+                    {(loja.syncState === "failed" || loja.syncState === "error") && (
                       <AlertCircle className="h-3 w-3 text-red-500" />
                     )}
                     {loja.syncState === "running" && (

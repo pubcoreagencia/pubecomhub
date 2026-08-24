@@ -268,4 +268,189 @@ describe("Catalog Worker CORS", () => {
     expect(json.success).toBe(true);
     expect(json.store.status).toBe("inactive");
   });
+
+  it("should list sync runs via GET /v1/catalog/stores/:storeId/sync-runs", async () => {
+    const mockDb = {
+      exec: vi.fn().mockResolvedValue({}),
+      prepare: vi.fn().mockReturnValue({
+        bind: vi.fn().mockReturnValue({
+          all: vi.fn().mockResolvedValue({
+            results: [
+              {
+                id: "run-123",
+                store_id: "shopee:1729928484",
+                status: "success",
+                trigger: "manual",
+                requested_limit: 10,
+                discovered: 10,
+                created: 10,
+                updated: 0,
+                unchanged: 0,
+                failed: 0,
+                duration_ms: 1200,
+                started_at: "2026-08-24T12:00:00Z",
+                finished_at: "2026-08-24T12:00:01Z",
+                created_at: "2026-08-24T12:00:00Z",
+              },
+            ],
+          }),
+          first: vi.fn().mockResolvedValue({ total: 1 }),
+        }),
+      }),
+    };
+
+    const req = new Request(
+      "http://localhost/v1/catalog/stores/shopee:1729928484/sync-runs?limit=10&status=success",
+      {
+        method: "GET",
+        headers: { Authorization: "Bearer test-token" },
+      },
+    );
+
+    const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
+    expect(resp.status).toBe(200);
+    const json = await resp.json();
+    expect(json.success).toBe(true);
+    expect(json.runs).toHaveLength(1);
+    expect(json.runs[0].id).toBe("run-123");
+    expect(json.runs[0].status).toBe("success");
+    expect(json.total).toBe(1);
+  });
+
+  it("should return single sync run via GET /v1/catalog/stores/:storeId/sync-runs/:runId", async () => {
+    const mockDb = {
+      exec: vi.fn().mockResolvedValue({}),
+      prepare: vi.fn().mockReturnValue({
+        bind: vi.fn().mockReturnValue({
+          first: vi.fn().mockResolvedValue({
+            id: "run-123",
+            store_id: "shopee:1729928484",
+            status: "success",
+            trigger: "manual",
+            requested_limit: 10,
+            discovered: 10,
+            created: 10,
+            updated: 0,
+            unchanged: 0,
+            failed: 0,
+            duration_ms: 1200,
+            started_at: "2026-08-24T12:00:00Z",
+            finished_at: "2026-08-24T12:00:01Z",
+            created_at: "2026-08-24T12:00:00Z",
+          }),
+        }),
+      }),
+    };
+
+    const req = new Request(
+      "http://localhost/v1/catalog/stores/shopee:1729928484/sync-runs/run-123",
+      {
+        method: "GET",
+        headers: { Authorization: "Bearer test-token" },
+      },
+    );
+
+    const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
+    expect(resp.status).toBe(200);
+    const json = await resp.json();
+    expect(json.success).toBe(true);
+    expect(json.run.id).toBe("run-123");
+  });
+
+  it("should return 404 for non-existent sync run", async () => {
+    const mockDb = {
+      exec: vi.fn().mockResolvedValue({}),
+      prepare: vi.fn().mockReturnValue({
+        bind: vi.fn().mockReturnValue({
+          first: vi.fn().mockResolvedValue(null),
+        }),
+      }),
+    };
+
+    const req = new Request(
+      "http://localhost/v1/catalog/stores/shopee:1729928484/sync-runs/run-nonexistent",
+      {
+        method: "GET",
+        headers: { Authorization: "Bearer test-token" },
+      },
+    );
+
+    const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
+    expect(resp.status).toBe(404);
+    const json = await resp.json();
+    expect(json.success).toBe(false);
+    expect(json.error).toContain("Execução não encontrada");
+  });
+
+  it("should return consolidated operational status via GET /v1/catalog/stores/:storeId/status", async () => {
+    const mockDb = {
+      exec: vi.fn().mockResolvedValue({}),
+      prepare: vi.fn().mockImplementation((query: string) => {
+        if (query.includes("SELECT * FROM stores WHERE id")) {
+          return {
+            bind: vi.fn().mockReturnValue({
+              first: vi.fn().mockResolvedValue({
+                id: "shopee:1729928484",
+                name: "Zentta Babuche",
+                username: "zenttababuche",
+                source: "shopee",
+                shop_id: "1729928484",
+                status: "active",
+                sync_state: "success",
+                product_count: 10,
+                last_sync_at: "2026-08-24T12:00:00Z",
+                last_sync_status: "success",
+              }),
+            }),
+          };
+        }
+        if (query.includes("SELECT * FROM sync_runs WHERE store_id")) {
+          return {
+            bind: vi.fn().mockReturnValue({
+              all: vi.fn().mockResolvedValue({
+                results: [
+                  {
+                    id: "run-123",
+                    store_id: "shopee:1729928484",
+                    status: "success",
+                    trigger: "manual",
+                    requested_limit: 10,
+                    discovered: 10,
+                    created: 10,
+                    updated: 0,
+                    unchanged: 0,
+                    failed: 0,
+                    duration_ms: 1200,
+                    started_at: "2026-08-24T12:00:00Z",
+                    finished_at: "2026-08-24T12:00:01Z",
+                    created_at: "2026-08-24T12:00:00Z",
+                  },
+                ],
+              }),
+            }),
+          };
+        }
+        return {
+          bind: vi.fn().mockReturnValue({
+            first: vi.fn().mockResolvedValue({ started_at: "2026-08-24T12:00:00Z" }),
+            all: vi.fn().mockResolvedValue({ results: [] }),
+          }),
+        };
+      }),
+    };
+
+    const req = new Request("http://localhost/v1/catalog/stores/shopee:1729928484/status", {
+      method: "GET",
+      headers: { Authorization: "Bearer test-token" },
+    });
+
+    const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
+    expect(resp.status).toBe(200);
+    const json = await resp.json();
+    expect(json.success).toBe(true);
+    expect(json.health).toBe("healthy");
+    expect(json.totalProducts).toBe(10);
+    expect(json.active).toBe(true);
+    expect(json.recentRuns).toHaveLength(1);
+  });
 });

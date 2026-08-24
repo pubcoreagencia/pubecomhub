@@ -1,4 +1,4 @@
-﻿export interface CatalogStats {
+export interface CatalogStats {
   success: boolean;
   stats: {
     products: number;
@@ -90,4 +90,36 @@ export interface ApiError {
   error: string;
   message: string;
   syncRunId?: string;
+}
+
+export interface SyncRun {
+  id: string;
+  storeId: string;
+  status: "running" | "success" | "partial" | "error";
+  trigger: "manual" | "scheduled" | "webhook" | string;
+  requestedLimit: number;
+  discovered: number;
+  created: number;
+  updated: number;
+  unchanged: number;
+  failed: number;
+  durationMs: number;
+  errorMessage: string | null;
+  startedAt: string;
+  finishedAt: string | null;
+  metadata?: Record<string, any>;
+  createdAt: string;
+}
+
+export interface StoreOperationalStatus {
+  success: boolean;
+  store: Store;
+  syncState: string;
+  lastSync: string | null;
+  lastSuccessfulSync: string | null;
+  lastFailedSync: string | null;
+  totalProducts: number;
+  active: boolean;
+  health: "healthy" | "syncing" | "degraded" | "error" | "never_synced";
+  recentRuns: SyncRun[];
 }

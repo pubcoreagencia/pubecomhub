@@ -12,17 +12,23 @@ import {
   Clock,
   ExternalLink,
   Power,
+  History,
+  ShieldCheck,
+  AlertTriangle,
+  Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { catalogApi } from "@/lib/api/catalog";
-import { Store, Product, SyncResponse } from "@/lib/api/types";
+import { Store, Product, SyncRun, StoreOperationalStatus, SyncResponse } from "@/lib/api/types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export default function StoreDetailPage() {
   const { storeId } = useParams({ from: "/dashboard/stores/$storeId" });
   const [store, setStore] = useState<Store | null>(null);
+  const [statusInfo, setStatusInfo] = useState<StoreOperationalStatus | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [syncRuns, setSyncRuns] = useState<SyncRun[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [togglingStatus, setTogglingStatus] = useState(false);
@@ -31,12 +37,16 @@ export default function StoreDetailPage() {
 
   const fetchData = async () => {
     try {
-      const [storeData, productsData] = await Promise.all([
+      const [storeData, statusData, productsData, runsData] = await Promise.all([
         catalogApi.getStore(storeId),
+        catalogApi.getStoreStatus(storeId).catch(() => null),
         catalogApi.getStoreProducts(storeId),
+        catalogApi.getStoreSyncRuns(storeId, { limit: 10 }).catch(() => ({ runs: [], total: 0 })),
       ]);
       setStore(storeData);
+      setStatusInfo(statusData);
       setProducts(productsData);
+      setSyncRuns(runsData.runs || []);
     } catch (e: any) {
       console.error(e);
       if (e.status === 401 || e.isAuthError) {
@@ -69,6 +79,7 @@ export default function StoreDetailPage() {
       if (res.success) {
         setStore(res.store);
         toast.success(`Loja ${newStatus === "active" ? "ativada" : "desativada"} com sucesso.`);
+        await fetchData();
       }
     } catch (err: any) {
       toast.error(`Erro ao alterar status: ${err.message || String(err)}`);
@@ -113,6 +124,41 @@ export default function StoreDetailPage() {
       }
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const getHealthBadge = (health?: string) => {
+    switch (health) {
+      case "healthy":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <ShieldCheck className="h-3 w-3" /> Saudável
+          </span>
+        );
+      case "syncing":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-blue-500/20 text-blue-400 border border-blue-500/30 animate-pulse">
+            <RefreshCw className="h-3 w-3 animate-spin" /> Sincronizando
+          </span>
+        );
+      case "degraded":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+            <AlertTriangle className="h-3 w-3" /> Degradado
+          </span>
+        );
+      case "error":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-red-500/20 text-red-400 border border-red-500/30">
+            <AlertCircle className="h-3 w-3" /> Erro Operacional
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-slate-500/20 text-slate-400 border border-slate-500/30">
+            <Clock className="h-3 w-3" /> Nunca Sincronizado
+          </span>
+        );
     }
   };
 
@@ -165,6 +211,7 @@ export default function StoreDetailPage() {
                 >
                   {store.status}
                 </span>
+                {getHealthBadge(statusInfo?.health)}
               </div>
               <p className="text-[10px] text-[var(--hub-muted)] font-black uppercase tracking-[0.2em]">
                 {store.source} · {store.username || "sem username"} · ID: {store.shopId}
@@ -214,7 +261,7 @@ export default function StoreDetailPage() {
                 </>
               ) : (
                 <>
-                  <RefreshCw className="h-4 w-4 mr-2" /> Sincronizar ({selectedLimit})
+                  <Play className="h-4 w-4 mr-2 fill-current" /> Sincronizar ({selectedLimit})
                 </>
               )}
             </Button>
@@ -288,21 +335,110 @@ export default function StoreDetailPage() {
                   ? "text-emerald-400"
                   : store.syncState === "running"
                     ? "text-blue-500"
-                    : "text-white",
+                    : store.syncState === "error" || store.syncState === "failed"
+                      ? "text-red-500"
+                      : "text-white",
               )}
             >
               {store.syncState}
             </p>
           </div>
-          <div className="hub-card hub-gradient-border p-6 space-y-2 md:col-span-2">
+          <div className="hub-card hub-gradient-border p-6 space-y-2">
+            <CheckCircle className="h-4 w-4 text-emerald-400/80 mb-2" />
+            <p className="text-[9px] text-[var(--hub-muted)] font-black uppercase tracking-widest">
+              Último Sync Sucesso
+            </p>
+            <p className="text-sm font-bold text-white truncate">
+              {statusInfo?.lastSuccessfulSync
+                ? new Date(statusInfo.lastSuccessfulSync).toLocaleString("pt-BR")
+                : store.lastSyncAt
+                  ? new Date(store.lastSyncAt).toLocaleString("pt-BR")
+                  : "Nunca"}
+            </p>
+          </div>
+          <div className="hub-card hub-gradient-border p-6 space-y-2">
             <Clock className="h-4 w-4 text-[var(--hub-muted)] mb-2" />
             <p className="text-[9px] text-[var(--hub-muted)] font-black uppercase tracking-widest">
-              Última Sincronização
+              Última Tentativa
             </p>
-            <p className="text-2xl font-black text-white italic">
+            <p className="text-sm font-bold text-white truncate">
               {store.lastSyncAt ? new Date(store.lastSyncAt).toLocaleString("pt-BR") : "Nunca"}
             </p>
           </div>
+        </div>
+
+        {/* Sync History Table */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-2">
+              <History className="h-4 w-4 text-[var(--hub-primary)]" />
+              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-white italic">
+                Histórico Operacional de Sincronizações ({syncRuns.length})
+              </h3>
+            </div>
+            <span className="text-[9px] font-black text-[var(--hub-muted)] uppercase tracking-widest italic opacity-40">
+              D1 Sync Runs Log
+            </span>
+          </div>
+
+          <HubTable
+            headers={[
+              "Status",
+              "Início",
+              "Limite",
+              "Descobertos",
+              "Criados",
+              "Atualizados",
+              "Inalterados",
+              "Duração",
+            ]}
+          >
+            {syncRuns.map((run) => (
+              <tr key={run.id} className="hover:bg-white/[0.02]">
+                <td className="px-5 py-3">
+                  <span
+                    className={cn(
+                      "px-2 py-0.5 rounded-[4px] text-[8px] font-black uppercase",
+                      run.status === "success"
+                        ? "bg-emerald-500/20 text-emerald-400"
+                        : run.status === "partial"
+                          ? "bg-yellow-500/20 text-yellow-400"
+                          : run.status === "running"
+                            ? "bg-blue-500/20 text-blue-400 animate-pulse"
+                            : "bg-red-500/20 text-red-400",
+                    )}
+                  >
+                    {run.status}
+                  </span>
+                </td>
+                <td className="px-5 py-3 text-[10px] text-white font-mono">
+                  {new Date(run.startedAt).toLocaleString("pt-BR")}
+                </td>
+                <td className="px-5 py-3 text-[10px] text-[var(--hub-muted)] font-bold">
+                  {run.requestedLimit}
+                </td>
+                <td className="px-5 py-3 text-[10px] font-bold text-white">{run.discovered}</td>
+                <td className="px-5 py-3 text-[10px] font-black text-emerald-400">{run.created}</td>
+                <td className="px-5 py-3 text-[10px] font-black text-blue-400">{run.updated}</td>
+                <td className="px-5 py-3 text-[10px] text-[var(--hub-muted)] font-mono">
+                  {run.unchanged}
+                </td>
+                <td className="px-5 py-3 text-[10px] text-[var(--hub-muted)] font-mono">
+                  {run.durationMs ? `${(run.durationMs / 1000).toFixed(1)}s` : "-"}
+                </td>
+              </tr>
+            ))}
+            {syncRuns.length === 0 && (
+              <tr>
+                <td
+                  colSpan={8}
+                  className="px-5 py-10 text-center text-[var(--hub-muted)] italic text-[11px] uppercase tracking-widest"
+                >
+                  Nenhum registro de sincronização encontrado para esta loja.
+                </td>
+              </tr>
+            )}
+          </HubTable>
         </div>
 
         {/* Products Table */}

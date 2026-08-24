@@ -226,6 +226,34 @@ export class CatalogApi {
     return Array.isArray(rawList) ? rawList.map(normalizeProduct) : [];
   }
 
+  async getStoreSyncRuns(
+    storeId: string,
+    params?: { limit?: number; offset?: number; status?: string },
+  ): Promise<{ runs: any[]; total: number }> {
+    const query = params ? `?${new URLSearchParams(params as any).toString()}` : "";
+    const data = await this.request<any>(
+      `/api/catalog/stores/${encodeURIComponent(storeId)}/sync-runs${query}`,
+    );
+    return {
+      runs: data.runs || [],
+      total: data.total || 0,
+    };
+  }
+
+  async getStoreSyncRun(storeId: string, runId: string): Promise<any> {
+    const data = await this.request<any>(
+      `/api/catalog/stores/${encodeURIComponent(storeId)}/sync-runs/${encodeURIComponent(runId)}`,
+    );
+    return data.run;
+  }
+
+  async getStoreStatus(storeId: string): Promise<any> {
+    const data = await this.request<any>(
+      `/api/catalog/stores/${encodeURIComponent(storeId)}/status`,
+    );
+    return data;
+  }
+
   async refreshStore(storeId: string, limit: 1 | 10 | 50 | 100 = 10): Promise<SyncResponse> {
     const data = await this.request<any>(
       `/api/catalog/stores/${encodeURIComponent(storeId)}/refresh`,

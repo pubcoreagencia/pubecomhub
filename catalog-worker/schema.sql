@@ -33,6 +33,29 @@ CREATE TABLE IF NOT EXISTS products (
   UNIQUE(store_id, external_id)
 );
 
+CREATE TABLE IF NOT EXISTS sync_runs (
+  id TEXT PRIMARY KEY,
+  store_id TEXT NOT NULL,
+  status TEXT NOT NULL, -- 'running' | 'success' | 'partial' | 'error'
+  trigger TEXT NOT NULL DEFAULT 'manual', -- 'manual' | 'scheduled' | 'webhook'
+  requested_limit INTEGER NOT NULL DEFAULT 10,
+  discovered INTEGER NOT NULL DEFAULT 0,
+  created INTEGER NOT NULL DEFAULT 0,
+  updated INTEGER NOT NULL DEFAULT 0,
+  unchanged INTEGER NOT NULL DEFAULT 0,
+  failed INTEGER NOT NULL DEFAULT 0,
+  duration_ms INTEGER DEFAULT 0,
+  error_message TEXT,
+  started_at TEXT NOT NULL DEFAULT (datetime('now')),
+  finished_at TEXT,
+  metadata TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_products_store_id ON products(store_id);
 CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
 CREATE INDEX IF NOT EXISTS idx_products_created_at ON products(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_sync_runs_store_id ON sync_runs(store_id);
+CREATE INDEX IF NOT EXISTS idx_sync_runs_started_at ON sync_runs(started_at);
+CREATE INDEX IF NOT EXISTS idx_sync_runs_status ON sync_runs(status);
