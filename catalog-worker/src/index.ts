@@ -4,6 +4,7 @@ import { isAllowedTargetUrl } from "./security";
 
 export interface Env {
   BROWSER: any;
+  DB?: any;
   CATALOG_WORKER_TOKEN: string;
 }
 
@@ -76,7 +77,6 @@ async function resolveShopIdWithDiagnostics(
       results.productLinkShopIds = uniqueShopIds;
 
       if (uniqueShopIds.length > 0) {
-        // Sort by frequency
         uniqueShopIds.sort((a, b) => shopIdMap[b] - shopIdMap[a]);
         results.shopId = uniqueShopIds[0];
       }
@@ -153,6 +153,167 @@ async function resolveShopIdWithDiagnostics(
   };
 }
 
+async function ensureD1Tables(db: any) {
+  if (!db) return;
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS stores (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        username TEXT,
+        source TEXT NOT NULL DEFAULT 'shopee',
+        shop_id TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active',
+        sync_state TEXT NOT NULL DEFAULT 'idle',
+        product_count INTEGER DEFAULT 0,
+        last_sync_at TEXT,
+        last_sync_status TEXT,
+        metadata TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS products (
+        id TEXT PRIMARY KEY,
+        external_id TEXT NOT NULL,
+        store_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        price REAL NOT NULL DEFAULT 0,
+        currency TEXT NOT NULL DEFAULT 'BRL',
+        images TEXT NOT NULL DEFAULT '[]',
+        url TEXT NOT NULL DEFAULT '',
+        sku TEXT,
+        category TEXT,
+        source TEXT NOT NULL DEFAULT 'shopee',
+        metadata TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        UNIQUE(store_id, external_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_products_store_id ON products(store_id);
+      CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
+    `);
+  } catch (err) {
+    console.error("[ensureD1Tables] Warning:", err);
+  }
+}
+
+async function persistToD1(db: any, shopId: string, username: string, items: any[]) {
+  if (!db || !Array.isArray(items) || items.length === 0) {
+    return { created: 0, updated: 0, total: items?.length || 0 };
+  }
+
+  await ensureD1Tables(db);
+
+  const storeId = `shopee:${shopId}`;
+  const storeName = username || `Loja Shopee ${shopId}`;
+
+  // 1. Upsert Store
+  await db
+    .prepare(
+      `INSERT INTO stores (id, name, username, source, shop_id, status, sync_state, product_count, last_sync_at, last_sync_status, updated_at)
+       VALUES (?, ?, ?, 'shopee', ?, 'active', 'success', ?, datetime('now'), 'success', datetime('now'))
+       ON CONFLICT(id) DO UPDATE SET
+         name = excluded.name,
+         username = excluded.username,
+         product_count = excluded.product_count,
+         last_sync_at = datetime('now'),
+         last_sync_status = 'success',
+         updated_at = datetime('now')`,
+    )
+    .bind(storeId, storeName, username, shopId, items.length)
+    .run();
+
+  let createdCount = 0;
+  let updatedCount = 0;
+
+  // 2. Upsert Products
+  for (const raw of items) {
+    const item = raw.item_basic || raw;
+    const externalId = String(item.itemid || item.id || raw.itemid || "");
+    if (!externalId) continue;
+
+    const productId = `${storeId}:${externalId}`;
+    const title = item.name || item.title || "Produto Shopee";
+    
+    // Shopee raw price is in micro-units (e.g. 2990000 = R$ 29.90), or already decimal
+    let rawPrice = item.price || item.price_min || item.price_before_discount || 0;
+    const price = rawPrice > 1000 ? rawPrice / 100000 : rawPrice;
+    
+    const currency = item.currency || "BRL";
+    
+    let imagesList: string[] = [];
+    if (Array.isArray(item.images)) {
+      imagesList = item.images.map((img: string) =>
+        img.startsWith("http") ? img : `https://cf.shopee.com.br/file/${img}`,
+      );
+    } else if (item.image) {
+      const img = item.image;
+      imagesList = [img.startsWith("http") ? img : `https://cf.shopee.com.br/file/${img}`];
+    }
+    
+    const productUrl =
+      item.url ||
+      (username
+        ? `https://shopee.com.br/${username}/i.${shopId}.${externalId}`
+        : `https://shopee.com.br/product/${shopId}/${externalId}`);
+    
+    const sku = item.sku || `SKU-${externalId}`;
+    const category = item.category || "Geral";
+    const imagesJson = JSON.stringify(imagesList);
+
+    // Check if exists for accurate created vs updated count
+    const existing = await db
+      .prepare("SELECT id FROM products WHERE store_id = ? AND external_id = ?")
+      .bind(storeId, externalId)
+      .first();
+
+    if (existing) {
+      updatedCount++;
+    } else {
+      createdCount++;
+    }
+
+    await db
+      .prepare(
+        `INSERT INTO products (id, external_id, store_id, title, description, price, currency, images, url, sku, category, source, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'shopee', datetime('now'))
+         ON CONFLICT(store_id, external_id) DO UPDATE SET
+           title = excluded.title,
+           price = excluded.price,
+           currency = excluded.currency,
+           images = excluded.images,
+           url = excluded.url,
+           sku = excluded.sku,
+           category = excluded.category,
+           updated_at = datetime('now')`,
+      )
+      .bind(
+        productId,
+        externalId,
+        storeId,
+        title,
+        item.description || null,
+        price,
+        currency,
+        imagesJson,
+        productUrl,
+        sku,
+        category,
+      )
+      .run();
+  }
+
+  return {
+    total: items.length,
+    created: createdCount,
+    updated: updatedCount,
+    storageProvider: "d1",
+  };
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -168,18 +329,176 @@ export default {
     const handleRequest = async () => {
       // Health Check
       if (url.pathname === "/health" && request.method === "GET") {
-        return new Response(JSON.stringify({ ok: true, service: "pub-ecom-catalog-worker" }), {
-          headers: { "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            service: "pub-ecom-catalog-worker",
+            catalogStorage: env.DB ? "d1" : "memory",
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
 
-      // Auth Check
+      // Auth Check for Protected Routes
       const authHeader = request.headers.get("Authorization");
       if (!authHeader || authHeader !== `Bearer ${env.CATALOG_WORKER_TOKEN}`) {
         return new Response(JSON.stringify({ success: false, errors: ["Unauthorized"] }), {
           status: 401,
           headers: { "Content-Type": "application/json" },
         });
+      }
+
+      // ----------------------------------------------------
+      // CATALOG READ ROUTES (D1 PERSISTENCE)
+      // ----------------------------------------------------
+
+      // GET /v1/catalog/products
+      if (url.pathname === "/v1/catalog/products" && request.method === "GET") {
+        if (!env.DB) {
+          return new Response(
+            JSON.stringify({ success: true, items: [], total: 0, storage: "no-db" }),
+            { headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        await ensureD1Tables(env.DB);
+
+        const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "50"), 1), 200);
+        const offset = Math.max(parseInt(url.searchParams.get("offset") || "0"), 0);
+        const search = (url.searchParams.get("search") || "").trim();
+        const storeId = (url.searchParams.get("storeId") || "").trim();
+
+        let query = "SELECT * FROM products";
+        let countQuery = "SELECT COUNT(*) as total FROM products";
+        const conditions: string[] = [];
+        const params: any[] = [];
+        const countParams: any[] = [];
+
+        if (storeId) {
+          conditions.push("store_id = ?");
+          params.push(storeId);
+          countParams.push(storeId);
+        }
+
+        if (search) {
+          conditions.push("(title LIKE ? OR sku LIKE ? OR external_id LIKE ?)");
+          const term = `%${search}%`;
+          params.push(term, term, term);
+          countParams.push(term, term, term);
+        }
+
+        if (conditions.length > 0) {
+          query += " WHERE " + conditions.join(" AND ");
+          countQuery += " WHERE " + conditions.join(" AND ");
+        }
+
+        query += " ORDER BY updated_at DESC LIMIT ? OFFSET ?";
+        params.push(limit, offset);
+
+        const [rowsRes, countRes] = await Promise.all([
+          env.DB.prepare(query).bind(...params).all(),
+          env.DB.prepare(countQuery).bind(...countParams).first(),
+        ]);
+
+        const items = (rowsRes.results || []).map((row: any) => {
+          let images: string[] = [];
+          try {
+            images = JSON.parse(row.images || "[]");
+          } catch {
+            images = [];
+          }
+          return {
+            id: row.id,
+            externalId: row.external_id,
+            storeId: row.store_id,
+            title: row.title,
+            description: row.description,
+            price: Number(row.price) || 0,
+            currency: row.currency || "BRL",
+            images,
+            url: row.url,
+            sku: row.sku,
+            category: row.category,
+            updatedAt: row.updated_at,
+          };
+        });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            items,
+            total: countRes?.total || items.length,
+          }),
+          { headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      // GET /v1/catalog/stores
+      if (url.pathname === "/v1/catalog/stores" && request.method === "GET") {
+        if (!env.DB) {
+          return new Response(JSON.stringify({ success: true, items: [] }), {
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        await ensureD1Tables(env.DB);
+        const rows = await env.DB.prepare("SELECT * FROM stores ORDER BY updated_at DESC").all();
+        
+        const items = (rows.results || []).map((row: any) => ({
+          id: row.id,
+          name: row.name,
+          username: row.username,
+          source: row.source,
+          shopId: row.shop_id,
+          status: row.status,
+          syncState: row.sync_state,
+          productCount: Number(row.product_count) || 0,
+          lastSyncAt: row.last_sync_at,
+          lastSyncStatus: row.last_sync_status,
+        }));
+
+        return new Response(JSON.stringify({ success: true, items }), {
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // GET /v1/catalog/stats
+      if (url.pathname === "/v1/catalog/stats" && request.method === "GET") {
+        if (!env.DB) {
+          return new Response(
+            JSON.stringify({
+              success: true,
+              stats: { products: 0, stores: 0, activeStores: 0, errorStores: 0 },
+            }),
+            { headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        await ensureD1Tables(env.DB);
+        const [prodCount, storeCount] = await Promise.all([
+          env.DB.prepare("SELECT COUNT(*) as total FROM products").first(),
+          env.DB.prepare("SELECT COUNT(*) as total FROM stores").first(),
+        ]);
+
+        const products = prodCount?.total || 0;
+        const stores = storeCount?.total || 0;
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            stats: {
+              products,
+              stores,
+              activeStores: stores,
+              errorStores: 0,
+              sources: { shopee: { products, stores } },
+              sync: { idle: stores, running: 0, success: stores, partial: 0, error: 0 },
+            },
+          }),
+          { headers: { "Content-Type": "application/json" } },
+        );
       }
 
       // Debug Browser Limits
@@ -335,12 +654,23 @@ export default {
               { sid: resolvedShopId, lmt: limit, psz: pageSize },
             );
 
+            const items = searchResult.items || [];
+            
+            // Persist to D1 Database
+            const masterCatalog = await persistToD1(
+              env.DB,
+              resolvedShopId,
+              diag.username,
+              items,
+            );
+
             return new Response(
               JSON.stringify({
                 success: true,
                 source: "shopee",
                 shopId: resolvedShopId,
-                items: searchResult.items || [],
+                items,
+                masterCatalog,
                 metadata,
                 errors: [],
               }),

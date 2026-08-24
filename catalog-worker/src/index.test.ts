@@ -73,4 +73,48 @@ describe("Catalog Worker CORS", () => {
       "https://pubcoreagencia-pubecomhub.pages.dev",
     );
   });
+
+  it("should return catalog products from D1 when authorized", async () => {
+    const mockDb = {
+      exec: vi.fn().mockResolvedValue({}),
+      prepare: vi.fn().mockReturnValue({
+        bind: vi.fn().mockReturnValue({
+          all: vi.fn().mockResolvedValue({
+            results: [
+              {
+                id: "shopee:1729928484:1001",
+                external_id: "1001",
+                store_id: "shopee:1729928484",
+                title: "Sandalia Babuche Infantil",
+                price: 29.9,
+                currency: "BRL",
+                images: JSON.stringify(["https://cf.shopee.com.br/file/img1.jpg"]),
+                url: "https://shopee.com.br/product/1729928484/1001",
+                sku: "SKU-1001",
+                category: "Calçados",
+                updated_at: "2026-08-24T12:00:00Z",
+              },
+            ],
+          }),
+          first: vi.fn().mockResolvedValue({ total: 1 }),
+        }),
+      }),
+    };
+
+    const req = new Request("http://localhost/v1/catalog/products?limit=10", {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer test-token",
+      },
+    });
+
+    const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
+    expect(resp.status).toBe(200);
+    const json = await resp.json();
+    expect(json.success).toBe(true);
+    expect(json.items).toHaveLength(1);
+    expect(json.items[0].title).toBe("Sandalia Babuche Infantil");
+    expect(json.items[0].images).toEqual(["https://cf.shopee.com.br/file/img1.jpg"]);
+  });
 });
+
