@@ -1,5 +1,4 @@
 import { ExecutionProvider, ExecutionResult } from "./ExecutionProvider";
-// @ts-expect-error - Importing from .server file which might not be resolved correctly by build tools but is handled by the worker environment
 import { runShopeeWorker } from "../workers/ShopeeWorker.server";
 import { CloudflareExecutionProvider } from "./CloudflareExecutionProvider";
 import { getCatalogWorkerUrl } from "@/server/env";
