@@ -217,14 +217,28 @@ export async function handleCatalogProxy(
     targetPath = pathname;
   }
 
+
+
   if (!targetPath) {
     return null;
   }
 
   const envObj = getServerEnv(request);
 
+  // Debug: log incoming request (method, pathname) without exposing Authorization header
+  console.log('[DEBUG] CatalogProxy received request', {
+    method: request.method,
+    pathname: new URL(request.url).pathname,
+    headers: Object.fromEntries([...request.headers.entries()].filter(([k]) => k.toLowerCase() !== 'authorization')),
+  });
+
   // 1. Authenticate caller with Supabase
   const auth = await validateSupabaseCaller(request, envObj);
+  console.log('[DEBUG] Supabase auth result', {
+    authenticated: auth.authenticated,
+    role: auth.role,
+    statusCode: auth.statusCode,
+  });
   if (!auth.authenticated) {
     return new Response(
       JSON.stringify({
@@ -320,6 +334,7 @@ export async function handleCatalogProxy(
   // 3. Load server-side Catalog Worker Token
   const workerUrl = getCatalogWorkerUrl(request);
   const workerToken = getCatalogWorkerToken(request);
+  const upstreamUrl = `${workerUrl}${targetPath}${url.search}`;
 
   if (!workerToken) {
     const errorMsg =
@@ -338,7 +353,8 @@ export async function handleCatalogProxy(
     );
   }
 
-  const upstreamUrl = `${workerUrl}${targetPath}${url.search}`;
+
+
   const forwardHeaders = new Headers();
 
   const contentType = request.headers.get("content-type");
@@ -356,16 +372,20 @@ export async function handleCatalogProxy(
   }
 
   try {
-    const fetcher =
-      envObj["CATALOG_WORKER"] && typeof envObj["CATALOG_WORKER"].fetch === "function"
-        ? envObj["CATALOG_WORKER"]
-        : { fetch: globalThis.fetch };
-
-    const upstreamResponse = await fetcher.fetch(upstreamUrl, {
-      method: request.method,
-      headers: forwardHeaders,
-      body,
-    });
+    let upstreamResponse: Response;
+    if (envObj["CATALOG_WORKER"] && typeof envObj["CATALOG_WORKER"].fetch === "function") {
+      upstreamResponse = await envObj["CATALOG_WORKER"].fetch(upstreamUrl, {
+        method: request.method,
+        headers: forwardHeaders,
+        body,
+      });
+    } else {
+      upstreamResponse = await fetch(upstreamUrl, {
+        method: request.method,
+        headers: forwardHeaders,
+        body,
+      });
+    }
 
     const responseHeaders = new Headers(upstreamResponse.headers);
     responseHeaders.set("content-type", "application/json; charset=utf-8");

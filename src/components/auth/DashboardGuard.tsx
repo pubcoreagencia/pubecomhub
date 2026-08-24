@@ -35,11 +35,8 @@ export const DashboardGuard = () => {
 
         if (isMounted) {
           setUserRole(role);
-          if (role === "MASTER") {
-            setIsAuthorized(true);
-          } else {
-            setIsAuthorized(false);
-          }
+          // Allow all authenticated operational users (MASTER, ADMIN, LOJISTA)
+          setIsAuthorized(true);
           setLoading(false);
         }
       } catch {

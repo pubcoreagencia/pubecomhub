@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Shell } from "@/components/layout/Shell";
 import { CardMetric, AcquisitionFunnel } from "@/components/ui-b";
 import { cn } from "@/lib/utils";
@@ -9,6 +10,9 @@ import {
   Zap,
   LayoutDashboard,
   RefreshCw,
+  Search,
+  Box,
+  ArrowRight,
 } from "lucide-react";
 import { catalogApi } from "@/lib/api/catalog";
 import { CatalogStats } from "@/lib/api/types";
@@ -43,21 +47,39 @@ export default function DashboardPage() {
   return (
     <Shell>
       <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h2 className="text-[12px] font-black uppercase tracking-[0.4em] text-white italic">
-              Master Catalog Performance
-            </h2>
-            {loading && <RefreshCw className="h-4 w-4 text-red-500 animate-spin" />}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--hub-border)] pb-6">
+          <div>
+            <h1 className="text-2xl font-black uppercase tracking-tighter text-white italic">
+              Painel Operacional Master
+            </h1>
+            <p className="text-[var(--hub-muted)] text-[10px] font-bold uppercase tracking-[0.3em] mt-1">
+              Visão Geral do Catálogo e Importação de Produtos
+            </p>
           </div>
-          <button
-            onClick={fetchStats}
-            disabled={loading}
-            className="text-[10px] font-black text-[var(--hub-primary)] uppercase tracking-widest hover:underline italic flex items-center gap-2"
-          >
-            <RefreshCw className={cn("h-3 w-3", loading && "animate-spin")} />
-            Atualizar Dados
-          </button>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/dashboard/ingestion"
+              className="bg-red-600 hover:bg-red-700 text-white text-[11px] font-black uppercase tracking-[0.2em] px-5 py-2.5 rounded-xl shadow-lg shadow-red-600/20 flex items-center gap-2 transition-transform hover:scale-105"
+            >
+              <Search className="w-4 h-4" />
+              Importar Produto
+            </Link>
+            <Link
+              to="/dashboard/products"
+              className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 text-[11px] font-black uppercase tracking-[0.2em] px-5 py-2.5 rounded-xl flex items-center gap-2 transition-colors"
+            >
+              <Box className="w-4 h-4" />
+              Catálogo
+            </Link>
+            <button
+              onClick={fetchStats}
+              disabled={loading}
+              className="text-[10px] font-black text-[var(--hub-primary)] uppercase tracking-widest hover:underline italic flex items-center gap-2 ml-2"
+            >
+              <RefreshCw className={cn("h-3 w-3", loading && "animate-spin")} />
+              Atualizar
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">

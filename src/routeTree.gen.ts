@@ -35,11 +35,15 @@ import { Route as StoreCartRouteImport } from './routes/store/cart'
 import { Route as StoreCheckoutRouteImport } from './routes/store/checkout'
 import { Route as StoreConfirmationRouteImport } from './routes/store/confirmation'
 import { Route as ApiCatalogHealthRouteImport } from './routes/api/catalog/health'
+import { Route as ApiCatalogProductsRouteImport } from './routes/api/catalog/products'
 import { Route as ApiCatalogStatsRouteImport } from './routes/api/catalog/stats'
 import { Route as ApiIngestionShopeeRouteImport } from './routes/api/ingestion/shopee'
 import { Route as DashboardStoresStoreIdRouteImport } from './routes/dashboard/stores.$storeId'
 import { Route as DashboardSuppliersIndexRouteImport } from './routes/dashboard/suppliers/index'
 import { Route as DashboardSuppliersIngestionRouteImport } from './routes/dashboard/suppliers/ingestion'
+import { Route as ApiCatalogImportAnalyzeRouteImport } from './routes/api/catalog/import/analyze'
+import { Route as ApiCatalogImportCommitRouteImport } from './routes/api/catalog/import/commit'
+import { Route as ApiCatalogProductsProductIdRouteImport } from './routes/api/catalog/products/$productId'
 import { Route as ApiCatalogStoresStoreIdRefreshRouteImport } from './routes/api/catalog/stores/$storeId.refresh'
 
 const IndexRoute = IndexRouteImport.update({
@@ -172,6 +176,11 @@ const ApiCatalogHealthRoute = ApiCatalogHealthRouteImport.update({
   path: '/api/catalog/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCatalogProductsRoute = ApiCatalogProductsRouteImport.update({
+  id: '/api/catalog/products',
+  path: '/api/catalog/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCatalogStatsRoute = ApiCatalogStatsRouteImport.update({
   id: '/api/catalog/stats',
   path: '/api/catalog/stats',
@@ -197,6 +206,22 @@ const DashboardSuppliersIngestionRoute =
     id: '/suppliers/ingestion',
     path: '/suppliers/ingestion',
     getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const ApiCatalogImportAnalyzeRoute = ApiCatalogImportAnalyzeRouteImport.update({
+  id: '/api/catalog/import/analyze',
+  path: '/api/catalog/import/analyze',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCatalogImportCommitRoute = ApiCatalogImportCommitRouteImport.update({
+  id: '/api/catalog/import/commit',
+  path: '/api/catalog/import/commit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCatalogProductsProductIdRoute =
+  ApiCatalogProductsProductIdRouteImport.update({
+    id: '/$productId',
+    path: '/$productId',
+    getParentRoute: () => ApiCatalogProductsRoute,
   } as any)
 const ApiCatalogStoresStoreIdRefreshRoute =
   ApiCatalogStoresStoreIdRefreshRouteImport.update({
@@ -232,11 +257,15 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
   '/api/catalog/health': typeof ApiCatalogHealthRoute
+  '/api/catalog/products': typeof ApiCatalogProductsRouteWithChildren
   '/api/catalog/stats': typeof ApiCatalogStatsRoute
   '/api/ingestion/shopee': typeof ApiIngestionShopeeRoute
   '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
   '/dashboard/suppliers/': typeof DashboardSuppliersIndexRoute
+  '/api/catalog/import/analyze': typeof ApiCatalogImportAnalyzeRoute
+  '/api/catalog/import/commit': typeof ApiCatalogImportCommitRoute
+  '/api/catalog/products/$productId': typeof ApiCatalogProductsProductIdRoute
   '/api/catalog/stores/$storeId/refresh': typeof ApiCatalogStoresStoreIdRefreshRoute
 }
 export interface FileRoutesByTo {
@@ -265,11 +294,15 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/store': typeof StoreIndexRoute
   '/api/catalog/health': typeof ApiCatalogHealthRoute
+  '/api/catalog/products': typeof ApiCatalogProductsRouteWithChildren
   '/api/catalog/stats': typeof ApiCatalogStatsRoute
   '/api/ingestion/shopee': typeof ApiIngestionShopeeRoute
   '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
   '/dashboard/suppliers': typeof DashboardSuppliersIndexRoute
+  '/api/catalog/import/analyze': typeof ApiCatalogImportAnalyzeRoute
+  '/api/catalog/import/commit': typeof ApiCatalogImportCommitRoute
+  '/api/catalog/products/$productId': typeof ApiCatalogProductsProductIdRoute
   '/api/catalog/stores/$storeId/refresh': typeof ApiCatalogStoresStoreIdRefreshRoute
 }
 export interface FileRoutesById {
@@ -300,11 +333,15 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/store/': typeof StoreIndexRoute
   '/api/catalog/health': typeof ApiCatalogHealthRoute
+  '/api/catalog/products': typeof ApiCatalogProductsRouteWithChildren
   '/api/catalog/stats': typeof ApiCatalogStatsRoute
   '/api/ingestion/shopee': typeof ApiIngestionShopeeRoute
   '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
   '/dashboard/suppliers/': typeof DashboardSuppliersIndexRoute
+  '/api/catalog/import/analyze': typeof ApiCatalogImportAnalyzeRoute
+  '/api/catalog/import/commit': typeof ApiCatalogImportCommitRoute
+  '/api/catalog/products/$productId': typeof ApiCatalogProductsProductIdRoute
   '/api/catalog/stores/$storeId/refresh': typeof ApiCatalogStoresStoreIdRefreshRoute
 }
 export interface FileRouteTypes {
@@ -336,11 +373,15 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/store/'
     | '/api/catalog/health'
+    | '/api/catalog/products'
     | '/api/catalog/stats'
     | '/api/ingestion/shopee'
     | '/dashboard/stores/$storeId'
     | '/dashboard/suppliers/ingestion'
     | '/dashboard/suppliers/'
+    | '/api/catalog/import/analyze'
+    | '/api/catalog/import/commit'
+    | '/api/catalog/products/$productId'
     | '/api/catalog/stores/$storeId/refresh'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -369,11 +410,15 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/store'
     | '/api/catalog/health'
+    | '/api/catalog/products'
     | '/api/catalog/stats'
     | '/api/ingestion/shopee'
     | '/dashboard/stores/$storeId'
     | '/dashboard/suppliers/ingestion'
     | '/dashboard/suppliers'
+    | '/api/catalog/import/analyze'
+    | '/api/catalog/import/commit'
+    | '/api/catalog/products/$productId'
     | '/api/catalog/stores/$storeId/refresh'
   id:
     | '__root__'
@@ -403,11 +448,15 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/store/'
     | '/api/catalog/health'
+    | '/api/catalog/products'
     | '/api/catalog/stats'
     | '/api/ingestion/shopee'
     | '/dashboard/stores/$storeId'
     | '/dashboard/suppliers/ingestion'
     | '/dashboard/suppliers/'
+    | '/api/catalog/import/analyze'
+    | '/api/catalog/import/commit'
+    | '/api/catalog/products/$productId'
     | '/api/catalog/stores/$storeId/refresh'
   fileRoutesById: FileRoutesById
 }
@@ -421,8 +470,11 @@ export interface RootRouteChildren {
   StoreConfirmationRoute: typeof StoreConfirmationRoute
   StoreIndexRoute: typeof StoreIndexRoute
   ApiCatalogHealthRoute: typeof ApiCatalogHealthRoute
+  ApiCatalogProductsRoute: typeof ApiCatalogProductsRouteWithChildren
   ApiCatalogStatsRoute: typeof ApiCatalogStatsRoute
   ApiIngestionShopeeRoute: typeof ApiIngestionShopeeRoute
+  ApiCatalogImportAnalyzeRoute: typeof ApiCatalogImportAnalyzeRoute
+  ApiCatalogImportCommitRoute: typeof ApiCatalogImportCommitRoute
   ApiCatalogStoresStoreIdRefreshRoute: typeof ApiCatalogStoresStoreIdRefreshRoute
 }
 
@@ -610,6 +662,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCatalogHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/catalog/products': {
+      id: '/api/catalog/products'
+      path: '/api/catalog/products'
+      fullPath: '/api/catalog/products'
+      preLoaderRoute: typeof ApiCatalogProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/catalog/stats': {
       id: '/api/catalog/stats'
       path: '/api/catalog/stats'
@@ -644,6 +703,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/suppliers/ingestion'
       preLoaderRoute: typeof DashboardSuppliersIngestionRouteImport
       parentRoute: typeof DashboardRouteRoute
+    }
+    '/api/catalog/import/analyze': {
+      id: '/api/catalog/import/analyze'
+      path: '/api/catalog/import/analyze'
+      fullPath: '/api/catalog/import/analyze'
+      preLoaderRoute: typeof ApiCatalogImportAnalyzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/catalog/import/commit': {
+      id: '/api/catalog/import/commit'
+      path: '/api/catalog/import/commit'
+      fullPath: '/api/catalog/import/commit'
+      preLoaderRoute: typeof ApiCatalogImportCommitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/catalog/products/$productId': {
+      id: '/api/catalog/products/$productId'
+      path: '/$productId'
+      fullPath: '/api/catalog/products/$productId'
+      preLoaderRoute: typeof ApiCatalogProductsProductIdRouteImport
+      parentRoute: typeof ApiCatalogProductsRoute
     }
     '/api/catalog/stores/$storeId/refresh': {
       id: '/api/catalog/stores/$storeId/refresh'
@@ -715,6 +795,17 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
   DashboardRouteRouteChildren,
 )
 
+interface ApiCatalogProductsRouteChildren {
+  ApiCatalogProductsProductIdRoute: typeof ApiCatalogProductsProductIdRoute
+}
+
+const ApiCatalogProductsRouteChildren: ApiCatalogProductsRouteChildren = {
+  ApiCatalogProductsProductIdRoute: ApiCatalogProductsProductIdRoute,
+}
+
+const ApiCatalogProductsRouteWithChildren =
+  ApiCatalogProductsRoute._addFileChildren(ApiCatalogProductsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
@@ -725,8 +816,11 @@ const rootRouteChildren: RootRouteChildren = {
   StoreConfirmationRoute: StoreConfirmationRoute,
   StoreIndexRoute: StoreIndexRoute,
   ApiCatalogHealthRoute: ApiCatalogHealthRoute,
+  ApiCatalogProductsRoute: ApiCatalogProductsRouteWithChildren,
   ApiCatalogStatsRoute: ApiCatalogStatsRoute,
   ApiIngestionShopeeRoute: ApiIngestionShopeeRoute,
+  ApiCatalogImportAnalyzeRoute: ApiCatalogImportAnalyzeRoute,
+  ApiCatalogImportCommitRoute: ApiCatalogImportCommitRoute,
   ApiCatalogStoresStoreIdRefreshRoute: ApiCatalogStoresStoreIdRefreshRoute,
 }
 export const routeTree = rootRouteImport

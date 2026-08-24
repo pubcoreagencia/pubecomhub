@@ -45,9 +45,9 @@ const navGroups = [
   {
     label: "Produtos & Logística",
     items: [
-      { label: "Produtos", icon: Box, href: "/dashboard/products" },
+      { label: "Catálogo", icon: Box, href: "/dashboard/products" },
+      { label: "Importar Produto", icon: Search, href: "/dashboard/ingestion" },
       { label: "Fornecedores", icon: Truck, href: "/dashboard/stores" },
-      { label: "Ingestion Engine", icon: Search, href: "/dashboard/ingestion" },
       { label: "Estoque", icon: Layers, href: "/dashboard/inventory" },
     ],
   },

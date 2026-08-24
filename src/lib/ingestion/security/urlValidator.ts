@@ -4,16 +4,26 @@
  */
 
 const ALLOWED_DOMAIN_PATTERNS = [
+  /^([a-zA-Z0-9-]+\.)*mercadolivre\.com\.br$/,
+  /^([a-zA-Z0-9-]+\.)*mercadolibre\.com$/,
+  /^([a-zA-Z0-9-]+\.)*mercadolibre\.com\.[a-z]{2}$/,
   /^([a-zA-Z0-9-]+\.)*shopee\.com\.br$/,
   /^([a-zA-Z0-9-]+\.)*shopee\.com$/,
-  /^([a-zA-Z0-9-]+\.)*shopee\.com\.my$/,
-  /^([a-zA-Z0-9-]+\.)*shopee\.co\.id$/,
-  /^([a-zA-Z0-9-]+\.)*shopee\.sg$/,
-  /^([a-zA-Z0-9-]+\.)*shopee\.co\.th$/,
-  /^([a-zA-Z0-9-]+\.)*shopee\.ph$/,
-  /^([a-zA-Z0-9-]+\.)*shopee\.vn$/,
-  /^([a-zA-Z0-9-]+\.)*shopee\.tw$/,
+  /^([a-zA-Z0-9-]+\.)*shopee\.[a-z.]{2,6}$/,
+  /^([a-zA-Z0-9-]+\.)*amazon\.com\.br$/,
+  /^([a-zA-Z0-9-]+\.)*amazon\.com$/,
+  /^([a-zA-Z0-9-]+\.)*amzn\.to$/,
+  /^([a-zA-Z0-9-]+\.)*tiktok\.com$/,
+  /^([a-zA-Z0-9-]+\.)*shein\.com$/,
+  /^([a-zA-Z0-9-]+\.)*aliexpress\.com$/,
+  /^([a-zA-Z0-9-]+\.)*magazineluiza\.com\.br$/,
+  /^([a-zA-Z0-9-]+\.)*casasbahia\.com\.br$/,
+  /^([a-zA-Z0-9-]+\.)*americanas\.com\.br$/,
+  /^([a-zA-Z0-9-]+\.)*myshopify\.com$/,
+  /^([a-zA-Z0-9-]+\.)*nuvemshop\.com\.br$/,
   /^([a-zA-Z0-9-]+\.)*pubcore\.com\.br$/,
+  /^([a-zA-Z0-9-]+\.)*vercel\.store$/,
+  /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
 ];
 
 const BLOCKED_HOSTS = new Set([

@@ -27,11 +27,50 @@ export const ResetPasswordPage = () => {
     let isMounted = true;
     let authSubscription: { unsubscribe: () => void } | null = null;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (data?.session && isMounted) {
-        setReady(true);
+    const initAuth = async () => {
+      try {
+        if (typeof window !== "undefined") {
+          // 1. Check for PKCE exchange code in query string
+          const params = new URLSearchParams(window.location.search);
+          const code = params.get("code");
+          if (code) {
+            const { data } = await supabase.auth.exchangeCodeForSession(code);
+            if (data?.session && isMounted) {
+              setReady(true);
+              return;
+            }
+          }
+
+          // 2. Check for hash tokens from Supabase Auth recovery link
+          if (window.location.hash) {
+            const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+            const accessToken = hashParams.get("access_token");
+            const refreshToken = hashParams.get("refresh_token");
+            if (accessToken && refreshToken) {
+              const { data } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              });
+              if (data?.session && isMounted) {
+                setReady(true);
+                return;
+              }
+            }
+          }
+        }
+
+        const { data } = await supabase.auth.getSession();
+        if (data?.session && isMounted) {
+          setReady(true);
+        }
+      } catch (err) {
+        console.error("Auth recovery init error:", err);
+      } finally {
+        if (isMounted) setReady(true);
       }
-    });
+    };
+
+    initAuth();
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if ((event === "PASSWORD_RECOVERY" || session) && isMounted) {
@@ -40,13 +79,8 @@ export const ResetPasswordPage = () => {
     });
     authSubscription = listener?.subscription ?? null;
 
-    const timer = setTimeout(() => {
-      if (isMounted) setReady(true);
-    }, 1500);
-
     return () => {
       isMounted = false;
-      clearTimeout(timer);
       authSubscription?.unsubscribe();
     };
   }, []);

@@ -58,7 +58,20 @@ export default {
         return proxyResponse;
       }
 
-      // 2. SSR Application Handler
+      // 2. Serve static assets via Cloudflare Worker Assets if available
+      const url = new URL(request.url);
+      if (
+        env &&
+        typeof (env as any).ASSETS?.fetch === "function" &&
+        (url.pathname.startsWith("/assets/") || url.pathname.includes("."))
+      ) {
+        const assetResponse = await (env as any).ASSETS.fetch(request);
+        if (assetResponse.status < 400) {
+          return assetResponse;
+        }
+      }
+
+      // 3. SSR Application Handler
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

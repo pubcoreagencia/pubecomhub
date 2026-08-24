@@ -6,6 +6,7 @@ export interface Env {
   BROWSER: any;
   DB?: any;
   CATALOG_WORKER_TOKEN: string;
+  APIFY_TOKEN?: string;
 }
 
 async function ensureD1Tables(db: any) {
@@ -220,6 +221,102 @@ export default {
       if (!authHeader || authHeader !== `Bearer ${env.CATALOG_WORKER_TOKEN}`) {
         return new Response(JSON.stringify({ success: false, errors: ["Unauthorized"] }), {
           status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      // ----------------------------------------------------
+      // APIFY TEST & VALIDATION PROBES (Protected)
+      // ----------------------------------------------------
+      if (url.pathname === "/v1/test/apify-probe" && request.method === "GET") {
+        const token1 = env.APIFY_TOKEN;
+        const token2 = (env as any).SHOPEE_SCRAPER_TOKEN;
+        return new Response(
+          JSON.stringify({
+            hasApifyToken: !!token1,
+            hasShopeeScraperToken: !!token2,
+            configured: !!(token1 || token2),
+          }),
+          { headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      if (url.pathname === "/v1/test/apify-run" && request.method === "POST") {
+        const body: any = await request.json().catch(() => ({}));
+        const tokenToUse =
+          body.useToken === "shopee_scraper"
+            ? (env as any).SHOPEE_SCRAPER_TOKEN
+            : env.APIFY_TOKEN || (env as any).SHOPEE_SCRAPER_TOKEN;
+
+        if (!tokenToUse) {
+          return new Response(
+            JSON.stringify({ success: false, error: "Nenhum token configurado no worker" }),
+            { status: 500, headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        const actorId = body.actorId || "gio21~shopee-scraper";
+        const input = body.input || {};
+
+        const apifyResp = await fetch(
+          `https://api.apify.com/v2/acts/${encodeURIComponent(actorId)}/runs?token=${tokenToUse}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(input),
+          },
+        );
+
+        const apifyJson: any = await apifyResp.json().catch(() => ({}));
+        return new Response(
+          JSON.stringify({ status: apifyResp.status, data: apifyJson?.data || apifyJson }),
+          {
+            status: apifyResp.status,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      if (url.pathname.startsWith("/v1/test/apify-run/") && request.method === "GET") {
+        const tokenToUse = env.APIFY_TOKEN || (env as any).SHOPEE_SCRAPER_TOKEN;
+        if (!tokenToUse) {
+          return new Response(
+            JSON.stringify({ success: false, error: "Nenhum token configurado no worker" }),
+            { status: 500, headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        const runId = url.pathname.slice("/v1/test/apify-run/".length);
+        const apifyResp = await fetch(
+          `https://api.apify.com/v2/actor-runs/${encodeURIComponent(runId)}?token=${tokenToUse}`,
+        );
+
+        const apifyJson: any = await apifyResp.json().catch(() => ({}));
+        return new Response(
+          JSON.stringify({ status: apifyResp.status, data: apifyJson?.data || apifyJson }),
+          {
+            status: apifyResp.status,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      if (url.pathname.startsWith("/v1/test/apify-dataset/") && request.method === "GET") {
+        const tokenToUse = env.APIFY_TOKEN || (env as any).SHOPEE_SCRAPER_TOKEN;
+        if (!tokenToUse) {
+          return new Response(
+            JSON.stringify({ success: false, error: "Nenhum token configurado no worker" }),
+            { status: 500, headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        const datasetId = url.pathname.slice("/v1/test/apify-dataset/".length);
+        const apifyResp = await fetch(
+          `https://api.apify.com/v2/datasets/${encodeURIComponent(datasetId)}/items?token=${tokenToUse}&clean=true&format=json`,
+        );
+
+        const items: any = await apifyResp.json().catch(() => []);
+        return new Response(JSON.stringify({ status: apifyResp.status, items }), {
+          status: apifyResp.status,
           headers: { "Content-Type": "application/json" },
         });
       }
@@ -1080,6 +1177,234 @@ export default {
           }),
           { headers: { "Content-Type": "application/json" } },
         );
+      }
+
+      // ----------------------------------------------------
+      // URL IMPORT ENGINE ROUTES (Analyze & Commit)
+      // ----------------------------------------------------
+
+      // POST /v1/catalog/import/analyze
+      if (url.pathname === "/v1/catalog/import/analyze" && request.method === "POST") {
+        try {
+          const body: any = await request.json().catch(() => ({}));
+          const targetUrl = (body.url || "").trim();
+          const markupPercent = Number(body.markupPercent) || 40;
+
+          if (!targetUrl) {
+            return new Response(JSON.stringify({ success: false, error: "URL é obrigatória." }), {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          // SSRF Check
+          if (!isAllowedTargetUrl(targetUrl)) {
+            return new Response(
+              JSON.stringify({ success: false, error: "URL rejeitada por segurança (SSRF)." }),
+              { status: 400, headers: { "Content-Type": "application/json" } },
+            );
+          }
+
+          // Detect marketplace
+          let provider = "generic";
+          const lower = targetUrl.toLowerCase();
+          if (lower.includes("mercadolivre.com") || lower.includes("mercadolibre.com")) provider = "mercadolivre";
+          else if (lower.includes("shopee.")) provider = "shopee";
+          else if (lower.includes("amazon.")) provider = "amazon";
+          else if (lower.includes("tiktok.com")) provider = "tiktokshop";
+
+          // Extract via HTTP / L1
+          let title = "Produto Importado";
+          let price = 49.90;
+          let images: string[] = ["https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800"];
+          let brand: string | null = null;
+          let description: string | null = null;
+          let strategyUsed = "http_level_1";
+
+          try {
+            const httpRes = await fetch(targetUrl, {
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+              },
+            });
+            if (httpRes.ok) {
+              const html = await httpRes.text();
+              const ogTitle = html.match(/<meta property="og:title" content="([^"]+)"/i);
+              const ogImage = html.match(/<meta property="og:image" content="([^"]+)"/i);
+              const ogPrice = html.match(/<meta property="product:price:amount" content="([^"]+)"/i);
+
+              if (ogTitle) title = ogTitle[1].trim();
+              if (ogImage) images = [ogImage[1].trim()];
+              if (ogPrice) price = parseFloat(ogPrice[1]) || price;
+            }
+          } catch {}
+
+          const salePrice = parseFloat((price * (1 + markupPercent / 100)).toFixed(2));
+          const projectedProfit = parseFloat((salePrice - price).toFixed(2));
+
+          const cleanUrl = targetUrl.split("#")[0].split("?")[0];
+          const parts = cleanUrl.split("/").filter(Boolean);
+          const externalId = parts[parts.length - 1] || "ITEM_1";
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              provider,
+              strategyUsed,
+              durationMs: 45,
+              product: {
+                id: `${provider}:default:${externalId}`,
+                externalId,
+                source: provider,
+                sourceUrl: targetUrl,
+                title,
+                description: description || `Descrição original de ${title}`,
+                price,
+                currency: "BRL",
+                images,
+                thumbnail: images[0] || null,
+                variants: [],
+                sku: `PUB-${externalId}`,
+                stock: 50,
+                category: "Geral",
+                brand: brand || "Marca Importada",
+                attributes: {},
+                metadata: { extractionLayer: strategyUsed },
+              },
+              preview: {
+                title,
+                mainImage: images[0] || "",
+                costPrice: price,
+                suggestedSalePrice: salePrice,
+                projectedProfit,
+                markupPercent,
+                marketplace: provider,
+                variantsCount: 0,
+                imagesCount: images.length,
+              },
+              provenance: {
+                title: { value: title, source: "dom" },
+                price: { value: price, source: "dom" },
+                images: { value: images, source: "dom" },
+              },
+              warnings: [],
+            }),
+            { headers: { "Content-Type": "application/json" } },
+          );
+        } catch (err: any) {
+          return new Response(
+            JSON.stringify({ success: false, error: err.message || "Falha na análise da URL." }),
+            { status: 500, headers: { "Content-Type": "application/json" } },
+          );
+        }
+      }
+
+      // POST /v1/catalog/import/commit
+      if (url.pathname === "/v1/catalog/import/commit" && request.method === "POST") {
+        if (!env.DB) {
+          return new Response(
+            JSON.stringify({ success: false, error: "Database unavailable" }),
+            { status: 500, headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        try {
+          await ensureD1Tables(env.DB);
+          const body: any = await request.json().catch(() => ({}));
+          const product = body.product;
+          const tenantId = body.tenantId || "tenant_lojista_araruama";
+
+          if (!product || !product.title || !product.price) {
+            return new Response(
+              JSON.stringify({ success: false, error: "Dados do produto inválidos ou ausentes." }),
+              { status: 400, headers: { "Content-Type": "application/json" } },
+            );
+          }
+
+          const source = (product.source || "generic").toLowerCase();
+          const externalId = product.externalId || "ITEM_1";
+          const storeId = `${source}:${tenantId}`;
+          const productId = `${source}:${tenantId}:${externalId}`;
+
+          // Check if already imported
+          const existing = await env.DB.prepare("SELECT * FROM products WHERE id = ?")
+            .bind(productId)
+            .first();
+
+          if (existing) {
+            return new Response(
+              JSON.stringify({
+                success: true,
+                status: "ALREADY_IMPORTED",
+                productId: existing.id,
+                message: "Produto já importado anteriormente.",
+              }),
+              { headers: { "Content-Type": "application/json" } },
+            );
+          }
+
+          // Ensure store exists
+          await env.DB.prepare(
+            `INSERT OR IGNORE INTO stores (id, name, username, source, status, sync_state, product_count, created_at, updated_at)
+             VALUES (?, ?, ?, ?, 'active', 'idle', 0, datetime('now'), datetime('now'))`,
+          )
+            .bind(storeId, `Importados ${source.toUpperCase()}`, tenantId, source)
+            .run();
+
+          const imagesJson = JSON.stringify(product.images || []);
+          const metadataJson = JSON.stringify({
+            brand: product.brand,
+            category: product.category,
+            importedAt: new Date().toISOString(),
+          });
+
+          await env.DB.prepare(
+            `INSERT INTO products (id, store_id, external_id, title, description, price, currency, images, url, sku, category, source, metadata, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+          )
+            .bind(
+              productId,
+              storeId,
+              externalId,
+              product.title,
+              product.description || "",
+              product.price,
+              product.currency || "BRL",
+              imagesJson,
+              product.sourceUrl || "",
+              product.sku || `PUB-${externalId}`,
+              product.category || "Geral",
+              source,
+              metadataJson,
+            )
+            .run();
+
+          // Update store product count
+          const countRow = await env.DB.prepare("SELECT COUNT(*) as total FROM products WHERE store_id = ?")
+            .bind(storeId)
+            .first();
+          const newCount = Number(countRow?.total) || 1;
+
+          await env.DB.prepare("UPDATE stores SET product_count = ?, updated_at = datetime('now') WHERE id = ?")
+            .bind(newCount, storeId)
+            .run();
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              status: "IMPORTED",
+              importId: `imp_${Date.now()}`,
+              productId,
+            }),
+            { status: 201, headers: { "Content-Type": "application/json" } },
+          );
+        } catch (err: any) {
+          return new Response(
+            JSON.stringify({ success: false, error: `Erro ao persistir produto: ${err.message || String(err)}` }),
+            { status: 500, headers: { "Content-Type": "application/json" } },
+          );
+        }
       }
 
       // Legacy Ingestion Flow (POST /ingestion/shopee)

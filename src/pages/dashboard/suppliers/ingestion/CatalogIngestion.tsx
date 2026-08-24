@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, AlertCircle, ArrowRight, RefreshCw, History, Database } from "lucide-react";
+import { Loader2, AlertCircle, ArrowRight, RefreshCw, History, Database, Search, Store } from "lucide-react";
 import { Shell } from "@/components/layout/Shell";
 import { toast } from "sonner";
 import { catalogApi } from "@/lib/api/catalog";
+import { useNavigate } from "@tanstack/react-router";
+import { UrlProductImportPage } from "@/components/import/UrlProductImportPage";
 
 type IngestionStatus = "idle" | "running" | "success" | "error";
 
@@ -22,12 +24,14 @@ interface IngestionResult {
 }
 
 export const CatalogIngestion = () => {
+  const [activeTab, setActiveTab] = useState<"url-import" | "store-sync">("url-import");
   const [url, setUrl] = useState("");
   const [limit, setLimit] = useState(30);
   const [status, setStatus] = useState<IngestionStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<IngestionResult | null>(null);
   const [history, setHistory] = useState<IngestionResult[]>([]);
+  const navigate = useNavigate();
 
   const handleIngest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,16 +94,50 @@ export const CatalogIngestion = () => {
   return (
     <Shell>
       <div className="space-y-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-black text-white uppercase tracking-tighter italic">
-            Ingestion Engine
-          </h1>
-          <p className="text-[var(--hub-muted)] text-[9px] font-bold uppercase tracking-[0.3em]">
-            Motor Operacional de Descoberta e Ingestão de Catálogos
-          </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--hub-border)] pb-6">
+          <div>
+            <h1 className="text-2xl font-black text-white uppercase tracking-tighter italic">
+              Ingestion & Import Engine
+            </h1>
+            <p className="text-[var(--hub-muted)] text-[9px] font-bold uppercase tracking-[0.3em]">
+              Importação Direta por URL e Sincronização de Catálogos
+            </p>
+          </div>
+
+          {/* Mode Switcher */}
+          <div className="flex bg-black/60 p-1 rounded-xl border border-[var(--hub-border)]">
+            <button
+              onClick={() => setActiveTab("url-import")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
+                activeTab === "url-import"
+                  ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Search className="w-3.5 h-3.5" />
+              Importar por URL
+            </button>
+            <button
+              onClick={() => setActiveTab("store-sync")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
+                activeTab === "store-sync"
+                  ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              <Store className="w-3.5 h-3.5" />
+              Sincronizar Loja
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {activeTab === "url-import" ? (
+          <UrlProductImportPage
+            onNavigateToProducts={() => navigate({ to: "/dashboard/products" })}
+            onOpenProduct={() => navigate({ to: "/dashboard/products" })}
+          />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-2 bg-black/40 border-[var(--hub-border)]">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2 text-sm uppercase tracking-widest font-black">
@@ -285,6 +323,7 @@ export const CatalogIngestion = () => {
             </Card>
           </div>
         </div>
+        )}
       </div>
     </Shell>
   );
