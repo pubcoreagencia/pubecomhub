@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 
-// Mock chromium from @cloudflare/playwright
+// Mock chromium and launch from @cloudflare/playwright
 vi.mock("@cloudflare/playwright", () => ({
+  launch: vi.fn(),
   chromium: {
     launch: vi.fn(),
     sessions: vi.fn(),
