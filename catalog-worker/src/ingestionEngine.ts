@@ -1,16 +1,48 @@
 /**
- * Shopee Ingestion Engine V2
+ * Shopee Ingestion Engine V2 - Recovery & Multi-Strategy Orchestrator
  *
  * Modular, multi-strategy ingestion with explicit challenge / anti-bot detection,
- * fallback machine, and structured observability for Cloudflare D1.
+ * per-strategy diagnostics, and structured observability for Cloudflare D1.
  */
 
 export type ExtractionStatus =
-  "success" | "empty_catalog" | "anti_bot" | "network_error" | "parse_error";
+  | "success"
+  | "empty_catalog"
+  | "anti_bot"
+  | "network_error"
+  | "parse_error"
+  | "runtime_error"
+  | "source_unavailable";
+
+export interface StrategyDiagnostic {
+  strategy: string;
+  url: string;
+  httpStatus: number;
+  durationMs: number;
+  productsFound: number;
+  challengeDetected: boolean;
+  reason: string;
+}
 
 export interface ChallengeDetectionResult {
   isChallenge: boolean;
   reason: string;
+}
+
+export interface NormalizedProduct {
+  id: string; // `${storeId}:${externalId}`
+  external_id: string;
+  store_id: string;
+  title: string;
+  description: string | null;
+  price: number;
+  currency: string;
+  images: string[];
+  url: string;
+  sku: string | null;
+  category: string | null;
+  source: string;
+  metadata?: Record<string, any>;
 }
 
 export interface IngestionEngineResult {
@@ -19,6 +51,7 @@ export interface IngestionEngineResult {
   shopId: string | null;
   username: string;
   items: any[];
+  normalizedProducts: NormalizedProduct[];
   strategyUsed: string;
   attempts: number;
   challengeDetected: boolean;
@@ -28,7 +61,7 @@ export interface IngestionEngineResult {
     provider: "cloudflare-browser-run";
     source: "shopee";
     shopId: string | null;
-    extractionStrategy: string;
+    strategy: string;
     attempts: number;
     challengeDetected: boolean;
     reason: ExtractionStatus;
@@ -37,6 +70,7 @@ export interface IngestionEngineResult {
     executionTimeMs: number;
     finalPageUrl?: string;
     details?: string;
+    strategies: StrategyDiagnostic[];
   };
 }
 
@@ -104,6 +138,59 @@ export function detectShopeeChallenge(
   }
 
   return { isChallenge: false, reason: "" };
+}
+
+/**
+ * Normalization helper: ensures clean schema fields for D1 persistence
+ */
+export function normalizeShopeeProduct(
+  raw: any,
+  storeId: string,
+  shopId: string,
+): NormalizedProduct {
+  const item = raw.item_basic || raw;
+  const externalId = String(item.itemid || item.id || item.itemId || "").trim();
+  const title = String(item.name || item.title || `Produto ${externalId}`).trim();
+  const rawPrice = item.price !== undefined ? Number(item.price) : 0;
+  // Shopee micro-units (e.g. 2990000 = 29.90 BRL)
+  const price = rawPrice > 10000 ? rawPrice / 100000 : rawPrice;
+  const currency = item.currency || "BRL";
+
+  let images: string[] = [];
+  if (Array.isArray(item.images)) {
+    images = item.images.filter(Boolean);
+  } else if (item.image) {
+    images = [item.image];
+  }
+
+  const url =
+    item.url ||
+    (externalId
+      ? `https://shopee.com.br/product/${shopId}/${externalId}`
+      : `https://shopee.com.br/shop/${shopId}`);
+
+  const sku = item.sku ? String(item.sku).trim() : null;
+  const category = item.category ? String(item.category).trim() : null;
+  const description = item.description ? String(item.description).trim() : null;
+
+  return {
+    id: `${storeId}:${externalId}`,
+    external_id: externalId,
+    store_id: storeId,
+    title,
+    description,
+    price,
+    currency,
+    images,
+    url,
+    sku,
+    category,
+    source: "shopee",
+    metadata: {
+      rawShopId: shopId,
+      rawItemId: externalId,
+    },
+  };
 }
 
 /**

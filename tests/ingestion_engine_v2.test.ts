@@ -4,6 +4,7 @@ import {
   extractFromJsonLd,
   extractFromPreloadedState,
   extractFromDomLinks,
+  normalizeShopeeProduct,
 } from "../catalog-worker/src/ingestionEngine";
 
 describe("Shopee Ingestion Engine V2 — Unit Tests", () => {
@@ -186,5 +187,58 @@ describe("Shopee Ingestion Engine V2 — Unit Tests", () => {
     expect(items.length).toBe(1);
     expect(items[0].item_basic.itemid).toBe("2222");
     expect(items[0].item_basic.shopid).toBe("1729928484");
+  });
+
+  // Test 11: Normalização de produto sem SKU / descrição
+  it("11. Produto sem SKU ou descrição é preservado e normalizado", () => {
+    const raw = {
+      itemid: "12345",
+      name: "Babuche Básico Sem SKU",
+      price: 2500000,
+    };
+
+    const normalized = normalizeShopeeProduct(raw, "shopee:1729928484", "1729928484");
+    expect(normalized.id).toBe("shopee:1729928484:12345");
+    expect(normalized.external_id).toBe("12345");
+    expect(normalized.title).toBe("Babuche Básico Sem SKU");
+    expect(normalized.price).toBe(25);
+    expect(normalized.sku).toBeNull();
+    expect(normalized.description).toBeNull();
+  });
+
+  // Test 12: Normalização com preço ausente ou zero
+  it("12. Produto com preço ausente não falha na normalização", () => {
+    const raw = {
+      itemid: "67890",
+      name: "Babuche Preço Oculto",
+    };
+
+    const normalized = normalizeShopeeProduct(raw, "shopee:1729928484", "1729928484");
+    expect(normalized.price).toBe(0);
+    expect(normalized.currency).toBe("BRL");
+  });
+
+  // Test 13: Normalização com imagem ausente
+  it("13. Produto sem imagem retorna array vazio", () => {
+    const raw = {
+      itemid: "11223",
+      name: "Babuche Sem Foto",
+    };
+
+    const normalized = normalizeShopeeProduct(raw, "shopee:1729928484", "1729928484");
+    expect(normalized.images).toEqual([]);
+  });
+
+  // Test 14: Classificação nunca transforma anti_bot em success
+  it("14. Sinais de proteção anti-bot nunca geram isChallenge = false", () => {
+    const r1 = detectShopeeChallenge("https://shopee.com.br/verify/traffic/error");
+    const r2 = detectShopeeChallenge("https://shopee.com.br", "", "Robot or Human?");
+    const r3 = detectShopeeChallenge("https://shopee.com.br", "", "", 403);
+    const r4 = detectShopeeChallenge("https://shopee.com.br", "", "", 200, { error: 90309999 });
+
+    expect(r1.isChallenge).toBe(true);
+    expect(r2.isChallenge).toBe(true);
+    expect(r3.isChallenge).toBe(true);
+    expect(r4.isChallenge).toBe(true);
   });
 });

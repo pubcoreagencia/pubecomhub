@@ -6,8 +6,11 @@ import {
   extractFromJsonLd,
   extractFromPreloadedState,
   extractFromDomLinks,
+  normalizeShopeeProduct,
   IngestionEngineResult,
   ExtractionStatus,
+  StrategyDiagnostic,
+  NormalizedProduct,
 } from "./ingestionEngine";
 
 export interface Env {
@@ -443,6 +446,7 @@ async function scrapeShopeeItems(
   let resolvedShopId: string | null = null;
   let username = "";
   let finalUrl = targetUrl;
+  const strategiesDiagnostics: StrategyDiagnostic[] = [];
 
   try {
     const cleanUrl = targetUrl.split("#")[0].split("?")[0];
@@ -460,6 +464,7 @@ async function scrapeShopeeItems(
     for (const navUrl of navigationTargets) {
       if (items.length > 0) break;
       attempts++;
+      const navStart = Date.now();
 
       const context = await browser.newContext({
         userAgent:
@@ -470,9 +475,12 @@ async function scrapeShopeeItems(
       const page = await context.newPage();
 
       try {
-        await page.goto(navUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+        const navResp = await page
+          .goto(navUrl, { waitUntil: "domcontentloaded", timeout: 30000 })
+          .catch(() => null);
         await page.waitForTimeout(2000);
         finalUrl = page.url();
+        const httpStatus = navResp?.status() || 200;
 
         // 1. Detect anti-bot / challenge on page
         const pageMeta = await page.evaluate(() => {
@@ -500,11 +508,23 @@ async function scrapeShopeeItems(
           finalUrl,
           pageMeta.htmlSnippet,
           pageMeta.title,
+          httpStatus,
         );
         if (challengeCheck.isChallenge) {
           challengeDetected = true;
           challengeReason = challengeCheck.reason;
         }
+
+        // Diagnostic entry for Public Page / SSR
+        strategiesDiagnostics.push({
+          strategy: navUrl === targetUrl ? "public_page_ssr" : "shop_category_tab",
+          url: finalUrl,
+          httpStatus,
+          durationMs: Date.now() - navStart,
+          productsFound: 0,
+          challengeDetected: challengeCheck.isChallenge,
+          reason: challengeCheck.isChallenge ? challengeCheck.reason : "Carregamento concluído",
+        });
 
         // Strategy 1: Preloaded State
         if (items.length === 0 && pageMeta.preloadedState) {
@@ -515,6 +535,16 @@ async function scrapeShopeeItems(
           if (preloadedItems.length > 0) {
             items = preloadedItems.slice(0, limit);
             strategyUsed = "preloaded_state";
+            strategiesDiagnostics.push({
+              strategy: "preloaded_state",
+              url: finalUrl,
+              httpStatus: 200,
+              durationMs: Date.now() - navStart,
+              productsFound: items.length,
+              challengeDetected: false,
+              reason: "Itens extraídos do preloaded state",
+            });
+            break;
           }
         }
 
@@ -524,49 +554,108 @@ async function scrapeShopeeItems(
           if (jsonLdItems.length > 0) {
             items = jsonLdItems.slice(0, limit);
             strategyUsed = "json_ld";
+            strategiesDiagnostics.push({
+              strategy: "json_ld",
+              url: finalUrl,
+              httpStatus: 200,
+              durationMs: Date.now() - navStart,
+              productsFound: items.length,
+              challengeDetected: false,
+              reason: "Itens extraídos do JSON-LD",
+            });
+            break;
           }
         }
 
-        // Strategy 3: DOM Links & Product Cards
-        if (items.length === 0 && pageMeta.links.length > 0) {
-          const domItems = extractFromDomLinks(pageMeta.links, resolvedShopId || undefined);
+        // Strategy 3: DOM Links & Product Cards with smooth scroll
+        if (items.length === 0) {
+          await page
+            .evaluate(async () => {
+              window.scrollBy(0, 600);
+              await new Promise((r) => setTimeout(r, 400));
+              window.scrollBy(0, 800);
+            })
+            .catch(() => {});
+
+          const scrolledLinks = await page
+            .evaluate(() => {
+              return Array.from(document.querySelectorAll("a[href]")).map((a) => ({
+                href: (a as HTMLAnchorElement).href,
+                text: a.textContent || "",
+                imgSrc:
+                  a.querySelector("img")?.src ||
+                  a.querySelector("img")?.getAttribute("data-src") ||
+                  "",
+              }));
+            })
+            .catch(() => pageMeta.links);
+
+          const domItems = extractFromDomLinks(scrolledLinks, resolvedShopId || undefined);
           if (domItems.length > 0) {
             items = domItems.slice(0, limit);
             strategyUsed = "dom_cards";
+            strategiesDiagnostics.push({
+              strategy: "dom_cards",
+              url: finalUrl,
+              httpStatus: 200,
+              durationMs: Date.now() - navStart,
+              productsFound: items.length,
+              challengeDetected: false,
+              reason: "Itens extraídos dos links/cards no DOM",
+            });
+            break;
           }
         }
 
         // Strategy 4: Internal API evaluation from browser context
-        if (items.length === 0 && !challengeDetected && resolvedShopId) {
-          const apiResult = await page.evaluate(
-            async ({ sid, lmt }: { sid: string; lmt: number }) => {
-              try {
-                const resp = await fetch("https://shopee.com.br/api/v4/search/search_items", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    shopid: parseInt(sid),
-                    limit: lmt,
-                    offset: 0,
-                    pageSize: lmt,
-                  }),
-                });
-                const json = (await resp.json()) as any;
-                return { status: resp.status, json, items: json.items || [] };
-              } catch {
-                return { status: 0, json: null, items: [] };
-              }
-            },
-            { sid: resolvedShopId, lmt: limit },
-          );
+        if (items.length === 0 && !challengeCheck.isChallenge && resolvedShopId) {
+          const apiStart = Date.now();
+          const apiResult = await page
+            .evaluate(
+              async ({ sid, lmt }: { sid: string; lmt: number }) => {
+                try {
+                  const resp = await fetch("https://shopee.com.br/api/v4/search/search_items", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      shopid: parseInt(sid),
+                      limit: lmt,
+                      offset: 0,
+                      pageSize: lmt,
+                    }),
+                  });
+                  const json = (await resp.json()) as any;
+                  return { status: resp.status, json, items: json.items || [] };
+                } catch {
+                  return { status: 0, json: null, items: [] };
+                }
+              },
+              { sid: resolvedShopId, lmt: limit },
+            )
+            .catch(() => ({ status: 0, json: null, items: [] }));
 
           const apiChallenge = detectShopeeChallenge("", "", "", apiResult.status, apiResult.json);
+          strategiesDiagnostics.push({
+            strategy: "contextual_page_data",
+            url: "https://shopee.com.br/api/v4/search/search_items",
+            httpStatus: apiResult.status,
+            durationMs: Date.now() - apiStart,
+            productsFound: Array.isArray(apiResult.items) ? apiResult.items.length : 0,
+            challengeDetected: apiChallenge.isChallenge,
+            reason: apiChallenge.isChallenge
+              ? apiChallenge.reason
+              : apiResult.items.length > 0
+                ? "Itens obtidos via API contextual"
+                : "Nenhum item retornado",
+          });
+
           if (apiChallenge.isChallenge) {
             challengeDetected = true;
             challengeReason = apiChallenge.reason;
           } else if (Array.isArray(apiResult.items) && apiResult.items.length > 0) {
             items = apiResult.items.slice(0, limit);
-            strategyUsed = "page_apis";
+            strategyUsed = "contextual_page_data";
+            break;
           }
         }
 
@@ -597,12 +686,17 @@ async function scrapeShopeeItems(
     reason = "empty_catalog";
   }
 
+  const normalizedProducts: NormalizedProduct[] = items.map((raw) =>
+    normalizeShopeeProduct(raw, `shopee:${resolvedShopId || username}`, resolvedShopId || username),
+  );
+
   return {
     success: status === "success" || status === "empty_catalog",
     status,
     shopId: resolvedShopId,
     username,
     items,
+    normalizedProducts,
     strategyUsed:
       items.length > 0 ? strategyUsed : challengeDetected ? "anti_bot" : "empty_catalog",
     attempts,
@@ -615,7 +709,7 @@ async function scrapeShopeeItems(
       provider: "cloudflare-browser-run",
       source: "shopee",
       shopId: resolvedShopId,
-      extractionStrategy: strategyUsed,
+      strategy: strategyUsed,
       attempts,
       challengeDetected,
       reason,
@@ -624,6 +718,7 @@ async function scrapeShopeeItems(
       executionTimeMs: durationMs,
       finalPageUrl: finalUrl,
       details: challengeReason || undefined,
+      strategies: strategiesDiagnostics,
     },
   };
 }
