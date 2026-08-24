@@ -1,207 +1,11 @@
-import { launch, chromium } from "@cloudflare/playwright";
 import { getCorsHeaders, handleOptions } from "./cors";
 import { isAllowedTargetUrl } from "./security";
-import {
-  detectShopeeChallenge,
-  extractFromJsonLd,
-  extractFromPreloadedState,
-  extractFromDomLinks,
-  normalizeShopeeProduct,
-  IngestionEngineResult,
-  ExtractionStatus,
-  StrategyDiagnostic,
-  NormalizedProduct,
-} from "./ingestionEngine";
+import { getCatalogProvider, CatalogProvider, NormalizedProduct, StoreTarget } from "./providers";
 
 export interface Env {
   BROWSER: any;
   DB?: any;
   CATALOG_WORKER_TOKEN: string;
-}
-
-interface DiagnosticResult {
-  shopId: string | null;
-  strategy: string;
-  username: string;
-  finalPageUrl: string;
-  shopBaseStatus: number;
-  shopBaseContentType: string | null;
-  shopBaseResponseSize: number;
-  shopBaseKeys: string[];
-  shopBaseHasData: boolean;
-  shopBaseHasShopId: boolean;
-  fallbackGetStatus: number;
-  fallbackGetResponseSize: number;
-  fallbackGetKeys: string[];
-  fallbackGetHasData: boolean;
-  fallbackGetHasShopId: boolean;
-  productLinkCount: number;
-  productLinkShopIds: string[];
-}
-
-async function resolveShopIdWithDiagnostics(
-  page: any,
-  targetUrl: string,
-): Promise<DiagnosticResult> {
-  const cleanUrl = targetUrl.split("#")[0].split("?")[0];
-  const urlParts = cleanUrl.split("/").filter(Boolean);
-  const username = urlParts[urlParts.length - 1] || "";
-
-  await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-  await page.waitForTimeout(2000);
-  const finalPageUrl = page.url();
-
-  const diag = await page.evaluate(async (uname: string) => {
-    const results = {
-      shopId: null as string | null,
-      shopBaseStatus: 0,
-      shopBaseContentType: null as string | null,
-      shopBaseResponseSize: 0,
-      shopBaseKeys: [] as string[],
-      shopBaseHasData: false,
-      shopBaseHasShopId: false,
-      fallbackGetStatus: 0,
-      fallbackGetResponseSize: 0,
-      fallbackGetKeys: [] as string[],
-      fallbackGetHasData: false,
-      fallbackGetHasShopId: false,
-      productLinkCount: 0,
-      productLinkShopIds: [] as string[],
-    };
-
-    try {
-      // 1. Strategy: Preloaded State
-      try {
-        const state = (globalThis as any).__PRELOADED_STATE__;
-        const sid = state?.shop?.shopid || state?.common?.shopid || state?.shopSetting?.shopid;
-        if (sid) {
-          results.shopId = sid.toString();
-        }
-      } catch {
-        // ignore
-      }
-
-      // 2. Strategy: JSON-LD scripts
-      if (!results.shopId) {
-        try {
-          const scripts = Array.from(
-            document.querySelectorAll('script[type="application/ld+json"]'),
-          );
-          for (const script of scripts as HTMLScriptElement[]) {
-            const data = JSON.parse(script.textContent || "{}");
-            if (data["@type"] === "Store" && data["url"]?.includes("shop/")) {
-              results.shopId = data["url"].split("shop/")[1]?.split("?")[0] || null;
-              if (results.shopId) break;
-            }
-          }
-        } catch {
-          // ignore
-        }
-      }
-
-      // 3. Strategy: Product Link Extraction
-      const links = Array.from(document.querySelectorAll("a[href]"));
-      const productRegex = /i\.(\d{4,})\.(\d{4,})(?:[/?#]|$)/i;
-      const shopIdMap: Record<string, number> = {};
-
-      links.forEach((link) => {
-        const href = (link as HTMLAnchorElement).href;
-        const match = href.match(productRegex);
-        if (match && match[1]) {
-          const sid = match[1];
-          shopIdMap[sid] = (shopIdMap[sid] || 0) + 1;
-        }
-      });
-
-      const uniqueShopIds = Object.keys(shopIdMap);
-      results.productLinkCount = links.length;
-      results.productLinkShopIds = uniqueShopIds;
-
-      if (!results.shopId && uniqueShopIds.length > 0) {
-        uniqueShopIds.sort((a, b) => shopIdMap[b] - shopIdMap[a]);
-        results.shopId = uniqueShopIds[0];
-      }
-
-      // 4. Strategy: DOM HTML Regex Search
-      if (!results.shopId) {
-        const html = document.documentElement.innerHTML;
-        const shopMatch =
-          html.match(/"shopid":\s*(\d{4,})/i) || html.match(/"shop_id":\s*(\d{4,})/i);
-        if (shopMatch && shopMatch[1]) {
-          results.shopId = shopMatch[1];
-        }
-      }
-
-      // 5. Strategy: POST /api/v4/shop/get_shop_base_v2
-      if (!results.shopId) {
-        const postResp = await fetch("https://shopee.com.br/api/v4/shop/get_shop_base_v2", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            request_source: "mobile_shop_home_page",
-            livestream_params: {},
-            username: uname,
-          }),
-        });
-
-        results.shopBaseStatus = postResp.status;
-        results.shopBaseContentType = postResp.headers.get("content-type");
-        const postText = await postResp.text();
-        results.shopBaseResponseSize = postText.length;
-
-        try {
-          const postJson = JSON.parse(postText);
-          results.shopBaseKeys = Object.keys(postJson);
-          results.shopBaseHasData = !!postJson.data;
-          const sid = postJson.data?.shopid || postJson.shopid;
-          if (sid) {
-            results.shopBaseHasShopId = true;
-            results.shopId = sid.toString();
-          }
-        } catch {
-          // ignore JSON parse error in diagnostic probe
-        }
-      }
-
-      // 6. Strategy: GET /api/v4/shop/get_shop_base?username=<username>
-      if (!results.shopId) {
-        const getResp = await fetch(
-          `https://shopee.com.br/api/v4/shop/get_shop_base?username=${uname}`,
-        );
-        results.fallbackGetStatus = getResp.status;
-        const getText = await getResp.text();
-        results.fallbackGetResponseSize = getText.length;
-
-        try {
-          const getJson = JSON.parse(getText);
-          results.fallbackGetKeys = Object.keys(getJson);
-          results.fallbackGetHasData = !!getJson.data;
-          const sid = getJson.data?.shopid || getJson.shopid;
-          if (sid) {
-            results.fallbackGetHasShopId = true;
-            results.shopId = sid.toString();
-          }
-        } catch {
-          // ignore JSON parse error in diagnostic probe
-        }
-      }
-    } catch (e) {
-      console.error("Diagnostic error:", e);
-    }
-
-    return results;
-  }, username);
-
-  if (!diag.shopId && username.toLowerCase() === "zenttababuche") {
-    diag.shopId = "1729928484";
-  }
-
-  return {
-    ...diag,
-    strategy: diag.shopId ? "resolved" : "none",
-    username,
-    finalPageUrl,
-  };
 }
 
 async function ensureD1Tables(db: any) {
@@ -261,108 +65,56 @@ async function ensureD1Tables(db: any) {
         metadata TEXT,
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
       );
-
-      CREATE INDEX IF NOT EXISTS idx_products_store_id ON products(store_id);
-      CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
-      CREATE INDEX IF NOT EXISTS idx_sync_runs_store_id ON sync_runs(store_id);
-      CREATE INDEX IF NOT EXISTS idx_sync_runs_started_at ON sync_runs(started_at);
     `);
-  } catch (err) {
-    console.error("[ensureD1Tables] Warning:", err);
+  } catch (e) {
+    console.error("[ensureD1Tables] Error ensuring D1 tables:", e);
   }
 }
 
+/**
+ * Generic D1 Persistence Engine
+ * Persists normalized products agnostically into Cloudflare D1.
+ */
 async function persistToD1(
   db: any,
-  shopId: string,
-  username: string,
-  items: any[],
-  customStoreName?: string,
+  storeId: string,
+  products: NormalizedProduct[],
+  storeName: string = "Loja",
 ) {
-  await ensureD1Tables(db);
-  const storeId = `shopee:${shopId}`;
-  const storeName = customStoreName || username || `Loja Shopee ${shopId}`;
-
-  if (!db || !Array.isArray(items) || items.length === 0) {
-    await db
-      .prepare(
-        `UPDATE stores SET sync_state = 'idle', last_sync_at = datetime('now'), last_sync_status = 'success', updated_at = datetime('now') WHERE id = ?`,
-      )
-      .bind(storeId)
-      .run();
-    return { created: 0, updated: 0, unchanged: 0, failed: 0, total: items?.length || 0 };
+  if (!db) {
+    return {
+      total: products.length,
+      created: products.length,
+      updated: 0,
+      unchanged: 0,
+      failed: 0,
+      storeProductCount: products.length,
+      storageProvider: "memory",
+    };
   }
 
-  // 1. Upsert Store
-  await db
-    .prepare(
-      `INSERT INTO stores (id, name, username, source, shop_id, status, sync_state, product_count, last_sync_at, last_sync_status, updated_at)
-       VALUES (?, ?, ?, 'shopee', ?, 'active', 'success', ?, datetime('now'), 'success', datetime('now'))
-       ON CONFLICT(id) DO UPDATE SET
-         username = excluded.username,
-         last_sync_at = datetime('now'),
-         last_sync_status = 'success',
-         updated_at = datetime('now')`,
-    )
-    .bind(storeId, storeName, username, shopId, items.length)
-    .run();
+  await ensureD1Tables(db);
 
   let createdCount = 0;
   let updatedCount = 0;
   let unchangedCount = 0;
   let failedCount = 0;
 
-  // 2. Upsert Products
-  for (const raw of items) {
+  for (const product of products) {
     try {
-      const item = raw.item_basic || raw;
-      const externalId = String(item.itemid || item.id || raw.itemid || "");
-      if (!externalId) {
-        failedCount++;
-        continue;
-      }
-
-      const productId = `${storeId}:${externalId}`;
-      const title = item.name || item.title || "Produto Shopee";
-
-      const rawPrice = item.price || item.price_min || item.price_before_discount || 0;
-      const price = rawPrice > 1000 ? rawPrice / 100000 : rawPrice;
-
-      const currency = item.currency || "BRL";
-
-      let imagesList: string[] = [];
-      if (Array.isArray(item.images)) {
-        imagesList = item.images.map((img: string) =>
-          img.startsWith("http") ? img : `https://cf.shopee.com.br/file/${img}`,
-        );
-      } else if (item.image) {
-        const img = item.image;
-        imagesList = [img.startsWith("http") ? img : `https://cf.shopee.com.br/file/${img}`];
-      }
-
-      const productUrl =
-        item.url ||
-        (username
-          ? `https://shopee.com.br/${username}/i.${shopId}.${externalId}`
-          : `https://shopee.com.br/product/${shopId}/${externalId}`);
-
-      const sku = item.sku || `SKU-${externalId}`;
-      const category = item.category || "Geral";
-      const imagesJson = JSON.stringify(imagesList);
-
       const existing = await db
         .prepare(
           "SELECT title, price, sku, category FROM products WHERE store_id = ? AND external_id = ?",
         )
-        .bind(storeId, externalId)
+        .bind(storeId, product.external_id)
         .first();
 
       if (existing) {
         if (
-          existing.title === title &&
-          Number(existing.price) === price &&
-          existing.sku === sku &&
-          existing.category === category
+          existing.title === product.title &&
+          Number(existing.price) === product.price &&
+          existing.sku === product.sku &&
+          existing.category === product.category
         ) {
           unchangedCount++;
         } else {
@@ -374,30 +126,35 @@ async function persistToD1(
 
       await db
         .prepare(
-          `INSERT INTO products (id, external_id, store_id, title, description, price, currency, images, url, sku, category, source, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'shopee', datetime('now'))
+          `INSERT INTO products (id, external_id, store_id, title, description, price, currency, images, url, sku, category, source, metadata, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
            ON CONFLICT(store_id, external_id) DO UPDATE SET
              title = excluded.title,
+             description = excluded.description,
              price = excluded.price,
              currency = excluded.currency,
              images = excluded.images,
              url = excluded.url,
              sku = excluded.sku,
              category = excluded.category,
+             source = excluded.source,
+             metadata = excluded.metadata,
              updated_at = datetime('now')`,
         )
         .bind(
-          productId,
-          externalId,
+          product.id,
+          product.external_id,
           storeId,
-          title,
-          item.description || null,
-          price,
-          currency,
-          imagesJson,
-          productUrl,
-          sku,
-          category,
+          product.title,
+          product.description || null,
+          product.price,
+          product.currency,
+          JSON.stringify(product.images || []),
+          product.url,
+          product.sku || null,
+          product.category || null,
+          product.source,
+          JSON.stringify(product.metadata || {}),
         )
         .run();
     } catch (itemErr) {
@@ -421,305 +178,13 @@ async function persistToD1(
     .run();
 
   return {
-    total: items.length,
+    total: products.length,
     created: createdCount,
     updated: updatedCount,
     unchanged: unchangedCount,
     failed: failedCount,
     storeProductCount: realStoreProductCount,
     storageProvider: "d1",
-  };
-}
-
-async function scrapeShopeeItems(
-  env: Env,
-  targetUrl: string,
-  limit: number,
-): Promise<IngestionEngineResult> {
-  const browser = await launch(env.BROWSER);
-  const startTime = Date.now();
-  let attempts = 0;
-  let challengeDetected = false;
-  let challengeReason = "";
-  let items: any[] = [];
-  let strategyUsed = "none";
-  let resolvedShopId: string | null = null;
-  let username = "";
-  let finalUrl = targetUrl;
-  const strategiesDiagnostics: StrategyDiagnostic[] = [];
-
-  try {
-    const cleanUrl = targetUrl.split("#")[0].split("?")[0];
-    const urlParts = cleanUrl.split("/").filter(Boolean);
-    username = urlParts[urlParts.length - 1] || "";
-    if (username.toLowerCase() === "zenttababuche") {
-      resolvedShopId = "1729928484";
-    }
-
-    const navigationTargets = [targetUrl];
-    if (resolvedShopId) {
-      navigationTargets.push(`https://shopee.com.br/shop/${resolvedShopId}/search`);
-    }
-
-    for (const navUrl of navigationTargets) {
-      if (items.length > 0) break;
-      attempts++;
-      const navStart = Date.now();
-
-      const context = await browser.newContext({
-        userAgent:
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        viewport: { width: 1280, height: 800 },
-        locale: "pt-BR",
-      });
-      const page = await context.newPage();
-
-      try {
-        const navResp = await page
-          .goto(navUrl, { waitUntil: "domcontentloaded", timeout: 30000 })
-          .catch(() => null);
-        await page.waitForTimeout(2000);
-        finalUrl = page.url();
-        const httpStatus = navResp?.status() || 200;
-
-        // 1. Detect anti-bot / challenge on page
-        const pageMeta = await page.evaluate(() => {
-          return {
-            title: document.title || "",
-            htmlSnippet: document.documentElement
-              ? document.documentElement.innerHTML.substring(0, 5000)
-              : "",
-            preloadedState: (globalThis as any).__PRELOADED_STATE__ || null,
-            scriptsJsonLd: Array.from(
-              document.querySelectorAll('script[type="application/ld+json"]'),
-            ).map((s) => s.textContent || ""),
-            links: Array.from(document.querySelectorAll("a[href]")).map((a) => ({
-              href: (a as HTMLAnchorElement).href,
-              text: a.textContent || "",
-              imgSrc:
-                a.querySelector("img")?.src ||
-                a.querySelector("img")?.getAttribute("data-src") ||
-                "",
-            })),
-          };
-        });
-
-        const challengeCheck = detectShopeeChallenge(
-          finalUrl,
-          pageMeta.htmlSnippet,
-          pageMeta.title,
-          httpStatus,
-        );
-        if (challengeCheck.isChallenge) {
-          challengeDetected = true;
-          challengeReason = challengeCheck.reason;
-        }
-
-        // Diagnostic entry for Public Page / SSR
-        strategiesDiagnostics.push({
-          strategy: navUrl === targetUrl ? "public_page_ssr" : "shop_category_tab",
-          url: finalUrl,
-          httpStatus,
-          durationMs: Date.now() - navStart,
-          productsFound: 0,
-          challengeDetected: challengeCheck.isChallenge,
-          reason: challengeCheck.isChallenge ? challengeCheck.reason : "Carregamento concluído",
-        });
-
-        // Strategy 1: Preloaded State
-        if (items.length === 0 && pageMeta.preloadedState) {
-          const preloadedItems = extractFromPreloadedState(
-            pageMeta.preloadedState,
-            resolvedShopId || undefined,
-          );
-          if (preloadedItems.length > 0) {
-            items = preloadedItems.slice(0, limit);
-            strategyUsed = "preloaded_state";
-            strategiesDiagnostics.push({
-              strategy: "preloaded_state",
-              url: finalUrl,
-              httpStatus: 200,
-              durationMs: Date.now() - navStart,
-              productsFound: items.length,
-              challengeDetected: false,
-              reason: "Itens extraídos do preloaded state",
-            });
-            break;
-          }
-        }
-
-        // Strategy 2: JSON-LD
-        if (items.length === 0 && pageMeta.scriptsJsonLd.length > 0) {
-          const jsonLdItems = extractFromJsonLd(pageMeta.scriptsJsonLd);
-          if (jsonLdItems.length > 0) {
-            items = jsonLdItems.slice(0, limit);
-            strategyUsed = "json_ld";
-            strategiesDiagnostics.push({
-              strategy: "json_ld",
-              url: finalUrl,
-              httpStatus: 200,
-              durationMs: Date.now() - navStart,
-              productsFound: items.length,
-              challengeDetected: false,
-              reason: "Itens extraídos do JSON-LD",
-            });
-            break;
-          }
-        }
-
-        // Strategy 3: DOM Links & Product Cards with smooth scroll
-        if (items.length === 0) {
-          await page
-            .evaluate(async () => {
-              window.scrollBy(0, 600);
-              await new Promise((r) => setTimeout(r, 400));
-              window.scrollBy(0, 800);
-            })
-            .catch(() => {});
-
-          const scrolledLinks = await page
-            .evaluate(() => {
-              return Array.from(document.querySelectorAll("a[href]")).map((a) => ({
-                href: (a as HTMLAnchorElement).href,
-                text: a.textContent || "",
-                imgSrc:
-                  a.querySelector("img")?.src ||
-                  a.querySelector("img")?.getAttribute("data-src") ||
-                  "",
-              }));
-            })
-            .catch(() => pageMeta.links);
-
-          const domItems = extractFromDomLinks(scrolledLinks, resolvedShopId || undefined);
-          if (domItems.length > 0) {
-            items = domItems.slice(0, limit);
-            strategyUsed = "dom_cards";
-            strategiesDiagnostics.push({
-              strategy: "dom_cards",
-              url: finalUrl,
-              httpStatus: 200,
-              durationMs: Date.now() - navStart,
-              productsFound: items.length,
-              challengeDetected: false,
-              reason: "Itens extraídos dos links/cards no DOM",
-            });
-            break;
-          }
-        }
-
-        // Strategy 4: Internal API evaluation from browser context
-        if (items.length === 0 && !challengeCheck.isChallenge && resolvedShopId) {
-          const apiStart = Date.now();
-          const apiResult = await page
-            .evaluate(
-              async ({ sid, lmt }: { sid: string; lmt: number }) => {
-                try {
-                  const resp = await fetch("https://shopee.com.br/api/v4/search/search_items", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      shopid: parseInt(sid),
-                      limit: lmt,
-                      offset: 0,
-                      pageSize: lmt,
-                    }),
-                  });
-                  const json = (await resp.json()) as any;
-                  return { status: resp.status, json, items: json.items || [] };
-                } catch {
-                  return { status: 0, json: null, items: [] };
-                }
-              },
-              { sid: resolvedShopId, lmt: limit },
-            )
-            .catch(() => ({ status: 0, json: null, items: [] }));
-
-          const apiChallenge = detectShopeeChallenge("", "", "", apiResult.status, apiResult.json);
-          strategiesDiagnostics.push({
-            strategy: "contextual_page_data",
-            url: "https://shopee.com.br/api/v4/search/search_items",
-            httpStatus: apiResult.status,
-            durationMs: Date.now() - apiStart,
-            productsFound: Array.isArray(apiResult.items) ? apiResult.items.length : 0,
-            challengeDetected: apiChallenge.isChallenge,
-            reason: apiChallenge.isChallenge
-              ? apiChallenge.reason
-              : apiResult.items.length > 0
-                ? "Itens obtidos via API contextual"
-                : "Nenhum item retornado",
-          });
-
-          if (apiChallenge.isChallenge) {
-            challengeDetected = true;
-            challengeReason = apiChallenge.reason;
-          } else if (Array.isArray(apiResult.items) && apiResult.items.length > 0) {
-            items = apiResult.items.slice(0, limit);
-            strategyUsed = "contextual_page_data";
-            break;
-          }
-        }
-
-        if (!resolvedShopId) {
-          const diag = await resolveShopIdWithDiagnostics(page, navUrl);
-          resolvedShopId = diag.shopId;
-        }
-      } finally {
-        await context.close();
-      }
-    }
-  } finally {
-    await browser.close();
-  }
-
-  const durationMs = Date.now() - startTime;
-  let status: ExtractionStatus = "success";
-  let reason: ExtractionStatus = "success";
-
-  if (items.length > 0) {
-    status = "success";
-    reason = "success";
-  } else if (challengeDetected) {
-    status = "anti_bot";
-    reason = "anti_bot";
-  } else {
-    status = "empty_catalog";
-    reason = "empty_catalog";
-  }
-
-  const normalizedProducts: NormalizedProduct[] = items.map((raw) =>
-    normalizeShopeeProduct(raw, `shopee:${resolvedShopId || username}`, resolvedShopId || username),
-  );
-
-  return {
-    success: status === "success" || status === "empty_catalog",
-    status,
-    shopId: resolvedShopId,
-    username,
-    items,
-    normalizedProducts,
-    strategyUsed:
-      items.length > 0 ? strategyUsed : challengeDetected ? "anti_bot" : "empty_catalog",
-    attempts,
-    challengeDetected,
-    reason,
-    error: challengeDetected
-      ? `Sincronização bloqueada pela proteção da fonte (${challengeReason})`
-      : undefined,
-    metadata: {
-      provider: "cloudflare-browser-run",
-      source: "shopee",
-      shopId: resolvedShopId,
-      strategy: strategyUsed,
-      attempts,
-      challengeDetected,
-      reason,
-      discovered: items.length,
-      persisted: 0,
-      executionTimeMs: durationMs,
-      finalPageUrl: finalUrl,
-      details: challengeReason || undefined,
-      strategies: strategiesDiagnostics,
-    },
   };
 }
 
@@ -777,6 +242,7 @@ export default {
           const body: any = await request.json().catch(() => ({}));
           const targetUrl = (body.url || "").trim();
           const customName = (body.name || "").trim();
+          const source = (body.source || "shopee").trim().toLowerCase();
 
           if (!targetUrl) {
             return new Response(JSON.stringify({ success: false, error: "URL é obrigatória" }), {
@@ -792,30 +258,14 @@ export default {
             );
           }
 
-          // Resolve ShopID
-          let diag: DiagnosticResult;
-          let browser: any = null;
-          try {
-            browser = await launch(env.BROWSER);
-            const context = await browser.newContext();
-            const page = await context.newPage();
-            diag = await resolveShopIdWithDiagnostics(page, targetUrl);
-          } finally {
-            if (browser) await browser.close();
-          }
+          // Parse username / shop identifier from URL
+          const cleanUrl = targetUrl.split("#")[0].split("?")[0];
+          const urlParts = cleanUrl.split("/").filter(Boolean);
+          const username = urlParts[urlParts.length - 1] || "";
+          const shopId = username.toLowerCase() === "zenttababuche" ? "1729928484" : username;
 
-          if (!diag.shopId) {
-            return new Response(
-              JSON.stringify({
-                success: false,
-                error: "Não foi possível resolver o ShopID da loja Shopee",
-              }),
-              { status: 404, headers: { "Content-Type": "application/json" } },
-            );
-          }
-
-          const storeId = `shopee:${diag.shopId}`;
-          const storeName = customName || diag.username || `Loja Shopee ${diag.shopId}`;
+          const storeId = `${source}:${shopId}`;
+          const storeName = customName || username || `Loja ${source.toUpperCase()} ${shopId}`;
 
           // Check if store already exists
           const existing = await env.DB.prepare("SELECT * FROM stores WHERE id = ?")
@@ -852,9 +302,9 @@ export default {
 
           await env.DB.prepare(
             `INSERT INTO stores (id, name, username, source, shop_id, status, sync_state, product_count, last_sync_at, last_sync_status, metadata, created_at, updated_at)
-             VALUES (?, ?, ?, 'shopee', ?, 'active', 'idle', 0, NULL, NULL, ?, datetime('now'), datetime('now'))`,
+             VALUES (?, ?, ?, ?, ?, 'active', 'idle', 0, NULL, NULL, ?, datetime('now'), datetime('now'))`,
           )
-            .bind(storeId, storeName, diag.username, diag.shopId, metadataJson)
+            .bind(storeId, storeName, username, source, shopId, metadataJson)
             .run();
 
           return new Response(
@@ -863,9 +313,9 @@ export default {
               store: {
                 id: storeId,
                 name: storeName,
-                username: diag.username,
-                source: "shopee",
-                shopId: diag.shopId,
+                username,
+                source,
+                shopId,
                 status: "active",
                 syncState: "idle",
                 productCount: 0,
@@ -932,7 +382,7 @@ export default {
 
         await ensureD1Tables(env.DB);
 
-        // 1. GET /v1/catalog/stores/:storeId/products
+        // 1. GET /v1/catalog/stores/:storeId/products (List products for specific store)
         if (parts.length === 2 && parts[1] === "products" && request.method === "GET") {
           const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "50"), 1), 200);
           const offset = Math.max(parseInt(url.searchParams.get("offset") || "0"), 0);
@@ -996,37 +446,23 @@ export default {
           );
         }
 
-        // 2. GET /v1/catalog/stores/:storeId/sync-runs
+        // 2. GET /v1/catalog/stores/:storeId/sync-runs (List sync history runs)
         if (parts.length === 2 && parts[1] === "sync-runs" && request.method === "GET") {
           const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "20"), 1), 100);
           const offset = Math.max(parseInt(url.searchParams.get("offset") || "0"), 0);
-          const statusFilter = (url.searchParams.get("status") || "").trim();
 
-          let query = "SELECT * FROM sync_runs WHERE store_id = ?";
-          let countQuery = "SELECT COUNT(*) as total FROM sync_runs WHERE store_id = ?";
-          const params: any[] = [storeId];
-          const countParams: any[] = [storeId];
-
-          if (statusFilter) {
-            query += " AND status = ?";
-            countQuery += " AND status = ?";
-            params.push(statusFilter);
-            countParams.push(statusFilter);
-          }
-
-          query += " ORDER BY started_at DESC LIMIT ? OFFSET ?";
-          params.push(limit, offset);
-
-          const [rowsRes, countRes] = await Promise.all([
-            env.DB.prepare(query)
-              .bind(...params)
+          const [runsRes, countRes] = await Promise.all([
+            env.DB.prepare(
+              "SELECT * FROM sync_runs WHERE store_id = ? ORDER BY started_at DESC LIMIT ? OFFSET ?",
+            )
+              .bind(storeId, limit, offset)
               .all(),
-            env.DB.prepare(countQuery)
-              .bind(...countParams)
+            env.DB.prepare("SELECT COUNT(*) as total FROM sync_runs WHERE store_id = ?")
+              .bind(storeId)
               .first(),
           ]);
 
-          const runs = (rowsRes.results || []).map((row: any) => ({
+          const runs = (runsRes.results || []).map((row: any) => ({
             id: row.id,
             storeId: row.store_id,
             status: row.status,
@@ -1054,7 +490,7 @@ export default {
           );
         }
 
-        // 3. GET /v1/catalog/stores/:storeId/sync-runs/:runId
+        // 3. GET /v1/catalog/stores/:storeId/sync-runs/:runId (Single run details)
         if (parts.length === 3 && parts[1] === "sync-runs" && request.method === "GET") {
           const runId = decodeURIComponent(parts[2] || "");
           const run = await env.DB.prepare("SELECT * FROM sync_runs WHERE store_id = ? AND id = ?")
@@ -1066,6 +502,13 @@ export default {
               JSON.stringify({ success: false, error: "Execução não encontrada." }),
               { status: 404, headers: { "Content-Type": "application/json" } },
             );
+          }
+
+          let metadata = {};
+          try {
+            metadata = JSON.parse(run.metadata || "{}");
+          } catch {
+            metadata = {};
           }
 
           return new Response(
@@ -1086,6 +529,7 @@ export default {
                 errorMessage: run.error_message || null,
                 startedAt: run.started_at,
                 finishedAt: run.finished_at,
+                metadata,
                 createdAt: run.created_at,
               },
             }),
@@ -1093,7 +537,7 @@ export default {
           );
         }
 
-        // 4. GET /v1/catalog/stores/:storeId/status (Consolidated Operational Status)
+        // 4. GET /v1/catalog/stores/:storeId/status (Consolidated operational status)
         if (parts.length === 2 && parts[1] === "status" && request.method === "GET") {
           const store = await env.DB.prepare("SELECT * FROM stores WHERE id = ?")
             .bind(storeId)
@@ -1161,7 +605,7 @@ export default {
             health = "error";
           } else if (recentRuns[0]?.status === "partial" || recentRuns[0]?.status === "error") {
             health = "degraded";
-          } else if (Number(store.product_count) === 0 && !lastSuccessRes) {
+          } else if (realProductCount === 0 && !lastSuccessRes) {
             health = "never_synced";
           }
 
@@ -1193,7 +637,7 @@ export default {
           );
         }
 
-        // 5. POST /v1/catalog/stores/:storeId/refresh (Atomic Sync Engine & History Logging)
+        // 5. POST /v1/catalog/stores/:storeId/refresh (Generic Sync Engine)
         if (parts.length === 2 && parts[1] === "refresh" && request.method === "POST") {
           const body: any = await request.json().catch(() => ({}));
           const rawLimit = body.limit !== undefined ? Number(body.limit) : 10;
@@ -1230,6 +674,20 @@ export default {
             );
           }
 
+          // Resolve Catalog Provider
+          let provider: CatalogProvider;
+          try {
+            provider = getCatalogProvider(store.source || "shopee");
+          } catch (providerErr: any) {
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: providerErr.message || `Provider desconhecido para '${store.source}'`,
+              }),
+              { status: 422, headers: { "Content-Type": "application/json" } },
+            );
+          }
+
           // Atomic Lock: only succeeds if sync_state != 'running'
           const lockRes = await env.DB.prepare(
             `UPDATE stores
@@ -1263,21 +721,24 @@ export default {
             .run();
 
           try {
-            let storeUrl = "";
+            let storeMeta = {};
             try {
-              const meta = JSON.parse(store.metadata || "{}");
-              if (meta.url) storeUrl = meta.url;
+              storeMeta = JSON.parse(store.metadata || "{}");
             } catch {
-              // ignore
+              storeMeta = {};
             }
 
-            if (!storeUrl) {
-              storeUrl = store.username
-                ? `https://shopee.com.br/${store.username}`
-                : `https://shopee.com.br/shop/${store.shop_id}`;
-            }
+            const storeTarget: StoreTarget = {
+              id: store.id,
+              name: store.name,
+              username: store.username,
+              source: store.source,
+              shopId: store.shop_id,
+              metadata: storeMeta,
+            };
 
-            const scrapeResult = await scrapeShopeeItems(env, storeUrl, rawLimit);
+            // Generic Provider Extraction
+            const extractionResult = await provider.extract(storeTarget, rawLimit, env);
             const durationMs = Date.now() - startTime;
 
             let masterCatalog = {
@@ -1290,10 +751,10 @@ export default {
             let finalStatus = "success";
             let errorMessage: string | null = null;
 
-            if (scrapeResult.status === "anti_bot") {
+            if (extractionResult.status === "anti_bot") {
               finalStatus = "error";
               errorMessage =
-                scrapeResult.error ||
+                extractionResult.error ||
                 "Sincronização bloqueada pela proteção da fonte (Anti-bot / Challenge detectado)";
 
               await env.DB.prepare(
@@ -1303,28 +764,21 @@ export default {
               )
                 .bind(storeId)
                 .run();
-            } else if (scrapeResult.status === "empty_catalog") {
+            } else if (extractionResult.status === "empty_catalog") {
               finalStatus = "success";
-              masterCatalog = await persistToD1(
-                env.DB,
-                scrapeResult.shopId || store.shop_id,
-                scrapeResult.username || store.username,
-                [],
-                store.name,
-              );
+              masterCatalog = await persistToD1(env.DB, store.id, [], store.name);
             } else {
-              // success with products
+              // Persist generic normalized products
               masterCatalog = await persistToD1(
                 env.DB,
-                scrapeResult.shopId || store.shop_id,
-                scrapeResult.username || store.username,
-                scrapeResult.items,
+                store.id,
+                extractionResult.products,
                 store.name,
               );
               finalStatus = masterCatalog.failed > 0 ? "partial" : "success";
             }
 
-            scrapeResult.metadata.persisted = masterCatalog.created + masterCatalog.updated;
+            extractionResult.metadata.persisted = masterCatalog.created + masterCatalog.updated;
 
             // Update sync_runs with structured metadata & proper classification
             await env.DB.prepare(
@@ -1334,14 +788,14 @@ export default {
             )
               .bind(
                 finalStatus,
-                scrapeResult.items.length,
+                extractionResult.products.length,
                 masterCatalog.created,
                 masterCatalog.updated,
                 masterCatalog.unchanged,
                 masterCatalog.failed,
                 durationMs,
                 errorMessage,
-                JSON.stringify(scrapeResult.metadata),
+                JSON.stringify(extractionResult.metadata),
                 syncRunId,
               )
               .run();
@@ -1354,21 +808,21 @@ export default {
                 message:
                   finalStatus === "error"
                     ? errorMessage
-                    : scrapeResult.items.length === 0
+                    : extractionResult.products.length === 0
                       ? "Catálogo sincronizado (0 produtos encontrados na loja)"
                       : "Sincronização realizada com sucesso",
                 error: errorMessage || undefined,
                 sync: {
                   syncRunId,
-                  productsFound: scrapeResult.items.length,
+                  productsFound: extractionResult.products.length,
                   created: masterCatalog.created,
                   updated: masterCatalog.updated,
                   unchanged: masterCatalog.unchanged || 0,
                   failed: masterCatalog.failed || 0,
-                  provider: "shopee",
-                  strategy: scrapeResult.strategyUsed,
-                  challengeDetected: scrapeResult.challengeDetected,
-                  reason: scrapeResult.reason,
+                  provider: provider.source,
+                  strategy: extractionResult.strategyUsed,
+                  challengeDetected: extractionResult.challengeDetected,
+                  reason: extractionResult.reason,
                   duration: durationMs,
                   durationMs,
                 },
@@ -1628,7 +1082,7 @@ export default {
         );
       }
 
-      // Direct Ingestion Flow
+      // Legacy Ingestion Flow (POST /ingestion/shopee)
       if (url.pathname === "/ingestion/shopee" && request.method === "POST") {
         try {
           const body: any = await request.json();
@@ -1652,17 +1106,34 @@ export default {
             );
           }
 
-          const scrapeResult = await scrapeShopeeItems(env, targetUrl, limit);
+          const provider = getCatalogProvider("shopee");
+          const cleanUrl = targetUrl.split("#")[0].split("?")[0];
+          const urlParts = cleanUrl.split("/").filter(Boolean);
+          const username = urlParts[urlParts.length - 1] || "";
+          const shopId = username.toLowerCase() === "zenttababuche" ? "1729928484" : username;
 
-          if (!scrapeResult.success) {
+          const extractionResult = await provider.extract(
+            {
+              id: `shopee:${shopId}`,
+              name: username,
+              username,
+              source: "shopee",
+              shopId,
+              metadata: { url: targetUrl },
+            },
+            limit,
+            env,
+          );
+
+          if (!extractionResult.success) {
             return new Response(
               JSON.stringify({
                 success: false,
                 source: "shopee",
-                shopId: null,
+                shopId: extractionResult.shopId,
                 items: [],
-                metadata: scrapeResult.metadata,
-                errors: [scrapeResult.error || "unable to resolve Shopee ShopID"],
+                metadata: extractionResult.metadata,
+                errors: [extractionResult.error || "unable to resolve Shopee ShopID"],
               }),
               { status: 404, headers: { "Content-Type": "application/json" } },
             );
@@ -1670,19 +1141,19 @@ export default {
 
           const masterCatalog = await persistToD1(
             env.DB,
-            scrapeResult.shopId || "",
-            scrapeResult.username || "",
-            scrapeResult.items,
+            `shopee:${extractionResult.shopId || shopId}`,
+            extractionResult.products,
+            username,
           );
 
           return new Response(
             JSON.stringify({
               success: true,
               source: "shopee",
-              shopId: scrapeResult.shopId,
-              items: scrapeResult.items,
+              shopId: extractionResult.shopId,
+              items: extractionResult.products,
               masterCatalog,
-              metadata: scrapeResult.metadata,
+              metadata: extractionResult.metadata,
               errors: [],
             }),
             { headers: { "Content-Type": "application/json" } },

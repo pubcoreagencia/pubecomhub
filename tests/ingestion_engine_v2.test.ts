@@ -1,4 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("@cloudflare/playwright", () => ({
+  launch: vi.fn(),
+  chromium: {
+    launch: vi.fn(),
+    sessions: vi.fn(),
+    history: vi.fn(),
+    limits: vi.fn(),
+  },
+}));
 import {
   detectShopeeChallenge,
   extractFromJsonLd,
