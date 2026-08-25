@@ -4,6 +4,7 @@ import { UrlImportClient, AnalyzeUrlResponse, CommitImportResponse } from "@/lib
 export type ImportUiState =
   | "IDLE"
   | "ANALYZING"
+  | "ASSISTED_REQUIRED"
   | "FOUND"
   | "EDITING"
   | "IMPORTING"
@@ -52,7 +53,12 @@ export const UrlProductImportPage: React.FC<UrlProductImportPageProps> = ({
     setTimeout(() => setAnalyzingStep("Identificando marketplace e cascata L1/L2/L3..."), 300);
     setTimeout(() => setAnalyzingStep("Extraindo informações estruturadas e galeria..."), 600);
 
-    const res = await UrlImportClient.analyzeUrl(url, markupPercent);
+    const res = await UrlImportClient.analyzeUrl(url, markupPercent, (newState) => {
+      setState(newState);
+      if (newState === "ASSISTED_REQUIRED") {
+        setAnalyzingStep("Não conseguimos acessar esta página diretamente. Estamos usando uma leitura assistida do navegador para capturar o produto...");
+      }
+    });
 
     if (res.success && res.product && res.preview) {
       setAnalyzeData(res);
@@ -153,6 +159,19 @@ export const UrlProductImportPage: React.FC<UrlProductImportPageProps> = ({
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 text-center space-y-4">
           <div className="inline-block animate-spin w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full" />
           <p className="text-sm font-bold text-zinc-300 animate-pulse">{analyzingStep}</p>
+        </div>
+      )}
+
+      {/* State: ASSISTED_REQUIRED */}
+      {state === "ASSISTED_REQUIRED" && (
+        <div className="bg-amber-950/40 border border-amber-800/80 rounded-xl p-8 text-center space-y-4">
+          <div className="inline-block animate-spin w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full" />
+          <div className="space-y-1">
+            <h4 className="text-sm font-black text-amber-400 uppercase tracking-wider">Leitura Assistida do Navegador</h4>
+            <p className="text-xs text-zinc-300">
+              Não conseguimos acessar esta página diretamente. Estamos usando uma leitura assistida do navegador para capturar o produto.
+            </p>
+          </div>
         </div>
       )}
 

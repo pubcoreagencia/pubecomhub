@@ -111,7 +111,7 @@ describe("Catalog Worker CORS", () => {
 
     const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
     expect(resp.status).toBe(200);
-    const json = await resp.json();
+    const json: any = await resp.json();
     expect(json.success).toBe(true);
     expect(json.items).toHaveLength(1);
     expect(json.items[0].title).toBe("Sandalia Babuche Infantil");
@@ -148,7 +148,7 @@ describe("Catalog Worker CORS", () => {
 
     const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
     expect(resp.status).toBe(200);
-    const json = await resp.json();
+    const json: any = await resp.json();
     expect(json.success).toBe(true);
     expect(json.items).toHaveLength(1);
     expect(json.items[0].name).toBe("Zentta Babuche");
@@ -171,7 +171,7 @@ describe("Catalog Worker CORS", () => {
 
     const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
     expect(resp.status).toBe(400);
-    const json = await resp.json();
+    const json: any = await resp.json();
     expect(json.success).toBe(false);
     expect(json.error).toContain("Limite inválido");
   });
@@ -221,7 +221,7 @@ describe("Catalog Worker CORS", () => {
 
     const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
     expect(resp.status).toBe(409);
-    const json = await resp.json();
+    const json: any = await resp.json();
     expect(json.success).toBe(false);
     expect(json.error).toContain("Sincronização já está em andamento");
   });
@@ -265,7 +265,7 @@ describe("Catalog Worker CORS", () => {
 
     const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
     expect(resp.status).toBe(200);
-    const json = await resp.json();
+    const json: any = await resp.json();
     expect(json.success).toBe(true);
     expect(json.store.status).toBe("inactive");
   });
@@ -310,7 +310,7 @@ describe("Catalog Worker CORS", () => {
 
     const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
     expect(resp.status).toBe(200);
-    const json = await resp.json();
+    const json: any = await resp.json();
     expect(json.success).toBe(true);
     expect(json.runs).toHaveLength(1);
     expect(json.runs[0].id).toBe("run-123");
@@ -353,7 +353,7 @@ describe("Catalog Worker CORS", () => {
 
     const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
     expect(resp.status).toBe(200);
-    const json = await resp.json();
+    const json: any = await resp.json();
     expect(json.success).toBe(true);
     expect(json.run.id).toBe("run-123");
   });
@@ -378,7 +378,7 @@ describe("Catalog Worker CORS", () => {
 
     const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
     expect(resp.status).toBe(404);
-    const json = await resp.json();
+    const json: any = await resp.json();
     expect(json.success).toBe(false);
     expect(json.error).toContain("Execução não encontrada");
   });
@@ -447,7 +447,7 @@ describe("Catalog Worker CORS", () => {
 
     const resp = await worker.fetch(req, { ...env, DB: mockDb } as any);
     expect(resp.status).toBe(200);
-    const json = await resp.json();
+    const json: any = await resp.json();
     expect(json.success).toBe(true);
     expect(json.health).toBe("healthy");
     expect(json.totalProducts).toBe(10);

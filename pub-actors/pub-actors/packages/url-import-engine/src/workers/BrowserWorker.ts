@@ -1,13 +1,22 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const { chromium } = require("C:/Users/Matheus Paes/pubecomhub/node_modules/playwright");
+// @ts-ignore
+import { chromium } from "@cloudflare/playwright";
 import { BrowserCollectorOutput } from "../../../browser-collector/src/BrowserCollector.js";
+
+export type BrowserPageClassification =
+  | "PRODUCT_PAGE"
+  | "INTERSTITIAL"
+  | "CAPTCHA"
+  | "ACCOUNT_VERIFICATION"
+  | "ACCESS_DENIED"
+  | "EMPTY";
 
 export interface BrowserWorkerResult {
   success: boolean;
   collectorOutput: BrowserCollectorOutput | null;
   durationMs: number;
   error?: string;
+  classification?: BrowserPageClassification;
+  isBlockedInterstitial?: boolean;
 }
 
 export class BrowserWorker {
@@ -16,23 +25,103 @@ export class BrowserWorker {
   /**
    * Executes headless browser session, renders page and collects product data
    */
-  static async renderAndCollect(url: string, timeoutMs = 25000): Promise<BrowserWorkerResult> {
+  static async renderAndCollect(url: string, env: any, timeoutMs = 25000): Promise<BrowserWorkerResult> {
     const startTime = Date.now();
     let browser: any = null;
 
     try {
-      browser = await chromium.launch({
-        executablePath: this.CHROME_EXECUTABLE,
-        headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-      });
+      // @ts-ignore
+      const { default: puppeteer } = await import("@cloudflare/puppeteer");
+      let page: any = null;
 
-      const context = await browser.newContext({
-        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-        viewport: { width: 1280, height: 800 },
-      });
+      if (env?.BROWSER) {
+        browser = await puppeteer.launch(env.BROWSER);
+        page = await browser.newPage();
+        await page.setUserAgent(
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+        );
+        await page.setViewport({ width: 1920, height: 1080 });
+        try {
+          await page.setExtraHTTPHeaders({
+            "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+            "sec-ch-ua": '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Windows"',
+          });
+        } catch (_) {}
 
-      const page = await context.newPage();
+        try {
+          await page.evaluateOnNewDocument(() => {
+            try {
+              delete (Object.getPrototypeOf(navigator) as any).webdriver;
+            } catch (_) {}
+            Object.defineProperty(navigator, "webdriver", {
+              get: () => undefined,
+            });
+            Object.defineProperty(navigator, "platform", {
+              get: () => "Win32",
+            });
+            if ((navigator as any).userAgentData) {
+              Object.defineProperty((navigator as any).userAgentData, "platform", {
+                get: () => "Windows",
+              });
+            }
+            try {
+              Object.defineProperty(window.screen, "width", { get: () => 1920 });
+              Object.defineProperty(window.screen, "height", { get: () => 1080 });
+              Object.defineProperty(window.screen, "availWidth", { get: () => 1920 });
+              Object.defineProperty(window.screen, "availHeight", { get: () => 1040 });
+            } catch (_) {}
+            try {
+              const origResolved = Intl.DateTimeFormat.prototype.resolvedOptions;
+              Intl.DateTimeFormat.prototype.resolvedOptions = function () {
+                const res = origResolved.apply(this, arguments as any);
+                res.timeZone = "America/Sao_Paulo";
+                res.locale = "pt-BR";
+                return res;
+              };
+            } catch (_) {}
+            try {
+              const getParameter = WebGLRenderingContext.prototype.getParameter;
+              WebGLRenderingContext.prototype.getParameter = function (parameter: number) {
+                if (parameter === 37445) return "Google Inc. (NVIDIA)";
+                if (parameter === 37446)
+                  return "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)";
+                return getParameter.apply(this, [parameter]);
+              };
+            } catch (_) {}
+            Object.defineProperty(navigator, "plugins", {
+              get: () => [
+                { name: "Chrome PDF Plugin", filename: "internal-pdf-viewer", description: "Portable Document Format" },
+                { name: "Chrome PDF Viewer", filename: "mhjfbmdgcfjbbpaeojofohoefgiehjai", description: "" },
+                { name: "Native Client", filename: "internal-nacl-plugin", description: "" },
+              ],
+            });
+            Object.defineProperty(navigator, "languages", {
+              get: () => ["pt-BR", "pt", "en-US", "en"],
+            });
+            (window as any).chrome = {
+              app: { isInstalled: false },
+              runtime: {
+                OnInstalledReason: { CHROME_UPDATE: "chrome_update" },
+              },
+            };
+          });
+        } catch (_) {}
+      } else {
+        browser = await chromium.launch({
+          executablePath: this.CHROME_EXECUTABLE,
+          headless: true,
+          args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+        });
+        const context = await browser.newContext({
+          userAgent:
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+          viewport: { width: 1280, height: 800 },
+        });
+        page = await context.newPage();
+      }
+
       page.setDefaultTimeout(timeoutMs);
 
       // Navigate to target URL
@@ -46,25 +135,68 @@ export class BrowserWorker {
         throw new Error(`Servidor remoto retornou HTTP ${status}`);
       }
 
-      // Allow brief hydration window
-      await page.waitForTimeout(1500);
+      // Allow hydration delay
+      await new Promise((r) => setTimeout(r, 2500));
 
-      // Execute in-page extraction
-      const rawExtraction = await page.evaluate((targetUrl: string) => {
+      // Execute in-page extraction and page classification
+      const rawExtraction = await page.evaluate(() => {
         const doc = document;
         const win = window as any;
+        const fullBodyText = doc.body?.innerText || "";
+        const curUrl = win.location?.href || "";
+        const docTitle = doc.title || "";
 
-        // Title
+        let classification: BrowserPageClassification = "EMPTY";
+
+        if (!doc.body || fullBodyText.trim().length === 0) {
+          classification = "EMPTY";
+        } else if (
+          curUrl.includes("account-verification") ||
+          curUrl.includes("negative_traffic") ||
+          fullBodyText.includes("Para continuar, acesse sua conta") ||
+          fullBodyText.includes("gz-account-verification") ||
+          docTitle.includes("Verificação")
+        ) {
+          classification = "ACCOUNT_VERIFICATION";
+        } else if (
+          fullBodyText.includes("cf-turnstile") ||
+          fullBodyText.includes("g-recaptcha") ||
+          fullBodyText.includes("hcaptcha") ||
+          fullBodyText.includes("robot or human") ||
+          fullBodyText.includes("Security Check") ||
+          docTitle.includes("CAPTCHA")
+        ) {
+          classification = "CAPTCHA";
+        } else if (
+          docTitle.includes("Access Denied") ||
+          docTitle.includes("403 Forbidden") ||
+          docTitle.includes("Blocked") ||
+          fullBodyText.includes("Access Denied")
+        ) {
+          classification = "ACCESS_DENIED";
+        }
+
+        // Title: DOM > Meta > doc.title > JSON-LD
+        let title: string | null = null;
         const titleEl = doc.querySelector("h1.ui-pdp-title, h1#title, h1#productTitle, .shopee-product-detail h1, h1");
-        const title = titleEl ? (titleEl as HTMLElement).innerText.trim() : null;
+        if (titleEl) {
+          title = (titleEl as HTMLElement).innerText.trim();
+        }
+        if (!title) {
+          const ogTitle = doc.querySelector('meta[property="og:title"], meta[name="twitter:title"]');
+          if (ogTitle) title = ogTitle.getAttribute("content")?.trim() || null;
+        }
+        if (!title && docTitle && classification === "EMPTY" && !docTitle.includes("Verificação") && !docTitle.includes("Access Denied") && !docTitle.includes("Mercado Libre")) {
+          title = docTitle.replace(/\s*\|.*$/, "").replace(/\s*-\s*R\$.*$/, "").trim();
+        }
 
-        // Price
+        // Price: Fraction/Cents > Meta > Regex in text > JSON-LD
         let price: number | null = null;
         const mlFrac = doc.querySelector(".andes-money-amount__fraction");
         if (mlFrac) {
           const raw = (mlFrac as HTMLElement).innerText.trim();
           const cents = (doc.querySelector(".andes-money-amount__cents") as HTMLElement)?.innerText.replace(/[^0-9]/g, "") || "00";
-          if (raw.includes(".")) price = parseFloat(raw.replace(/,/g, ""));
+          if (raw.includes(".")) price = parseFloat(raw.replace(/\./g, "").replace(",", "."));
           else price = parseFloat(`${raw.replace(/\./g, "")}.${cents}`);
         }
 
@@ -86,7 +218,22 @@ export class BrowserWorker {
           }
         }
 
-        // Images
+        if (!price) {
+          const priceMeta = doc.querySelector('meta[property="product:price:amount"], meta[itemprop="price"], meta[property="og:price:amount"]');
+          if (priceMeta) {
+            const v = parseFloat(priceMeta.getAttribute("content") || "");
+            if (!isNaN(v) && v > 0) price = v;
+          }
+        }
+
+        if (!price && classification !== "ACCOUNT_VERIFICATION" && classification !== "ACCESS_DENIED") {
+          const pm = fullBodyText.match(/R\$\s*([\d\.]+,\d{2})/i);
+          if (pm) {
+            price = parseFloat(pm[1].replace(/\./g, "").replace(",", "."));
+          }
+        }
+
+        // Images: Gallery > Meta > all imgs
         const images: string[] = [];
         const imgEls = doc.querySelectorAll(".ui-pdp-gallery__figure img, #imgTagWrapperId img, #landingImage, .shopee-product-detail img, img[data-zoom]");
         imgEls.forEach((el) => {
@@ -95,6 +242,24 @@ export class BrowserWorker {
             if (!images.includes(src)) images.push(src);
           }
         });
+
+        if (images.length === 0 && classification !== "ACCOUNT_VERIFICATION") {
+          const ogImg = doc.querySelector('meta[property="og:image"], meta[name="twitter:image"]');
+          if (ogImg) {
+            const src = ogImg.getAttribute("content");
+            if (src && src.startsWith("http") && !images.includes(src)) images.push(src);
+          }
+        }
+
+        if (images.length === 0 && classification !== "ACCOUNT_VERIFICATION") {
+          const allImgs = doc.querySelectorAll("img[src*='mlstatic.com'], img[src*='http']");
+          allImgs.forEach((img) => {
+            const src = img.getAttribute("data-zoom") || img.getAttribute("src");
+            if (src && src.startsWith("http") && !src.includes("data:image") && !src.includes("pixel") && !images.includes(src)) {
+              images.push(src);
+            }
+          });
+        }
 
         // JSON-LD
         let jsonldTitle: string | null = null;
@@ -129,32 +294,75 @@ export class BrowserWorker {
           hydPrice = parseFloat(win.__UNIVERSAL_DATA_FOR_REHYDRATION__.productInfo.price) || null;
         }
 
-        return {
-          title: title || jsonldTitle || hydTitle,
-          titleSource: title ? "dom" : jsonldTitle ? "jsonld" : hydTitle ? "hydration" : "unknown",
-          price: price || jsonldPrice || hydPrice,
-          priceSource: price ? "dom" : jsonldPrice ? "jsonld" : hydPrice ? "hydration" : "unknown",
-          images,
-          brand: jsonldBrand,
-          description: jsonldDesc,
-        };
-      }, url);
+        // Description
+        const descEl = doc.querySelector(".ui-pdp-description__content, #productDescription, [class*='description']");
+        const domDesc = descEl ? (descEl as HTMLElement).innerText.trim() : null;
 
-      await context.close();
-      await browser.close();
+        const finalTitle = title || jsonldTitle || hydTitle;
+        const finalPrice = price || jsonldPrice || hydPrice;
+        const finalBrand = jsonldBrand || null;
+        const finalDesc = domDesc || jsonldDesc || null;
+
+        if (classification === "EMPTY") {
+          if (finalTitle && finalPrice !== null && images.length > 0) {
+            classification = "PRODUCT_PAGE";
+          } else {
+            classification = "INTERSTITIAL";
+          }
+        }
+
+        const sampleText = fullBodyText.replace(/\s+/g, " ").slice(0, 150);
+
+        return {
+          title: classification === "PRODUCT_PAGE" ? finalTitle : null,
+          titleSource: title ? "dom" : jsonldTitle ? "jsonld" : hydTitle ? "hydration" : "unknown",
+          price: classification === "PRODUCT_PAGE" ? finalPrice : null,
+          priceSource: price ? "dom" : jsonldPrice ? "jsonld" : hydPrice ? "hydration" : "unknown",
+          images: classification === "PRODUCT_PAGE" ? images : [],
+          brand: classification === "PRODUCT_PAGE" ? finalBrand : null,
+          description: classification === "PRODUCT_PAGE" ? finalDesc : null,
+          sampleText,
+          curUrl,
+          classification,
+        };
+      });
+
+      await page.close().catch(() => {});
+      await browser.close().catch(() => {});
 
       const durationMs = Date.now() - startTime;
-      const isComplete = Boolean(rawExtraction.title && rawExtraction.price && rawExtraction.images.length > 0);
+      const isComplete = Boolean(
+        rawExtraction.classification === "PRODUCT_PAGE" &&
+        rawExtraction.title &&
+        rawExtraction.price &&
+        rawExtraction.images.length > 0
+      );
+      const isBlocked = rawExtraction.classification !== "PRODUCT_PAGE";
+
+      console.log('[BROWSER_TRACE] extracted', {
+        classification: rawExtraction.classification,
+        isComplete,
+        hasTitle: Boolean(rawExtraction.title),
+        titlePreview: rawExtraction.title ? rawExtraction.title.slice(0, 30) : null,
+        hasPrice: rawExtraction.price !== null,
+        priceVal: rawExtraction.price,
+        imagesCount: rawExtraction.images.length,
+      });
+
+      const fieldDiag = `classification=${rawExtraction.classification},curUrl=${rawExtraction.curUrl},title=${rawExtraction.title},price=${rawExtraction.price},imgs=${rawExtraction.images.length}`;
 
       return {
         success: isComplete,
+        isBlockedInterstitial: isBlocked,
+        classification: rawExtraction.classification as BrowserPageClassification,
         collectorOutput: {
-          status: isComplete ? "SUCCESS" : "INCOMPLETE",
+          status: isComplete ? "SUCCESS" : (isBlocked ? "BLOCKED" : "INCOMPLETE"),
           marketplace: "browser_rendered",
           url,
           productId: "ITEM_1",
           shopId: null,
           durationMs,
+          error: isComplete ? undefined : fieldDiag,
           auditedProduct: {
             source: { value: "browser_rendered", source: "dom" },
             sourceUrl: { value: url, source: "dom" },
@@ -170,14 +378,16 @@ export class BrowserWorker {
           },
           canonicalProduct: null,
           sourcesFound: { dom: true, jsonld: true, meta: false, hydration: true, network: false },
-          totalRealFields: 3,
+          totalRealFields: isComplete ? 3 : 0,
         },
         durationMs,
       };
     } catch (err: any) {
+      console.log('[BROWSER_TRACE] error', { error: err.message || String(err) });
       if (browser) await browser.close().catch(() => {});
       return {
         success: false,
+        isBlockedInterstitial: false,
         collectorOutput: null,
         durationMs: Date.now() - startTime,
         error: err.message || String(err),

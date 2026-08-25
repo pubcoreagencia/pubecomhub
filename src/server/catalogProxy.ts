@@ -218,10 +218,11 @@ export async function handleCatalogProxy(
   }
 
 
-
-  if (!targetPath) {
+if (!targetPath) {
     return null;
   }
+
+  console.log('[IMPORT_TRACE] targetPath', { targetPath });
 
   const envObj = getServerEnv(request);
 
@@ -371,14 +372,20 @@ export async function handleCatalogProxy(
     body = await request.clone().arrayBuffer();
   }
 
+  console.log('[IMPORT_TRACE] serviceBinding=CATALOG_WORKER');
+  console.log('[IMPORT_TRACE] targetPath', { targetPath });
+
   try {
     let upstreamResponse: Response;
+    const workerRequestUrl = `https://pub-ecom-catalog-worker${targetPath}${url.search}`;
+    const workerRequest = new Request(workerRequestUrl, {
+      method: request.method,
+      headers: forwardHeaders,
+      body: request.method === "GET" || request.method === "HEAD" ? null : body,
+    });
+
     if (envObj["CATALOG_WORKER"] && typeof envObj["CATALOG_WORKER"].fetch === "function") {
-      upstreamResponse = await envObj["CATALOG_WORKER"].fetch(upstreamUrl, {
-        method: request.method,
-        headers: forwardHeaders,
-        body,
-      });
+      upstreamResponse = await envObj["CATALOG_WORKER"].fetch(workerRequest);
     } else {
       upstreamResponse = await fetch(upstreamUrl, {
         method: request.method,

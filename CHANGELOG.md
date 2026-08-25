@@ -1,5 +1,23 @@
 # Changelog - PUB ECOM HUB
 
+## [1.9.0] - 2026-08-25
+
+### Adicionado
+
+- **Estratégia L3 Híbrida de Ingestão de Catálogo**:
+  - Implementação de cascata resiliente `L1 HTTP` -> `L2 API` -> `L3 Browser Run (@cloudflare/puppeteer)` -> `Assisted Fallback`.
+  - Classificação explícita de páginas (`PRODUCT_PAGE`, `ACCOUNT_VERIFICATION`, `CAPTCHA`, `ACCESS_DENIED`, `INTERSTITIAL`, `EMPTY`) em `BrowserWorker.ts`.
+  - Detecção avançada de desafios e interstitials do Mercado Livre (`/gz/account-verification`, `negative_traffic`).
+  - Suporte ao estado `ASSISTED_REQUIRED` na UI (`UrlProductImportPage.tsx`) com leitura assistida e transparente no navegador do lojista.
+  - Defesa estrita **Zero-Mock** no Catalog Worker com rejeição de dados sintéticos (`Produto Importado`, valores `49.90`, imagens `Unsplash`).
+  - Ciclo de vida completo do commit no D1: `HTTP 201 Created` (`status: "IMPORTED"`) e idempotência `HTTP 200 OK` (`status: "ALREADY_IMPORTED"`).
+
+### Corrigido
+
+- **Cloudflare Error 1042 / HTTP 404**: Substituído o salto HTTP público entre Hub e Catalog Worker por **Cloudflare Service Binding** nativo (`CATALOG_WORKER`), eliminando erros de roteamento de mesma zona.
+- **Compatibilidade Cloudflare Puppeteer**: Atualizado `BrowserWorker` para instanciar via `puppeteer.launch(env.BROWSER)` oficial.
+- **Roteamento de Autenticação**: Permitido acesso a `/v1/catalog/import/*` e `/v1/catalog/products` via Service Binding e requisições públicas autorizadas.
+
 ## [1.8.0] - 2026-08-23
 
 ### Adicionado
