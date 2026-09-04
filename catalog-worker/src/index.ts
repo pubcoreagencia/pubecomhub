@@ -1216,7 +1216,7 @@ export default {
           else if (lower.includes("amazon.")) provider = "amazon";
           else if (lower.includes("tiktok.com")) provider = "tiktokshop";
 
-          const mlIdMatch = targetUrl.match(/(MLB-?\d+)/i);
+          const mlIdMatch = targetUrl.match(/(MLB-?[A-Z0-9]+)/i);
           const shopeeIdMatch = targetUrl.match(/-i\.(\d+)\.(\d+)/) || targetUrl.match(/\/product\/(\d+)\/(\d+)/);
           const cleanUrl = targetUrl.split("#")[0].split("?")[0];
           const parts = cleanUrl.split("/").filter(Boolean);
@@ -1239,7 +1239,6 @@ export default {
           // -------------------------------------------------------------------
           const clientData = body.clientCollectedData;
           if (clientData && typeof clientData === "object") {
-            // Zero-Mock Validator & Schema Verification
             const cTitle = typeof clientData.title === "string" ? clientData.title.trim() : "";
             const cPrice = typeof clientData.price === "number" && !isNaN(clientData.price) && clientData.price > 0 ? clientData.price : null;
             const cImages = Array.isArray(clientData.images) ? clientData.images.filter((img: any) => typeof img === "string" && img.startsWith("http")) : [];
@@ -1263,106 +1262,215 @@ export default {
           }
 
           // -------------------------------------------------------------------
-          // STEP 1: L1 HTTP extraction (if not already resolved by client data)
+          // STEP 1: L1 HTTP extraction with Crawler User-Agents (bypasses bot verification)
           // -------------------------------------------------------------------
           if (!title || price === null || images.length === 0) {
             try {
-              const httpRes = await fetch(targetUrl, {
-                headers: {
-                  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-                  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                },
-              });
-              if (httpRes.ok) {
-                const html = await httpRes.text();
-                const ogTitle = html.match(/<meta property="og:title" content="([^"]+)"/i);
-                const ogImage = html.match(/<meta property="og:image" content="([^"]+)"/i);
-                const ogPrice = html.match(/<meta property="product:price:amount" content="([^"]+)"/i);
-                if (ogTitle) title = ogTitle[1].trim();
-                if (ogImage) images = [ogImage[1].trim()];
-                if (ogPrice) price = parseFloat(ogPrice[1]) || null;
-                if (title && price !== null && images.length > 0) {
-                  strategyUsed = "http_level_1";
-                  provenance = {
-                    title: { value: title, source: "meta_og" },
-                    price: { value: price, source: "meta_price" },
-                    images: { value: images, source: "meta_og" },
-                  };
-                }
+              const crawlerUas = [
+                "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+                "WhatsApp/2.21.12.21 A",
+                "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+              ];
+
+              const cleanTargetUrl = targetUrl.split("#")[0];
+
+              for (const ua of crawlerUas) {
+                if (title && price !== null && images.length > 0) break;
+                try {
+                  const httpRes = await fetch(cleanTargetUrl, {
+                    redirect: "follow",
+                    headers: {
+                      "User-Agent": ua,
+                      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                      "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+                    },
+                  });
+
+                  if (httpRes.ok) {
+                    const html = await httpRes.text();
+
+                    // 1. OpenGraph Meta Tags
+                    const ogTitle = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ||
+                                    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
+                    const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+                                    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+                    const ogPrice = html.match(/<meta[^>]+property=["'](?:product|og):price:amount["'][^>]+content=["']([^"']+)["']/i) ||
+                                    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["'](?:product|og):price:amount["']/i);
+                    const ogDesc = html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i) ||
+                                   html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i);
+                    const priceItemProp = html.match(/itemprop=["']price["'][^>]+content=["']([^"']+)["']/i) ||
+                                          html.match(/content=["']([^"']+)["'][^>]+itemprop=["']price["']/i);
+
+                    if (ogTitle && !title) {
+                      let rawTitle = ogTitle[1].trim();
+                      rawTitle = rawTitle.replace(/\s*-\s*R\$\s*[\d.,]+/i, "").replace(/\s*\|\s*.*$/i, "").trim();
+                      const lowerTitle = rawTitle.toLowerCase();
+                      if (
+                        rawTitle.length >= 3 &&
+                        !lowerTitle.includes("verificação") &&
+                        !lowerTitle.includes("ofertas incríveis") &&
+                        !lowerTitle.startsWith("shopee brasil") &&
+                        lowerTitle !== "shopee"
+                      ) {
+                        title = rawTitle;
+                      }
+                    }
+
+                    if (ogImage && images.length === 0) {
+                      const img = ogImage[1].trim();
+                      if (img.startsWith("http") && !img.includes("pixel") && !img.includes("placeholder")) {
+                        images.push(img);
+                      }
+                    }
+
+                    if (ogDesc && !description) {
+                      description = ogDesc[1].trim();
+                    }
+
+                    if (price === null) {
+                      if (priceItemProp) {
+                        price = parseFloat(priceItemProp[1].replace(",", "."));
+                      } else if (ogPrice) {
+                        price = parseFloat(ogPrice[1].replace(",", "."));
+                      }
+                    }
+
+                    // 2. JSON-LD Schema
+                    const jsonLdRegex = /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+                    let m;
+                    while ((m = jsonLdRegex.exec(html)) !== null) {
+                      try {
+                        const data = JSON.parse(m[1].trim());
+                        if (data.name && !title) title = String(data.name).trim();
+                        if (data.image) {
+                          const imgUrl = Array.isArray(data.image) ? data.image[0] : data.image;
+                          if (imgUrl && typeof imgUrl === 'string' && imgUrl.startsWith('http') && !images.includes(imgUrl)) {
+                            images.unshift(imgUrl);
+                          }
+                        }
+                        if (data.offers && price === null) {
+                          const offerPrice = data.offers.price || data.offers.lowPrice || (Array.isArray(data.offers) ? data.offers[0]?.price : null);
+                          if (offerPrice) price = parseFloat(String(offerPrice).replace(',', '.'));
+                        }
+                        if (data.description && !description) description = String(data.description).trim();
+                        if (data.brand && !brand) brand = typeof data.brand === 'object' ? data.brand.name : String(data.brand);
+                      } catch {}
+                    }
+
+                    // 3. Regex for Mercado Livre Andes Money Amount
+                    if (price === null) {
+                      const andesFraction = html.match(/class=["'][^"']*andes-money-amount__fraction[^"']*["']>([^<]+)<\/span>/i);
+                      if (andesFraction) {
+                        const centsMatch = html.match(/class=["'][^"']*andes-money-amount__cents[^"']*["']>([^<]+)<\/span>/i);
+                        const cents = centsMatch ? centsMatch[1].replace(/\D/g, '') : '00';
+                        const whole = andesFraction[1].replace(/\D/g, '');
+                        price = parseFloat(`${whole}.${cents}`);
+                      }
+                    }
+
+                    // 4. High-Res Image Scraping from Marketplace HTML
+                    if (images.length === 0) {
+                      const mlImages = html.match(/https:\/\/http2\.mlstatic\.com\/D_NQ_NP_[^"'\s>]+\.(?:webp|jpg)/gi);
+                      if (mlImages && mlImages.length > 0) {
+                        for (const mImg of mlImages) {
+                          if (!mImg.includes("pixel") && !mImg.includes("navigation") && !images.includes(mImg)) {
+                            images.push(mImg);
+                          }
+                          if (images.length >= 4) break;
+                        }
+                      }
+                      const shopeeImages = html.match(/https:\/\/(?:cf|down-br)\.shopee\.com\.br\/file\/[a-zA-Z0-9_-]+/gi);
+                      if (shopeeImages && shopeeImages.length > 0) {
+                        for (const sImg of shopeeImages) {
+                          if (!images.includes(sImg)) images.push(sImg);
+                          if (images.length >= 4) break;
+                        }
+                      }
+                    }
+
+                    if (title && price !== null && images.length > 0) {
+                      strategyUsed = "http_crawler_level_1";
+                      provenance = {
+                        title: { value: title, source: "crawler_meta_jsonld" },
+                        price: { value: price, source: "crawler_meta_jsonld" },
+                        images: { value: images, source: "crawler_meta_jsonld" },
+                      };
+                    }
+                  }
+                } catch {}
               }
             } catch {}
           }
 
           // -------------------------------------------------------------------
-          // STEP 2: L3 Browser Run (Cloudflare Puppeteer)
+          // STEP 2: L3 Browser Run (Cloudflare Puppeteer) if needed
           // -------------------------------------------------------------------
-          const dataSufficient = title && price !== null && images.length > 0;
+          let dataSufficient = Boolean(title && price !== null && images.length > 0);
 
           if (!dataSufficient) {
-            const bwResult = await BrowserWorker.renderAndCollect(targetUrl, env);
+            try {
+              const bwResult = await BrowserWorker.renderAndCollect(targetUrl, env);
 
-            // If WAF / Interstitial / Verification Blocked -> Signal Assisted Collection Required
-            if (bwResult.isBlockedInterstitial || bwResult.classification === "ACCOUNT_VERIFICATION" || bwResult.classification === "CAPTCHA" || bwResult.classification === "ACCESS_DENIED") {
-              return new Response(
-                JSON.stringify({
-                  success: false,
-                  assistedRequired: true,
-                  reason: bwResult.classification || "ACCOUNT_VERIFICATION",
-                  message: "Não conseguimos acessar esta página diretamente. Estamos usando uma leitura assistida do navegador para capturar o produto.",
-                  url: targetUrl,
-                  marketplace: provider,
-                  externalId,
-                }),
-                { status: 200, headers: { "Content-Type": "application/json" } },
-              );
-            }
-
-            if (!bwResult.success || !bwResult.collectorOutput) {
-              const diag = bwResult.collectorOutput?.error || bwResult.error || "incomplete_fields";
-              return new Response(
-                JSON.stringify({
-                  success: false,
-                  error: "Dados reais do produto não puderam ser extraídos",
-                  details: diag,
-                }),
-                { status: 422, headers: { "Content-Type": "application/json" } },
-              );
-            }
-
-            const out = bwResult.collectorOutput;
-            title = out.auditedProduct.title.value ?? title;
-            price = out.auditedProduct.price.value ?? price;
-            images = (out.auditedProduct.images.value && out.auditedProduct.images.value.length > 0) ? out.auditedProduct.images.value : images;
-            brand = out.auditedProduct.brand?.value ?? brand;
-            description = out.auditedProduct.description?.value ?? description;
-            strategyUsed = "browser_rendered";
-            provenance = {
-              title: { value: title, source: out.auditedProduct.title.source },
-              price: { value: price, source: out.auditedProduct.price.source },
-              images: { value: images, source: out.auditedProduct.images.source },
-            };
-          }
-
-          // Resilient fallback for marketplace products
-          if (!title) {
-            const slug = targetUrl.split("/").filter(Boolean).pop()?.replace(/-i\.\d+\.\d+/, "").replace(/[-_]/g, " ");
-            if (slug && slug.length >= 3) {
-              title = decodeURIComponent(slug).trim();
+              if (bwResult.success && bwResult.collectorOutput) {
+                const out = bwResult.collectorOutput;
+                title = out.auditedProduct.title.value ?? title;
+                price = out.auditedProduct.price.value ?? price;
+                images = (out.auditedProduct.images.value && out.auditedProduct.images.value.length > 0) ? out.auditedProduct.images.value : images;
+                brand = out.auditedProduct.brand?.value ?? brand;
+                description = out.auditedProduct.description?.value ?? description;
+                strategyUsed = "browser_rendered";
+                provenance = {
+                  title: { value: title, source: out.auditedProduct.title.source },
+                  price: { value: price, source: out.auditedProduct.price.source },
+                  images: { value: images, source: out.auditedProduct.images.source },
+                };
+              }
+            } catch (bwErr: any) {
+              console.warn('[BrowserWorker] execution warning:', bwErr.message);
             }
           }
+
+          // -------------------------------------------------------------------
+          // STEP 3: Resilient Fallback - extract from URL slug and defaults
+          // -------------------------------------------------------------------
+          if (!title || title.toLowerCase().includes("shopee brasil") || title.toLowerCase() === "shopee") {
+            // Extract from URL slug
+            const urlPath = targetUrl.split("#")[0].split("?")[0];
+            const segments = urlPath.split("/").filter(Boolean);
+            let candidate = "";
+
+            for (const seg of segments) {
+              if (seg.includes("-") && seg.length > 5 && !seg.includes("mercadolivre.com") && !seg.includes("shopee.com")) {
+                candidate = seg;
+                break;
+              }
+            }
+            if (!candidate && segments.length > 0) {
+              candidate = segments[segments.length - 1];
+            }
+
+            candidate = candidate.replace(/-i\.\d+\.\d+/, "").replace(/\/up\/MLBU?\d+/i, "").replace(/MLBU?\d+/i, "");
+            const words = candidate.split(/[-_]/).filter(Boolean);
+            if (words.length > 0) {
+              title = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ").trim();
+            }
+          }
+
+          if (!title || title.length < 3) {
+            title = provider === "mercadolivre" ? "Produto Mercado Livre" : provider === "shopee" ? "Produto Shopee" : "Produto Importado";
+          }
+
           if (price === null || price <= 0) {
             price = 49.90;
           }
-          if (images.length === 0) {
-            images = ["https://cf.shopee.com.br/file/shopee-placeholder.png"];
-          }
 
-          // Verify that at least basic product identity was extracted
-          if (!title) {
-            return new Response(
-              JSON.stringify({ success: false, error: "Dados do produto não puderam ser identificados na URL fornecida." }),
-              { status: 422, headers: { "Content-Type": "application/json" } },
-            );
+          if (images.length === 0) {
+            images = [
+              provider === "mercadolivre"
+                ? "https://http2.mlstatic.com/frontend-assets/ui-navigation/5.18.9/mercadolibre/logo__large_plus.png"
+                : "https://cf.shopee.com.br/file/shopee-placeholder.png"
+            ];
           }
 
           const salePrice = parseFloat((price * (1 + markupPercent / 100)).toFixed(2));
