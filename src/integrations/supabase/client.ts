@@ -1,9 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 
-export const OFFICIAL_SUPABASE_URL = "https://vtcnundfslqqlxdyrogv.supabase.co";
+export const OFFICIAL_SUPABASE_URL = "https://rouxgtjonfncswsqlcgz.supabase.co";
 export const OFFICIAL_SUPABASE_PUBLISHABLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0Y251bmRmc2xxcWx4ZHlyb2d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDgwODUsImV4cCI6MjEwMzA4NDA4NX0.aPEa_lbTAoyBaXQooZ1mUMJuMhsurJMm_Ni7sS1TurU";
+  "sb_publishable_mVSsfkvuVTXs6W0hrzV0Kw_W-dT3a0N";
 
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
@@ -40,7 +40,7 @@ function cleanForeignSupabaseStorage() {
       if (
         key?.startsWith("sb-") &&
         key.endsWith("-auth-token") &&
-        !key.includes("vtcnundfslqqlxdyrogv")
+        !key.includes("rouxgtjonfncswsqlcgz")
       ) {
         keysToRemove.push(key);
       }
@@ -55,9 +55,8 @@ export function createSupabaseClient() {
   const rawUrl = import.meta.env["VITE_SUPABASE_URL"];
   const rawKey = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
 
-  // Strictly enforce official Supabase instance: vtcnundfslqqlxdyrogv
   const SUPABASE_URL =
-    rawUrl && rawUrl.includes("vtcnundfslqqlxdyrogv") ? rawUrl : OFFICIAL_SUPABASE_URL;
+    rawUrl && rawUrl.startsWith("http") ? rawUrl : OFFICIAL_SUPABASE_URL;
   const SUPABASE_PUBLISHABLE_KEY =
     rawKey && rawKey.length > 20 ? rawKey : OFFICIAL_SUPABASE_PUBLISHABLE_KEY;
 
