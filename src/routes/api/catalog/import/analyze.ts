@@ -9,15 +9,7 @@ export const Route = createFileRoute("/api/catalog/import/analyze")({
         return preflight || new Response(null, { status: 204 });
       },
       POST: async ({ request }): Promise<Response> => {
-        console.log("[DEBUG] /api/catalog/import/analyze invoked", {
-          method: request.method,
-          pathname: new URL(request.url).pathname,
-        });
         const response = await handleCatalogProxy(request);
-        console.log("[DEBUG] Proxy response", {
-          status: response?.status,
-          ok: response?.ok,
-        });
         return (
           response ||
           new Response(JSON.stringify({ error: "Endpoint proxy não encontrado" }), { status: 404 })

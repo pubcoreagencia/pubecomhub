@@ -226,20 +226,8 @@ if (!targetPath) {
 
   const envObj = getServerEnv(request);
 
-  // Debug: log incoming request (method, pathname) without exposing Authorization header
-  console.log('[DEBUG] CatalogProxy received request', {
-    method: request.method,
-    pathname: new URL(request.url).pathname,
-    headers: Object.fromEntries([...request.headers.entries()].filter(([k]) => k.toLowerCase() !== 'authorization')),
-  });
-
   // 1. Authenticate caller with Supabase
   const auth = await validateSupabaseCaller(request, envObj);
-  console.log('[DEBUG] Supabase auth result', {
-    authenticated: auth.authenticated,
-    role: auth.role,
-    statusCode: auth.statusCode,
-  });
   if (!auth.authenticated) {
     return new Response(
       JSON.stringify({
