@@ -16,7 +16,9 @@ import {
 } from "./CatalogProvider";
 
 async function getBrowserLauncher() {
-  const mod = await import("@cloudflare/playwright");
+  const pkgName = "@cloudflare/puppeteer";
+  // @ts-ignore
+  const mod = await import(pkgName);
   return mod.launch || (mod as any).default?.launch;
 }
 

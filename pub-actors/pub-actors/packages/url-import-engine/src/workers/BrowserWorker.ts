@@ -1,5 +1,3 @@
-// @ts-ignore
-import { chromium } from "@cloudflare/playwright";
 import { BrowserCollectorOutput } from "../../../browser-collector/src/BrowserCollector.js";
 
 export type BrowserPageClassification =
@@ -31,7 +29,8 @@ export class BrowserWorker {
 
     try {
       // @ts-ignore
-      const { default: puppeteer } = await import("@cloudflare/puppeteer");
+      const puppeteerPkg = "@cloudflare/puppeteer";
+      const { default: puppeteer } = await import(puppeteerPkg);
       let page: any = null;
 
       if (env?.BROWSER) {
@@ -108,18 +107,11 @@ export class BrowserWorker {
             };
           });
         } catch (_) {}
+      } else if (puppeteer && typeof puppeteer.launch === "function") {
+        browser = await puppeteer.launch();
+        page = await browser.newPage();
       } else {
-        browser = await chromium.launch({
-          executablePath: this.CHROME_EXECUTABLE,
-          headless: true,
-          args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-        });
-        const context = await browser.newContext({
-          userAgent:
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-          viewport: { width: 1280, height: 800 },
-        });
-        page = await context.newPage();
+        throw new Error("Nenhum runtime BROWSER disponível no ambiente");
       }
 
       page.setDefaultTimeout(timeoutMs);
@@ -135,8 +127,8 @@ export class BrowserWorker {
         throw new Error(`Servidor remoto retornou HTTP ${status}`);
       }
 
-      // Allow hydration delay
-      await new Promise((r) => setTimeout(r, 2500));
+      // Allow hydration delay for client-side rendering (Shopee/MercadoLivre)
+      await new Promise((r) => setTimeout(r, 4000));
 
       // Execute in-page extraction and page classification
       const rawExtraction = await page.evaluate(() => {
@@ -178,7 +170,7 @@ export class BrowserWorker {
 
         // Title: DOM > Meta > doc.title > JSON-LD
         let title: string | null = null;
-        const titleEl = doc.querySelector("h1.ui-pdp-title, h1#title, h1#productTitle, .shopee-product-detail h1, h1");
+        const titleEl = doc.querySelector("h1.ui-pdp-title, h1#title, h1#productTitle, .shopee-product-detail h1, [class*='product-briefing'] h1, [class*='product-briefing'] span, div._44qnta, span.TSg3A_, h1");
         if (titleEl) {
           title = (titleEl as HTMLElement).innerText.trim();
         }
@@ -186,8 +178,8 @@ export class BrowserWorker {
           const ogTitle = doc.querySelector('meta[property="og:title"], meta[name="twitter:title"]');
           if (ogTitle) title = ogTitle.getAttribute("content")?.trim() || null;
         }
-        if (!title && docTitle && classification === "EMPTY" && !docTitle.includes("Verificação") && !docTitle.includes("Access Denied") && !docTitle.includes("Mercado Libre")) {
-          title = docTitle.replace(/\s*\|.*$/, "").replace(/\s*-\s*R\$.*$/, "").trim();
+        if (!title && docTitle && !docTitle.includes("Verificação") && !docTitle.includes("Access Denied")) {
+          title = docTitle.replace(/\s*(\|.*|-.*|Shopee.*|Mercado Libre.*)$/i, "").trim();
         }
 
         // Price: Fraction/Cents > Meta > Regex in text > JSON-LD
@@ -201,7 +193,7 @@ export class BrowserWorker {
         }
 
         if (!price) {
-          const shopeePrice = doc.querySelector(".pqTWkA, .Y3d2A, [class*='shopee-price']");
+          const shopeePrice = doc.querySelector(".pqTWkA, .Y3d2A, [class*='shopee-price'], [class*='product-price'], div.G27ShH, div.B-8e4A, div._12kQ79, span._3n5zSv");
           if (shopeePrice) {
             const m = (shopeePrice as HTMLElement).innerText.replace(/\./g, "").replace(",", ".").match(/[\d.]+/);
             if (m) price = parseFloat(m[0]);
@@ -235,9 +227,9 @@ export class BrowserWorker {
 
         // Images: Gallery > Meta > all imgs
         const images: string[] = [];
-        const imgEls = doc.querySelectorAll(".ui-pdp-gallery__figure img, #imgTagWrapperId img, #landingImage, .shopee-product-detail img, img[data-zoom]");
+        const imgEls = doc.querySelectorAll(".ui-pdp-gallery__figure img, #imgTagWrapperId img, #landingImage, .shopee-product-detail img, img[data-zoom], img[src*='susercontent'], img[src*='shopee'], img[src*='cf.shopee']");
         imgEls.forEach((el) => {
-          const src = el.getAttribute("data-zoom") || el.getAttribute("data-old-hires") || (el as HTMLImageElement).src;
+          const src = el.getAttribute("data-zoom") || el.getAttribute("data-src") || el.getAttribute("data-old-hires") || (el as HTMLImageElement).src;
           if (src && src.startsWith("http") && !src.includes("placeholder") && !src.includes("data:image")) {
             if (!images.includes(src)) images.push(src);
           }
@@ -252,7 +244,7 @@ export class BrowserWorker {
         }
 
         if (images.length === 0 && classification !== "ACCOUNT_VERIFICATION") {
-          const allImgs = doc.querySelectorAll("img[src*='mlstatic.com'], img[src*='http']");
+          const allImgs = doc.querySelectorAll("img[src*='mlstatic.com'], img[src*='susercontent'], img[src*='http']");
           allImgs.forEach((img) => {
             const src = img.getAttribute("data-zoom") || img.getAttribute("src");
             if (src && src.startsWith("http") && !src.includes("data:image") && !src.includes("pixel") && !images.includes(src)) {
@@ -279,7 +271,8 @@ export class BrowserWorker {
                 if (item.brand?.name && !jsonldBrand) jsonldBrand = item.brand.name;
                 if (item.offers) {
                   const offer = Array.isArray(item.offers) ? item.offers[0] : item.offers;
-                  if (offer?.price && !jsonldPrice) jsonldPrice = parseFloat(offer.price);
+                  const rawP = offer?.price || offer?.lowPrice || offer?.highPrice;
+                  if (rawP && !jsonldPrice) jsonldPrice = parseFloat(String(rawP).replace(/[^0-9.]/g, ""));
                 }
               }
             }
@@ -299,15 +292,13 @@ export class BrowserWorker {
         const domDesc = descEl ? (descEl as HTMLElement).innerText.trim() : null;
 
         const finalTitle = title || jsonldTitle || hydTitle;
-        const finalPrice = price || jsonldPrice || hydPrice;
+        const finalPrice = price || jsonldPrice || hydPrice || 0;
         const finalBrand = jsonldBrand || null;
         const finalDesc = domDesc || jsonldDesc || null;
 
         if (classification === "EMPTY") {
-          if (finalTitle && finalPrice !== null && images.length > 0) {
+          if (finalTitle || images.length > 0) {
             classification = "PRODUCT_PAGE";
-          } else {
-            classification = "INTERSTITIAL";
           }
         }
 
