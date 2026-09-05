@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Globe, MapPin, Eye, ShoppingBag, ShieldCheck, Smartphone, Laptop, Sparkles } from "lucide-react";
+import { Globe, MapPin, Eye, ShoppingBag, ShieldCheck, Smartphone, Laptop, Sparkles, Activity, Filter, Zap } from "lucide-react";
 
 export interface GeoVisitor {
   id: string;
@@ -38,197 +38,302 @@ export const WorldMapLive: React.FC<WorldMapLiveProps> = ({
   selectedVisitor,
   onSelectVisitor,
 }) => {
-  // Equirectangular projection: converts lat/lng to SVG percentages
+  const [filterAction, setFilterAction] = React.useState<string>("all");
+
+  // Equirectangular projection: converts lat/lng to percentage coordinates
   const getCoordinates = (lat: number, lng: number) => {
     const x = ((lng + 180) / 360) * 100;
     const y = ((90 - lat) / 180) * 100;
-    return { x: `${x}%`, y: `${y}%` };
+    return { x: `${x}%`, y: `${y}%`, rawX: (lng + 180) * (1000 / 360), rawY: (90 - lat) * (500 / 180) };
   };
 
   const getActionColor = (action: GeoVisitor["action"]) => {
     switch (action) {
       case "purchased":
-        return "#22c55e"; // green
+        return "#22c55e"; // Emerald green
       case "checkout":
-        return "#f59e0b"; // amber
+        return "#f59e0b"; // Amber gold
       case "cart":
-        return "#38bdf8"; // cyan
+        return "#38bdf8"; // Cyan blue
       default:
-        return "#a855f7"; // purple
+        return "#a855f7"; // Neon purple
     }
   };
 
-  const getActionLabel = (action: GeoVisitor["action"]) => {
+  const getActionHabboBadge = (action: GeoVisitor["action"]) => {
     switch (action) {
       case "purchased":
-        return "Compra Aprovada";
+        return { emoji: "🦆", label: "Compra Aprovada", bg: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" };
       case "checkout":
-        return "No Checkout";
+        return { emoji: "💰", label: "No Checkout", bg: "bg-amber-500/20 text-amber-400 border-amber-500/40" };
       case "cart":
-        return "Com Carrinho";
+        return { emoji: "🪙", label: "Com Carrinho", bg: "bg-cyan-500/20 text-cyan-400 border-cyan-500/40" };
       default:
-        return "Navegando";
+        return { emoji: "💬", label: "Navegando", bg: "bg-purple-500/20 text-purple-400 border-purple-500/40" };
     }
   };
 
-  const getActionHabboIcon = (action: GeoVisitor["action"]) => {
-    switch (action) {
-      case "purchased":
-        return "🦆"; // Habbo Rubber Duck of honor
-      case "checkout":
-        return "💰"; // Habbo credits bag
-      case "cart":
-        return "🪙"; // Habbo gold coin
-      default:
-        return "💬"; // Habbo chat bubble
-    }
-  };
+  const filteredVisitors = visitors.filter((v) => {
+    if (filterAction === "all") return true;
+    return v.action === filterAction;
+  });
+
+  const totalCartValue = visitors.reduce((sum, v) => sum + (v.productPrice || 0), 0);
+  const totalPurchases = visitors.filter((v) => v.action === "purchased").length;
 
   return (
-    <div className="relative w-full aspect-[2/1] min-h-[380px] sm:min-h-[460px] bg-[#07090e] border border-[var(--hub-border)] rounded-3xl overflow-hidden shadow-2xl group">
-      {/* Background Radar Grid & Coordinates Lines */}
+    <div className="relative w-full aspect-[2/1] min-h-[460px] sm:min-h-[560px] bg-[#030712] border border-[var(--hub-border)] rounded-3xl overflow-hidden shadow-2xl group select-none">
+      {/* Background Cyber Grid Matrix */}
       <div
         className="absolute inset-0 opacity-15 pointer-events-none"
         style={{
           backgroundImage: `
+            radial-gradient(circle at center, rgba(56, 189, 248, 0.15) 0%, transparent 70%),
             linear-gradient(to right, #38bdf8 1px, transparent 1px),
             linear-gradient(to bottom, #38bdf8 1px, transparent 1px)
           `,
-          backgroundSize: "8.33% 16.66%",
+          backgroundSize: "100% 100%, 4% 8%, 4% 8%",
         }}
       />
 
-      {/* Futuristic Header Overlay */}
-      <div className="absolute top-4 left-6 z-20 flex items-center gap-3">
-        <div className="h-8 w-8 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-500/10">
-          <Globe className="h-4 w-4 animate-spin" style={{ animationDuration: "25s" }} />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-black uppercase tracking-widest text-white italic">
-              Radar Geográfico Global (Habbo Telemetry)
-            </span>
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[9px] font-black text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              LIVE TELEMETRY
-            </span>
+      {/* Top Telemetry Header Bar */}
+      <div className="absolute top-4 left-6 right-6 z-20 flex flex-wrap items-center justify-between gap-3 pointer-events-auto">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-500/10">
+            <Globe className="h-5 w-5 animate-spin" style={{ animationDuration: "35s" }} />
           </div>
-          <p className="text-[9px] font-mono text-[var(--hub-muted)]">
-            Projeção Cilíndrica Equirretangular • Lat/Lng Realtime
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-wider text-white italic">
+                Radar Global de Vendas & Telemetria
+              </span>
+              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-black text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                EDGE LIVE
+              </span>
+            </div>
+            <p className="text-[10px] font-mono text-cyan-400/70">
+              Cloudflare Anycast • São Paulo Core Hub • {filteredVisitors.length} Compradores Monitorados
+            </p>
+          </div>
+        </div>
+
+        {/* Global Live Stats Ticker */}
+        <div className="flex items-center gap-2 sm:gap-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 text-[11px] font-mono">
+          <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
+            <span>🦆</span>
+            <span>{totalPurchases} Vendas</span>
+          </div>
+          <div className="h-3 w-[1px] bg-white/20" />
+          <div className="flex items-center gap-1.5 text-cyan-400 font-bold">
+            <span>🪙</span>
+            <span>R$ {totalCartValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} em Carrinhos</span>
+          </div>
+          <div className="h-3 w-[1px] bg-white/20" />
+          <div className="flex items-center gap-1.5 text-purple-400 font-bold hidden md:flex">
+            <Zap className="h-3.5 w-3.5" />
+            <span>14ms Edge Latency</span>
+          </div>
+        </div>
+
+        {/* Action Filter Pills */}
+        <div className="flex items-center gap-1 bg-black/70 backdrop-blur-md p-1 rounded-xl border border-white/10 text-[10px] font-bold">
+          {[
+            { id: "all", label: "Todos", icon: "🌐" },
+            { id: "purchased", label: "Compras", icon: "🦆" },
+            { id: "checkout", label: "Checkout", icon: "💰" },
+            { id: "cart", label: "Carrinho", icon: "🪙" },
+            { id: "viewing", label: "Visitas", icon: "💬" },
+          ].map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setFilterAction(f.id)}
+              className={cn(
+                "px-2.5 py-1 rounded-lg transition-all flex items-center gap-1",
+                filterAction === f.id
+                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/20"
+                  : "text-zinc-400 hover:text-white"
+              )}
+            >
+              <span>{f.icon}</span>
+              <span>{f.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Action Indicators Legend (Top-Right) */}
-      <div className="absolute top-4 right-6 z-20 hidden sm:flex items-center gap-3 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-wider">
-        <div className="flex items-center gap-1.5 text-emerald-400">
-          <span>🦆</span>
-          <span>Compra</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-amber-400">
-          <span>💰</span>
-          <span>Checkout</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-cyan-400">
-          <span>🪙</span>
-          <span>Carrinho</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-purple-400">
-          <span>💬</span>
-          <span>Visita</span>
-        </div>
-      </div>
-
-      {/* SVG Continents Outline Graphic - High-Fidelity Silhouette */}
+      {/* SVG High-Fidelity World Map Canvas */}
       <svg
-        className="absolute inset-0 w-full h-full object-fill pointer-events-none opacity-45"
+        className="absolute inset-0 w-full h-full object-fill pointer-events-none"
         viewBox="0 0 1000 500"
         preserveAspectRatio="none"
       >
         <defs>
-          <radialGradient id="radarCenterGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#07090e" stopOpacity="0" />
+          <filter id="cyanGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
+            <stop offset="50%" stopColor="#22c55e" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.8" />
+          </linearGradient>
+          <radialGradient id="radarSweepGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="#030712" stopOpacity="0" />
           </radialGradient>
         </defs>
 
-        <rect width="1000" height="500" fill="url(#radarCenterGlow)" />
+        <rect width="1000" height="500" fill="url(#radarSweepGlow)" />
 
-        {/* Linhas de Trópicos e Equador */}
-        <line x1="0" y1="250" x2="1000" y2="250" stroke="#38bdf8" strokeWidth="0.8" strokeDasharray="4 4" opacity="0.3" />
-        <line x1="0" y1="185" x2="1000" y2="185" stroke="#38bdf8" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.2" />
-        <line x1="0" y1="315" x2="1000" y2="315" stroke="#38bdf8" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.2" />
+        {/* Lat/Long Coordinate Grid Lines */}
+        <g stroke="#38bdf8" strokeWidth="0.5" opacity="0.2" strokeDasharray="3 4">
+          {/* Equator & Tropics */}
+          <line x1="0" y1="250" x2="1000" y2="250" strokeWidth="1" opacity="0.4" />
+          <line x1="0" y1="185" x2="1000" y2="185" />
+          <line x1="0" y1="315" x2="1000" y2="315" />
+          <line x1="0" y1="120" x2="1000" y2="120" />
+          <line x1="0" y1="380" x2="1000" y2="380" />
 
-        {/* América do Sul - Silhueta Fiel com Brasil e Litoral */}
-        <path
-          d="M 270 230 C 290 235, 335 240, 365 270 C 375 285, 360 320, 345 350 C 330 380, 315 415, 305 440 C 295 450, 285 450, 280 435 C 270 410, 265 350, 255 310 C 245 280, 250 250, 270 230 Z"
-          fill="#0f172a"
-          stroke="#38bdf8"
-          strokeWidth="1.2"
-          opacity="0.9"
-        />
+          {/* Meridians */}
+          <line x1="200" y1="0" x2="200" y2="500" />
+          <line x1="350" y1="0" x2="350" y2="500" />
+          <line x1="500" y1="0" x2="500" y2="500" strokeWidth="1" opacity="0.4" />
+          <line x1="650" y1="0" x2="650" y2="500" />
+          <line x1="800" y1="0" x2="800" y2="500" />
+        </g>
 
-        {/* América do Norte & Central */}
-        <path
-          d="M 120 70 C 150 55, 230 50, 280 60 C 315 75, 330 110, 310 140 C 295 160, 280 185, 260 210 C 240 225, 220 205, 195 180 C 165 170, 140 140, 120 110 Z"
-          fill="#0f172a"
-          stroke="#38bdf8"
-          strokeWidth="1.2"
-          opacity="0.8"
-        />
+        {/* ========================================================================= */}
+        {/* DETAILED HIGH-DEFINITION SVG CONTINENT POLYGONS */}
+        {/* ========================================================================= */}
+        <g fill="#0b1329" stroke="#38bdf8" strokeWidth="1.1" opacity="0.85" filter="url(#cyanGlow)">
+          {/* AMÉRICA DO SUL (Brasil, Argentina, Chile, Colômbia) */}
+          <path
+            d="
+              M 275,230 
+              L 300,225 L 340,240 L 375,260 L 385,285 L 375,320 L 360,350 L 345,380 
+              L 325,415 L 310,445 L 300,455 L 292,440 L 295,405 L 285,360 L 270,320 
+              L 260,285 L 255,260 L 265,240 Z
+            "
+          />
 
-        {/* Europa */}
-        <path
-          d="M 455 90 C 485 80, 530 85, 555 110 C 565 125, 550 150, 525 165 C 495 175, 465 160, 450 140 C 445 120, 445 100, 455 90 Z"
-          fill="#0f172a"
-          stroke="#38bdf8"
-          strokeWidth="1.2"
-          opacity="0.85"
-        />
+          {/* AMÉRICA DO NORTE (EUA, Canadá, Alasca, México) */}
+          <path
+            d="
+              M 80,85 
+              L 125,70 L 160,55 L 210,50 L 260,55 L 300,70 L 325,95 L 310,120 
+              L 290,140 L 280,165 L 275,190 L 255,215 L 240,225 L 225,215 L 205,190 
+              L 180,175 L 150,165 L 120,135 L 95,110 Z
+            "
+          />
 
-        {/* África */}
-        <path
-          d="M 450 175 C 490 170, 545 175, 565 210 C 580 240, 570 280, 545 330 C 525 365, 495 365, 475 320 C 455 280, 440 230, 450 175 Z"
-          fill="#0f172a"
-          stroke="#38bdf8"
-          strokeWidth="1.2"
-          opacity="0.75"
-        />
+          {/* GROENLÂNDIA */}
+          <path d="M 330,40 L 375,35 L 390,60 L 365,80 L 340,75 L 325,55 Z" />
 
-        {/* Ásia */}
-        <path
-          d="M 555 80 C 620 65, 750 65, 820 110 C 850 140, 835 180, 790 220 C 745 250, 680 235, 620 200 C 575 170, 545 130, 555 80 Z"
-          fill="#0f172a"
-          stroke="#38bdf8"
-          strokeWidth="1.2"
-          opacity="0.75"
-        />
+          {/* EUROPA (Reino Unido, Península Ibérica, França, Alemanha, Escandinávia, Itália) */}
+          <path
+            d="
+              M 445,100 
+              L 470,85 L 505,80 L 535,90 L 555,105 L 560,125 L 545,145 L 530,165 
+              L 510,170 L 490,175 L 465,160 L 450,140 L 440,120 Z
+            "
+          />
+          {/* Grã-Bretanha & Irlanda */}
+          <path d="M 430,95 L 445,90 L 448,110 L 435,115 Z" />
 
-        {/* Oceania */}
-        <path
-          d="M 760 300 C 800 290, 865 305, 885 340 C 895 365, 875 390, 835 395 C 795 400, 765 360, 755 330 Z"
-          fill="#0f172a"
-          stroke="#38bdf8"
-          strokeWidth="1.2"
-          opacity="0.8"
-        />
+          {/* ÁFRICA (Norte, Saara, Chifre da África, África do Sul, Madagascar) */}
+          <path
+            d="
+              M 455,180 
+              L 500,175 L 545,185 L 575,215 L 585,250 L 570,290 L 555,330 L 535,365 
+              L 510,380 L 490,365 L 475,330 L 455,280 L 445,230 L 445,195 Z
+            "
+          />
+          {/* Madagascar */}
+          <path d="M 585,320 L 595,315 L 600,345 L 590,350 Z" />
+
+          {/* ÁSIA (Oriente Médio, Rússia, Índia, China, Sudeste Asiático) */}
+          <path
+            d="
+              M 565,85 
+              L 620,70 L 700,60 L 780,65 L 845,95 L 870,130 L 855,170 L 820,195 
+              L 780,215 L 740,240 L 705,255 L 670,240 L 640,215 L 600,195 L 575,150 
+              L 560,115 Z
+            "
+          />
+          {/* Península Indiana */}
+          <path d="M 670,205 L 705,220 L 710,255 L 690,275 L 675,250 Z" />
+          {/* Japão */}
+          <path d="M 865,140 L 880,150 L 875,175 L 860,165 Z" />
+
+          {/* OCEANIA & AUSTRÁLIA */}
+          <path
+            d="
+              M 770,305 
+              L 820,295 L 875,310 L 895,340 L 885,380 L 845,400 L 805,395 L 775,365 
+              L 760,335 Z
+            "
+          />
+          {/* Nova Zelândia */}
+          <path d="M 905,385 L 920,380 L 925,415 L 910,420 Z" />
+        </g>
+
+        {/* ========================================================================= */}
+        {/* GLOBAL FLIGHT & DATA ARCS (Conexão São Paulo Core Hub com o Mundo) */}
+        {/* ========================================================================= */}
+        <g stroke="url(#arcGrad)" fill="none" strokeWidth="1.5" opacity="0.6">
+          {/* São Paulo (335, 340) -> Miami/EUA (235, 175) */}
+          <path
+            d="M 335,340 Q 260,230 235,175"
+            strokeDasharray="6 6"
+            className="animate-[dash_20s_linear_infinite]"
+          />
+          {/* São Paulo (335, 340) -> Frankfurt/Europa (485, 125) */}
+          <path
+            d="M 335,340 Q 420,180 485,125"
+            strokeDasharray="6 6"
+            className="animate-[dash_25s_linear_infinite]"
+          />
+          {/* São Paulo (335, 340) -> Tóquio/Ásia (870, 155) */}
+          <path
+            d="M 335,340 Q 600,120 870,155"
+            strokeDasharray="6 6"
+            className="animate-[dash_30s_linear_infinite]"
+          />
+          {/* São Paulo (335, 340) -> Londres (445, 105) */}
+          <path
+            d="M 335,340 Q 380,180 445,105"
+            strokeDasharray="6 6"
+            className="animate-[dash_22s_linear_infinite]"
+          />
+        </g>
+
+        {/* Pulse Beacon no Hub Central (São Paulo / Brasil) */}
+        <circle cx="335" cy="340" r="14" fill="#0ea5e9" opacity="0.2" className="animate-ping" />
+        <circle cx="335" cy="340" r="5" fill="#38bdf8" />
+        <circle cx="335" cy="340" r="2.5" fill="#ffffff" />
       </svg>
 
-      {/* Radar Sweep Animation (efeito varredura sonar) */}
+      {/* Radar Sweep Effect */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-25"
+        className="absolute inset-0 pointer-events-none opacity-30"
         style={{
-          background: "linear-gradient(90deg, transparent 45%, rgba(56, 189, 248, 0.4) 50%, transparent 55%)",
+          background: "linear-gradient(90deg, transparent 40%, rgba(56, 189, 248, 0.45) 50%, transparent 60%)",
           backgroundSize: "200% 100%",
-          animation: "radarSweep 8s linear infinite",
+          animation: "radarSweep 7s linear infinite",
         }}
       />
 
-      {/* Pulsating Visitor Pins com Estética Habbo Hotel */}
-      {visitors.map((visitor) => {
+      {/* ========================================================================= */}
+      {/* INTERACTIVE PULSATING VISITOR PINS WITH HABBO AVATAR BADGES */}
+      {/* ========================================================================= */}
+      {filteredVisitors.map((visitor) => {
         const coords = getCoordinates(visitor.lat, visitor.lng);
         const color = getActionColor(visitor.action);
-        const habboIcon = getActionHabboIcon(visitor.action);
+        const badge = getActionHabboBadge(visitor.action);
         const isSelected = selectedVisitor?.id === visitor.id;
 
         return (
@@ -241,140 +346,109 @@ export const WorldMapLive: React.FC<WorldMapLiveProps> = ({
               top: coords.y,
             }}
           >
-            {/* Ondas Sonar Concêntricas de Pulso */}
+            {/* Concentric Radar Ping Waves */}
             <div
-              className="absolute -inset-3 rounded-full animate-ping opacity-40 pointer-events-none"
+              className="absolute -inset-3.5 rounded-full animate-ping opacity-60 pointer-events-none"
+              style={{ backgroundColor: color }}
+            />
+            <div
+              className="absolute -inset-1 rounded-full opacity-70 pointer-events-none"
               style={{ backgroundColor: color }}
             />
 
-            {/* Balão de Fala Estilo Habbo Hotel Flutuante */}
+            {/* Habbo Avatar Speech Bubble Pin */}
             <div
               className={cn(
-                "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-all duration-300 pointer-events-none z-40",
-                isSelected ? "scale-100 opacity-100" : "scale-90 opacity-80 group-hover/pin:scale-105 group-hover/pin:opacity-100"
+                "relative flex items-center gap-1.5 px-2 py-1 rounded-xl shadow-xl transition-all duration-300 backdrop-blur-md",
+                isSelected
+                  ? "scale-110 ring-2 ring-white bg-black/90 border-2"
+                  : "scale-90 hover:scale-105 bg-black/80 border"
               )}
+              style={{ borderColor: color }}
             >
-              <div
-                style={{
-                  background: "#09090b",
-                  border: `2px solid ${color}`,
-                  borderRadius: "10px",
-                  padding: "3px 8px",
-                  whiteSpace: "nowrap",
-                  boxShadow: `0 4px 16px ${color}66`,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "5px",
-                }}
-              >
-                <span style={{ fontSize: "12px" }}>{habboIcon}</span>
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: "9px", fontWeight: 900, color: "#ffffff", fontFamily: "monospace" }}>
-                    {visitor.name}
-                  </span>
-                  <span style={{ fontSize: "8px", color: color, fontWeight: 700 }}>
-                    {visitor.city} ({visitor.action === 'purchased' ? 'COMPRA R$ ' + (visitor.productPrice || 189) : visitor.action === 'cart' ? 'Carrinho' : 'Navegando'})
-                  </span>
-                </div>
+              <span className="text-xs">{badge.emoji}</span>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black leading-tight text-white whitespace-nowrap">
+                  {visitor.name.split(' ')[0]}
+                </span>
+                <span className="text-[8px] font-mono leading-none text-zinc-400 whitespace-nowrap">
+                  {visitor.city}
+                </span>
               </div>
-              <div
-                style={{
-                  width: "6px",
-                  height: "6px",
-                  background: "#09090b",
-                  borderRight: `2px solid ${color}`,
-                  borderBottom: `2px solid ${color}`,
-                  transform: "rotate(45deg)",
-                  margin: "-3px auto 0 auto",
-                }}
-              />
-            </div>
-
-            {/* Pin Isométrico Losango Retrô Habbo */}
-            <div
-              className={cn(
-                "relative h-4 w-4 transform rotate-45 border-2 border-white shadow-lg transition-all duration-300 flex items-center justify-center",
-                isSelected ? "scale-150 ring-4 ring-white/50" : "group-hover/pin:scale-125"
-              )}
-              style={{
-                backgroundColor: color,
-                boxShadow: `0 0 16px ${color}`,
-              }}
-            >
-              <div className="h-1.5 w-1.5 bg-white transform -rotate-45" />
             </div>
           </div>
         );
       })}
 
-      {/* Visitor Detail Floating Drawer (Quando um pin é selecionado) */}
+      {/* ========================================================================= */}
+      {/* SELECTED BUYER DOSSIER DRAWER (Card de Detalhes Completo do Comprador) */}
+      {/* ========================================================================= */}
       {selectedVisitor && (
-        <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-88 z-40 bg-[#0c1018]/95 backdrop-blur-xl p-4 rounded-2xl border border-cyan-500/40 shadow-2xl animate-in slide-in-from-bottom-4 duration-200">
-          <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-3 mb-3">
-            <div className="flex items-center gap-2.5">
-              <div
-                className="h-10 w-10 rounded-xl flex items-center justify-center text-black font-black text-base shadow-md"
-                style={{ backgroundColor: getActionColor(selectedVisitor.action) }}
-              >
-                {getActionHabboIcon(selectedVisitor.action)}
+        <div className="absolute bottom-4 right-4 z-40 w-full max-w-sm bg-black/85 backdrop-blur-xl border border-cyan-500/40 rounded-2xl p-4 shadow-2xl shadow-cyan-500/20 text-white animate-in slide-in-from-bottom-5">
+          <div className="flex items-start justify-between border-b border-white/10 pb-3 mb-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-cyan-500/20 to-emerald-500/20 border border-cyan-500/40 flex items-center justify-center text-xl shadow-lg">
+                {getActionHabboBadge(selectedVisitor.action).emoji}
               </div>
               <div>
-                <div className="flex items-center gap-1.5">
-                  <h4 className="text-xs font-black text-white">{selectedVisitor.name}</h4>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 font-mono text-cyan-300">
-                    {selectedVisitor.gender}, {selectedVisitor.age}a
+                <h4 className="text-sm font-black text-white flex items-center gap-2">
+                  {selectedVisitor.name}
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">
+                    Score: {selectedVisitor.score}
                   </span>
-                </div>
-                <p className="text-[10px] text-cyan-400 font-mono">
+                </h4>
+                <p className="text-[11px] font-mono text-zinc-400 flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-cyan-400" />
                   {selectedVisitor.city}, {selectedVisitor.state} ({selectedVisitor.country})
                 </p>
               </div>
             </div>
             <button
-              onClick={() => onSelectVisitor(null as any)}
-              className="text-slate-400 hover:text-white text-xs p-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectVisitor(null as any);
+              }}
+              className="text-zinc-400 hover:text-white text-xs font-bold px-2 py-1 bg-white/5 rounded-lg"
             >
               ✕
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-[10px] mb-3">
-            <div className="bg-black/40 p-2 rounded-xl border border-white/5">
-              <span className="text-slate-400 block text-[9px] uppercase font-bold">Coordenadas</span>
-              <span className="text-white font-mono font-bold">
-                {selectedVisitor.lat.toFixed(4)}°, {selectedVisitor.lng.toFixed(4)}°
+          <div className="space-y-2 text-xs font-mono">
+            <div className="flex justify-between items-center bg-white/5 px-2.5 py-1.5 rounded-lg">
+              <span className="text-zinc-400">Status da Jornada:</span>
+              <span className={cn("px-2 py-0.5 rounded font-black text-[10px] border", getActionHabboBadge(selectedVisitor.action).bg)}>
+                {getActionHabboBadge(selectedVisitor.action).label}
               </span>
             </div>
-            <div className="bg-black/40 p-2 rounded-xl border border-white/5">
-              <span className="text-slate-400 block text-[9px] uppercase font-bold">Lead Score (DB 2)</span>
-              <span className="text-emerald-400 font-mono font-black">
-                {selectedVisitor.score}/100 pts
-              </span>
-            </div>
-          </div>
 
-          <div className="space-y-1.5 text-[10px] text-slate-300">
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">Página Atual:</span>
-              <span className="font-mono text-white truncate max-w-[160px]">{selectedVisitor.page}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">Tempo na Loja:</span>
-              <span className="font-mono text-cyan-300">{selectedVisitor.timeOnSite}</span>
-            </div>
             {selectedVisitor.productName && (
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400">Produto Ativo:</span>
-                <span className="font-bold text-amber-300 truncate max-w-[160px]">
+              <div className="flex justify-between items-center bg-white/5 px-2.5 py-1.5 rounded-lg">
+                <span className="text-zinc-400">Produto no Radar:</span>
+                <span className="text-cyan-300 font-bold truncate max-w-[180px]">
                   {selectedVisitor.productName}
                 </span>
               </div>
             )}
-            <div className="flex justify-between items-center pt-1 border-t border-white/5 text-[9px]">
-              <span className="text-slate-400">Interações:</span>
-              <span className="text-purple-300 font-bold">
-                {selectedVisitor.socials.instagramFollower ? "Seguidor no IG" : "Novo Visitante"} • {selectedVisitor.socials.interactionCount}x visualizações de posts
-              </span>
+
+            {selectedVisitor.productPrice && (
+              <div className="flex justify-between items-center bg-white/5 px-2.5 py-1.5 rounded-lg">
+                <span className="text-zinc-400">Valor do Ticket:</span>
+                <span className="text-emerald-400 font-black">
+                  R$ {selectedVisitor.productPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2 pt-1 text-[10px]">
+              <div className="bg-white/5 p-2 rounded-lg">
+                <span className="text-zinc-500 block">Dispositivo / IP:</span>
+                <span className="text-zinc-300 font-bold capitalize">{selectedVisitor.device} • {selectedVisitor.ip}</span>
+              </div>
+              <div className="bg-white/5 p-2 rounded-lg">
+                <span className="text-zinc-500 block">Tempo no Site:</span>
+                <span className="text-zinc-300 font-bold">{selectedVisitor.timeOnSite}</span>
+              </div>
             </div>
           </div>
         </div>
