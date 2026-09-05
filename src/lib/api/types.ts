@@ -30,6 +30,89 @@ export interface Store {
   metadata?: Record<string, any>;
 }
 
+// Fornecedores (Fontes de Importação e Dropshipping)
+export type Supplier = Store;
+
+// Vitrines de Venda (Lojas dos Clientes - Multi-tenant Storefronts)
+export type StoreNiche =
+  | "Mulher & Beleza"
+  | "Pet Shop & Cuidados"
+  | "Fitness & Academia"
+  | "Saúde & Bem-Estar"
+  | "Criança & Bebê"
+  | "Vestuário & Streetwear"
+  | "Futebol & Artigos Esportivos"
+  | "Tecnologia & Gadgets"
+  | "Casa & Decoração"
+  | "Joias & Luxo"
+  | "Gamer & Setup"
+  | "Automotivo & Ferramentas"
+  | "Eletrônicos & Tech"
+  | "Moda & Acessórios"
+  | "Beleza & Cosméticos"
+  | "Esportes & Fitness"
+  | "Geral & Variedades";
+
+export interface StoreColors {
+  primary: string;
+  secondary: string;
+  background: string;
+  surface: string;
+  text: string;
+  textMuted: string;
+  border: string;
+}
+
+export type StoreSectionType =
+  | "announcement"
+  | "hero"
+  | "benefits"
+  | "featured_products"
+  | "promo_banner"
+  | "testimonials"
+  | "newsletter"
+  | "footer";
+
+export interface StoreSection {
+  id: string;
+  type: StoreSectionType;
+  title: string;
+  enabled: boolean;
+  content?: any;
+}
+
+export interface StorefrontStore {
+  id: string;
+  name: string;
+  slug: string;
+  niche: StoreNiche;
+  description: string;
+  logoUrl?: string | null;
+  bannerUrl?: string | null;
+  status: "published" | "draft";
+  ownerId?: string;
+  ownerEmail?: string;
+  colors: StoreColors;
+  templateId?: string;
+  sections: StoreSection[];
+  assignedProductIds: string[];
+  createdAt: string;
+  updatedAt: string;
+  metrics?: {
+    visits: number;
+    orders: number;
+    revenue: number;
+    conversionRate: number;
+  };
+}
+
+export interface SupplierExportData {
+  supplier: Supplier;
+  exportedAt: string;
+  totalProducts: number;
+  products: Product[];
+}
+
 export interface Product {
   id: string;
   externalId: string;

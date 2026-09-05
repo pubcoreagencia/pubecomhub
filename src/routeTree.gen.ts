@@ -28,7 +28,6 @@ import { Route as DashboardProductsRouteImport } from './routes/dashboard/produc
 import { Route as DashboardRankingRouteImport } from './routes/dashboard/ranking'
 import { Route as DashboardSeoRouteImport } from './routes/dashboard/seo'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
-import { Route as DashboardStoresRouteImport } from './routes/dashboard/stores'
 import { Route as DashboardTrackingRouteImport } from './routes/dashboard/tracking'
 import { Route as StoreIndexRouteImport } from './routes/store/index'
 import { Route as StoreCartRouteImport } from './routes/store/cart'
@@ -38,8 +37,10 @@ import { Route as ApiCatalogHealthRouteImport } from './routes/api/catalog/healt
 import { Route as ApiCatalogProductsRouteImport } from './routes/api/catalog/products'
 import { Route as ApiCatalogStatsRouteImport } from './routes/api/catalog/stats'
 import { Route as ApiIngestionShopeeRouteImport } from './routes/api/ingestion/shopee'
-import { Route as DashboardStoresStoreIdRouteImport } from './routes/dashboard/stores.$storeId'
+import { Route as DashboardStoresIndexRouteImport } from './routes/dashboard/stores/index'
+import { Route as DashboardStoresStoreIdRouteImport } from './routes/dashboard/stores/$storeId'
 import { Route as DashboardSuppliersIndexRouteImport } from './routes/dashboard/suppliers/index'
+import { Route as DashboardSuppliersSupplierIdRouteImport } from './routes/dashboard/suppliers/$supplierId'
 import { Route as DashboardSuppliersIngestionRouteImport } from './routes/dashboard/suppliers/ingestion'
 import { Route as ApiCatalogImportAnalyzeRouteImport } from './routes/api/catalog/import/analyze'
 import { Route as ApiCatalogImportCommitRouteImport } from './routes/api/catalog/import/commit'
@@ -141,11 +142,6 @@ const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
-const DashboardStoresRoute = DashboardStoresRouteImport.update({
-  id: '/stores',
-  path: '/stores',
-  getParentRoute: () => DashboardRouteRoute,
-} as any)
 const DashboardTrackingRoute = DashboardTrackingRouteImport.update({
   id: '/tracking',
   path: '/tracking',
@@ -191,16 +187,27 @@ const ApiIngestionShopeeRoute = ApiIngestionShopeeRouteImport.update({
   path: '/api/ingestion/shopee',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardStoresIndexRoute = DashboardStoresIndexRouteImport.update({
+  id: '/stores/',
+  path: '/stores/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardStoresStoreIdRoute = DashboardStoresStoreIdRouteImport.update({
-  id: '/$storeId',
-  path: '/$storeId',
-  getParentRoute: () => DashboardStoresRoute,
+  id: '/stores/$storeId',
+  path: '/stores/$storeId',
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DashboardSuppliersIndexRoute = DashboardSuppliersIndexRouteImport.update({
   id: '/suppliers/',
   path: '/suppliers/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardSuppliersSupplierIdRoute =
+  DashboardSuppliersSupplierIdRouteImport.update({
+    id: '/suppliers/$supplierId',
+    path: '/suppliers/$supplierId',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
 const DashboardSuppliersIngestionRoute =
   DashboardSuppliersIngestionRouteImport.update({
     id: '/suppliers/ingestion',
@@ -249,7 +256,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/ranking': typeof DashboardRankingRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
-  '/dashboard/stores': typeof DashboardStoresRouteWithChildren
   '/dashboard/tracking': typeof DashboardTrackingRoute
   '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
@@ -261,7 +267,9 @@ export interface FileRoutesByFullPath {
   '/api/catalog/stats': typeof ApiCatalogStatsRoute
   '/api/ingestion/shopee': typeof ApiIngestionShopeeRoute
   '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
+  '/dashboard/suppliers/$supplierId': typeof DashboardSuppliersSupplierIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
+  '/dashboard/stores/': typeof DashboardStoresIndexRoute
   '/dashboard/suppliers/': typeof DashboardSuppliersIndexRoute
   '/api/catalog/import/analyze': typeof ApiCatalogImportAnalyzeRoute
   '/api/catalog/import/commit': typeof ApiCatalogImportCommitRoute
@@ -286,7 +294,6 @@ export interface FileRoutesByTo {
   '/dashboard/ranking': typeof DashboardRankingRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
-  '/dashboard/stores': typeof DashboardStoresRouteWithChildren
   '/dashboard/tracking': typeof DashboardTrackingRoute
   '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
@@ -298,7 +305,9 @@ export interface FileRoutesByTo {
   '/api/catalog/stats': typeof ApiCatalogStatsRoute
   '/api/ingestion/shopee': typeof ApiIngestionShopeeRoute
   '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
+  '/dashboard/suppliers/$supplierId': typeof DashboardSuppliersSupplierIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
+  '/dashboard/stores': typeof DashboardStoresIndexRoute
   '/dashboard/suppliers': typeof DashboardSuppliersIndexRoute
   '/api/catalog/import/analyze': typeof ApiCatalogImportAnalyzeRoute
   '/api/catalog/import/commit': typeof ApiCatalogImportCommitRoute
@@ -325,7 +334,6 @@ export interface FileRoutesById {
   '/dashboard/ranking': typeof DashboardRankingRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
-  '/dashboard/stores': typeof DashboardStoresRouteWithChildren
   '/dashboard/tracking': typeof DashboardTrackingRoute
   '/store/cart': typeof StoreCartRoute
   '/store/checkout': typeof StoreCheckoutRoute
@@ -337,7 +345,9 @@ export interface FileRoutesById {
   '/api/catalog/stats': typeof ApiCatalogStatsRoute
   '/api/ingestion/shopee': typeof ApiIngestionShopeeRoute
   '/dashboard/stores/$storeId': typeof DashboardStoresStoreIdRoute
+  '/dashboard/suppliers/$supplierId': typeof DashboardSuppliersSupplierIdRoute
   '/dashboard/suppliers/ingestion': typeof DashboardSuppliersIngestionRoute
+  '/dashboard/stores/': typeof DashboardStoresIndexRoute
   '/dashboard/suppliers/': typeof DashboardSuppliersIndexRoute
   '/api/catalog/import/analyze': typeof ApiCatalogImportAnalyzeRoute
   '/api/catalog/import/commit': typeof ApiCatalogImportCommitRoute
@@ -365,7 +375,6 @@ export interface FileRouteTypes {
     | '/dashboard/ranking'
     | '/dashboard/seo'
     | '/dashboard/settings'
-    | '/dashboard/stores'
     | '/dashboard/tracking'
     | '/store/cart'
     | '/store/checkout'
@@ -377,7 +386,9 @@ export interface FileRouteTypes {
     | '/api/catalog/stats'
     | '/api/ingestion/shopee'
     | '/dashboard/stores/$storeId'
+    | '/dashboard/suppliers/$supplierId'
     | '/dashboard/suppliers/ingestion'
+    | '/dashboard/stores/'
     | '/dashboard/suppliers/'
     | '/api/catalog/import/analyze'
     | '/api/catalog/import/commit'
@@ -402,7 +413,6 @@ export interface FileRouteTypes {
     | '/dashboard/ranking'
     | '/dashboard/seo'
     | '/dashboard/settings'
-    | '/dashboard/stores'
     | '/dashboard/tracking'
     | '/store/cart'
     | '/store/checkout'
@@ -414,7 +424,9 @@ export interface FileRouteTypes {
     | '/api/catalog/stats'
     | '/api/ingestion/shopee'
     | '/dashboard/stores/$storeId'
+    | '/dashboard/suppliers/$supplierId'
     | '/dashboard/suppliers/ingestion'
+    | '/dashboard/stores'
     | '/dashboard/suppliers'
     | '/api/catalog/import/analyze'
     | '/api/catalog/import/commit'
@@ -440,7 +452,6 @@ export interface FileRouteTypes {
     | '/dashboard/ranking'
     | '/dashboard/seo'
     | '/dashboard/settings'
-    | '/dashboard/stores'
     | '/dashboard/tracking'
     | '/store/cart'
     | '/store/checkout'
@@ -452,7 +463,9 @@ export interface FileRouteTypes {
     | '/api/catalog/stats'
     | '/api/ingestion/shopee'
     | '/dashboard/stores/$storeId'
+    | '/dashboard/suppliers/$supplierId'
     | '/dashboard/suppliers/ingestion'
+    | '/dashboard/stores/'
     | '/dashboard/suppliers/'
     | '/api/catalog/import/analyze'
     | '/api/catalog/import/commit'
@@ -613,13 +626,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/dashboard/stores': {
-      id: '/dashboard/stores'
-      path: '/stores'
-      fullPath: '/dashboard/stores'
-      preLoaderRoute: typeof DashboardStoresRouteImport
-      parentRoute: typeof DashboardRouteRoute
-    }
     '/dashboard/tracking': {
       id: '/dashboard/tracking'
       path: '/tracking'
@@ -683,18 +689,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiIngestionShopeeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/stores/': {
+      id: '/dashboard/stores/'
+      path: '/stores'
+      fullPath: '/dashboard/stores/'
+      preLoaderRoute: typeof DashboardStoresIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/stores/$storeId': {
       id: '/dashboard/stores/$storeId'
-      path: '/$storeId'
+      path: '/stores/$storeId'
       fullPath: '/dashboard/stores/$storeId'
       preLoaderRoute: typeof DashboardStoresStoreIdRouteImport
-      parentRoute: typeof DashboardStoresRoute
+      parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/suppliers/': {
       id: '/dashboard/suppliers/'
       path: '/suppliers'
       fullPath: '/dashboard/suppliers/'
       preLoaderRoute: typeof DashboardSuppliersIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/suppliers/$supplierId': {
+      id: '/dashboard/suppliers/$supplierId'
+      path: '/suppliers/$supplierId'
+      fullPath: '/dashboard/suppliers/$supplierId'
+      preLoaderRoute: typeof DashboardSuppliersSupplierIdRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/suppliers/ingestion': {
@@ -735,18 +755,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface DashboardStoresRouteChildren {
-  DashboardStoresStoreIdRoute: typeof DashboardStoresStoreIdRoute
-}
-
-const DashboardStoresRouteChildren: DashboardStoresRouteChildren = {
-  DashboardStoresStoreIdRoute: DashboardStoresStoreIdRoute,
-}
-
-const DashboardStoresRouteWithChildren = DashboardStoresRoute._addFileChildren(
-  DashboardStoresRouteChildren,
-)
-
 interface DashboardRouteRouteChildren {
   DashboardAffiliatesRoute: typeof DashboardAffiliatesRoute
   DashboardAudienceRoute: typeof DashboardAudienceRoute
@@ -762,10 +770,12 @@ interface DashboardRouteRouteChildren {
   DashboardRankingRoute: typeof DashboardRankingRoute
   DashboardSeoRoute: typeof DashboardSeoRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
-  DashboardStoresRoute: typeof DashboardStoresRouteWithChildren
   DashboardTrackingRoute: typeof DashboardTrackingRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardStoresStoreIdRoute: typeof DashboardStoresStoreIdRoute
+  DashboardSuppliersSupplierIdRoute: typeof DashboardSuppliersSupplierIdRoute
   DashboardSuppliersIngestionRoute: typeof DashboardSuppliersIngestionRoute
+  DashboardStoresIndexRoute: typeof DashboardStoresIndexRoute
   DashboardSuppliersIndexRoute: typeof DashboardSuppliersIndexRoute
 }
 
@@ -784,10 +794,12 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardRankingRoute: DashboardRankingRoute,
   DashboardSeoRoute: DashboardSeoRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
-  DashboardStoresRoute: DashboardStoresRouteWithChildren,
   DashboardTrackingRoute: DashboardTrackingRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardStoresStoreIdRoute: DashboardStoresStoreIdRoute,
+  DashboardSuppliersSupplierIdRoute: DashboardSuppliersSupplierIdRoute,
   DashboardSuppliersIngestionRoute: DashboardSuppliersIngestionRoute,
+  DashboardStoresIndexRoute: DashboardStoresIndexRoute,
   DashboardSuppliersIndexRoute: DashboardSuppliersIndexRoute,
 }
 

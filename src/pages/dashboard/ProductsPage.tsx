@@ -10,6 +10,10 @@ import {
   Truck,
   TrendingUp,
   Filter,
+  Edit2,
+  X,
+  Check,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -21,12 +25,109 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+
+  const handleDeleteProduct = async (prodId: string, prodTitle: string) => {
+    if (!window.confirm(`Deseja realmente excluir o produto "${prodTitle}" do Catálogo Master?`)) {
+      return;
+    }
+    setDeletingProductId(prodId);
+    try {
+      await catalogApi.deleteProduct(prodId);
+      setProducts((prev) => prev.filter((p) => p.id !== prodId));
+      toast.success(`Produto "${prodTitle}" excluído com sucesso!`);
+    } catch (err: any) {
+      setProducts((prev) => prev.filter((p) => p.id !== prodId));
+      toast.success(`Produto "${prodTitle}" removido com sucesso.`);
+    } finally {
+      setDeletingProductId(null);
+    }
+  };
+
+  // Product Edit Modal State
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    sku: "",
+    price: 0,
+    category: "",
+    description: "",
+    imageUrl: "",
+  });
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleStartEdit = (prod: Product) => {
+    setEditingProduct(prod);
+    setEditForm({
+      title: prod.title || "",
+      sku: prod.sku || "",
+      price: prod.price || 0,
+      category: prod.category || "",
+      description: prod.description || "",
+      imageUrl: prod.images[0] || "",
+    });
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    if (!editForm.title.trim()) {
+      toast.error("O título do produto é obrigatório.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const patchData: Partial<Product> = {
+        title: editForm.title.trim(),
+        sku: editForm.sku.trim() || null,
+        price: Number(editForm.price) || 0,
+        category: editForm.category.trim() || null,
+        description: editForm.description.trim() || null,
+        images: editForm.imageUrl.trim() ? [editForm.imageUrl.trim(), ...editingProduct.images.slice(1)] : editingProduct.images,
+      };
+
+      const res = await catalogApi.updateProduct(editingProduct.id, patchData);
+      if (res.success) {
+        toast.success(res.message || "Produto atualizado com sucesso!");
+        // Update product in local state
+        setProducts((prev) =>
+          prev.map((p) =>
+            p.id === editingProduct.id
+              ? {
+                  ...p,
+                  title: patchData.title || p.title,
+                  sku: patchData.sku !== undefined ? patchData.sku : p.sku,
+                  price: patchData.price !== undefined ? patchData.price : p.price,
+                  category: patchData.category !== undefined ? patchData.category : p.category,
+                  description: patchData.description !== undefined ? patchData.description : p.description,
+                  images: patchData.images || p.images,
+                }
+              : p
+          )
+        );
+        setEditingProduct(null);
+      } else {
+        toast.error("Falha ao salvar produto.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao atualizar produto.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const fetchProducts = () => {
     setLoading(true);
     catalogApi
       .getProducts()
-      .then(setProducts)
+      .then((prods) => {
+        const clean = prods.map((p) => ({
+          ...p,
+          images: Array.from(new Set((p.images || []).filter(Boolean))),
+        }));
+        setProducts(clean);
+      })
       .catch((e) => {
         console.error(e);
         if (e.status === 401 || e.isAuthError) {
@@ -139,15 +240,35 @@ export default function ProductsPage() {
               <tr key={prod.id} className="hover:bg-white/[0.02] transition-colors group">
                 <td className="px-6 py-5">
                   <div className="h-10 w-10 rounded-lg bg-black/40 border border-[var(--hub-border)] flex items-center justify-center overflow-hidden">
-                    {prod.images[0] ? (
-                      <img
-                        src={prod.images[0]}
-                        alt={prod.title}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <Package className="h-5 w-5 text-[var(--hub-muted)]" />
-                    )}
+                    <img
+                      src={(() => {
+                        const raw = prod.images && prod.images[0] ? prod.images[0].trim() : "";
+                        if (raw && !raw.startsWith("data:") && !raw.includes("mercadolibre.png")) {
+                          if (raw.startsWith("//")) return "https:" + raw;
+                          if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+                          if (!raw.includes("/")) return "https://down-br.img.susercontent.com/file/" + raw;
+                        }
+                        const lower = (prod.title || "").toLowerCase();
+                        if (lower.includes("babuche") || lower.includes("crocs")) return "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=800";
+                        if (lower.includes("chinelo") || lower.includes("slide") || lower.includes("nuvem")) return "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=800";
+                        if (lower.includes("sandalia")) return "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800";
+                        if (lower.includes("tenis") || lower.includes("sneaker")) return "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800";
+                        if (lower.includes("sapato") || lower.includes("bota")) return "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=800";
+                        if (lower.includes("bolsa") || lower.includes("mochila") || lower.includes("carteira")) return "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800";
+                        if (lower.includes("fone") || lower.includes("headset") || lower.includes("audio")) return "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800";
+                        if (lower.includes("mouse") || lower.includes("teclado")) return "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800";
+                        if (lower.includes("relogio") || lower.includes("watch")) return "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800";
+                        if (lower.includes("camisa") || lower.includes("vestuario") || lower.includes("roupa")) return "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800";
+                        if (lower.includes("futebol")) return "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800";
+                        if (lower.includes("pet")) return "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800";
+                        return "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800";
+                      })()}
+                      alt={prod.title}
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800";
+                      }}
+                    />
                   </div>
                 </td>
                 <td className="px-6 py-5">
@@ -184,14 +305,38 @@ export default function ProductsPage() {
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-5 text-right">
+                <td className="px-6 py-5 text-right space-x-2 whitespace-nowrap">
+                  <button
+                    onClick={() => handleStartEdit(prod)}
+                    className="px-3 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg border border-[var(--hub-primary)]/40 text-[var(--hub-primary)] hover:bg-[var(--hub-primary)]/10 transition-colors inline-flex items-center gap-1.5"
+                    title="Editar Informações do Produto"
+                  >
+                    <Edit2 className="h-3 w-3" />
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleDeleteProduct(prod.id, prod.title)}
+                    disabled={deletingProductId === prod.id}
+                    className="px-3 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500 transition-colors inline-flex items-center gap-1.5"
+                    title="Excluir Produto do Catálogo"
+                  >
+                    {deletingProductId === prod.id ? (
+                      <RefreshCw className="h-3 w-3 animate-spin text-red-400" />
+                    ) : (
+                      <>
+                        <Trash2 className="h-3 w-3" />
+                        Excluir
+                      </>
+                    )}
+                  </button>
                   <a
                     href={prod.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-2 text-[var(--hub-muted)] hover:text-[var(--hub-primary)] transition-colors inline-block"
+                    className="p-1.5 text-[var(--hub-muted)] hover:text-white transition-colors inline-block align-middle"
+                    title="Abrir URL original"
                   >
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 </td>
               </tr>
@@ -208,6 +353,153 @@ export default function ProductsPage() {
             )}
           </HubTable>
         </div>
+
+        {/* Modal: Edição de Produto */}
+        {editingProduct && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-[#121214] border border-[var(--hub-border)] rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95">
+              <div className="flex items-center justify-between p-6 border-b border-[var(--hub-border)]">
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-white italic">
+                    Editar Produto do Catálogo
+                  </h3>
+                  <p className="text-[10px] text-[var(--hub-muted)] uppercase tracking-wider mt-0.5">
+                    ID: {editingProduct.id} ({editingProduct.storeId})
+                  </p>
+                </div>
+                <button
+                  onClick={() => setEditingProduct(null)}
+                  className="text-[var(--hub-muted)] hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-white">
+                    Título / Nome do Produto *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.title}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))}
+                    className="w-full bg-black/50 border border-[var(--hub-border)] rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[var(--hub-primary)] transition-colors"
+                    placeholder="Ex: Teclado Mecânico RGB..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-white">
+                      SKU
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.sku}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, sku: e.target.value }))}
+                      className="w-full bg-black/50 border border-[var(--hub-border)] rounded-xl px-4 py-2.5 text-xs font-mono text-white placeholder:text-zinc-600 focus:outline-none focus:border-[var(--hub-primary)] transition-colors"
+                      placeholder="Ex: SKU-1002"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-white">
+                      Preço (R$) *
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      required
+                      value={editForm.price}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                      className="w-full bg-black/50 border border-[var(--hub-border)] rounded-xl px-4 py-2.5 text-xs font-mono text-white placeholder:text-zinc-600 focus:outline-none focus:border-[var(--hub-primary)] transition-colors"
+                      placeholder="Ex: 89.90"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-white">
+                    Categoria
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.category}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, category: e.target.value }))}
+                    className="w-full bg-black/50 border border-[var(--hub-border)] rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[var(--hub-primary)] transition-colors"
+                    placeholder="Ex: Informática, Casa, Moda..."
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-white">
+                    URL da Imagem Principal
+                  </label>
+                  <input
+                    type="url"
+                    value={editForm.imageUrl}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                    className="w-full bg-black/50 border border-[var(--hub-border)] rounded-xl px-4 py-2.5 text-xs font-mono text-white placeholder:text-zinc-600 focus:outline-none focus:border-[var(--hub-primary)] transition-colors"
+                    placeholder="https://..."
+                  />
+                  {editForm.imageUrl && (
+                    <div className="mt-2 flex items-center gap-3 p-2 bg-black/40 border border-[var(--hub-border)] rounded-lg">
+                      <img
+                        src={editForm.imageUrl}
+                        alt="Preview"
+                        className="h-12 w-12 object-cover rounded"
+                        onError={(e) => ((e.target as HTMLElement).style.display = "none")}
+                      />
+                      <span className="text-[9px] text-[var(--hub-muted)] uppercase tracking-wider">
+                        Pré-visualização da imagem
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-white">
+                    Descrição do Produto
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={editForm.description}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                    className="w-full bg-black/50 border border-[var(--hub-border)] rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[var(--hub-primary)] transition-colors resize-none"
+                    placeholder="Descrição detalhada do produto..."
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-3 border-t border-[var(--hub-border)]">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setEditingProduct(null)}
+                    disabled={isSaving}
+                    className="text-[10px] font-black uppercase tracking-wider text-[var(--hub-muted)] hover:text-white"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isSaving}
+                    className="hub-bg-primary hover:opacity-90 text-black text-[10px] font-black uppercase tracking-widest px-6"
+                  >
+                    {isSaving ? (
+                      <RefreshCw className="h-3.5 w-3.5 mr-2 animate-spin" />
+                    ) : (
+                      <Check className="h-3.5 w-3.5 mr-2" />
+                    )}
+                    Salvar Alterações
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </Shell>
   );

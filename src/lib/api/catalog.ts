@@ -1,4 +1,13 @@
-import { CatalogStats, Store, Product, SyncResponse, IngestionApiResponse } from "./types";
+import {
+  CatalogStats,
+  Store,
+  Product,
+  SyncResponse,
+  IngestionApiResponse,
+  Supplier,
+  StorefrontStore,
+  SupplierExportData,
+} from "./types";
 import { supabase } from "@/integrations/supabase/client";
 
 function getApiBaseUrl(): string {
@@ -180,10 +189,11 @@ export class CatalogApi {
   async createStore(
     url: string,
     name?: string,
+    source?: string,
   ): Promise<{ success: boolean; store: Store; message?: string }> {
     const data = await this.request<any>("/api/catalog/stores", {
       method: "POST",
-      body: JSON.stringify({ url, name }),
+      body: JSON.stringify({ url, name, source }),
     });
     return {
       success: data.success ?? true,
@@ -254,7 +264,10 @@ export class CatalogApi {
     return data;
   }
 
-  async refreshStore(storeId: string, limit: 1 | 10 | 50 | 100 = 10): Promise<SyncResponse> {
+  async refreshStore(
+    storeId: string,
+    limit: 1 | 5 | 10 | 50 | 100 | 0 = 10,
+  ): Promise<SyncResponse> {
     const data = await this.request<any>(
       `/api/catalog/stores/${encodeURIComponent(storeId)}/refresh`,
       {
@@ -294,12 +307,395 @@ export class CatalogApi {
     return normalizeProduct(raw);
   }
 
+  async updateProduct(
+    id: string,
+    patch: Partial<Product>,
+  ): Promise<{ success: boolean; item?: Product | undefined; message?: string | undefined }> {
+    const data = await this.request<any>(`/api/catalog/products/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+    return {
+      success: data.success ?? true,
+      message: data.message ?? undefined,
+      item: data.item ? normalizeProduct(data.item) : undefined,
+    };
+  }
+
   async ingestShopee(url: string, limit = 30): Promise<IngestionApiResponse> {
     const data = await this.request<IngestionApiResponse>("/api/ingestion/shopee", {
       method: "POST",
       body: JSON.stringify({ url, limit }),
     });
     return data;
+  }
+
+  async deleteStore(storeId: string): Promise<{ success: boolean; message?: string }> {
+    return this.request<any>(`/api/catalog/stores/${encodeURIComponent(storeId)}`, {
+      method: "DELETE",
+    });
+  }
+
+  async deleteProduct(id: string): Promise<{ success: boolean; message?: string }> {
+    return this.request<any>(`/api/catalog/products/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+  }
+
+  // ==========================================
+  // FORNECEDORES (SUPPLIERS)
+  // ==========================================
+  async getSuppliers(): Promise<Supplier[]> {
+    return this.getStores();
+  }
+
+  async getSupplier(id: string): Promise<Supplier> {
+    return this.getStore(id);
+  }
+
+  async createSupplier(url: string, name?: string, source?: string) {
+    return this.createStore(url, name, source);
+  }
+
+  async deleteSupplier(id: string): Promise<{ success: boolean; message?: string }> {
+    return this.deleteStore(id);
+  }
+
+  async refreshSupplier(
+    id: string,
+    limit: 1 | 5 | 10 | 50 | 100 | 0 = 10,
+  ): Promise<SyncResponse> {
+    return this.refreshStore(id, limit);
+  }
+
+  async exportSupplierCatalog(supplierId: string): Promise<SupplierExportData> {
+    const [supplier, products] = await Promise.all([
+      this.getStore(supplierId),
+      this.getStoreProducts(supplierId),
+    ]);
+    return {
+      supplier,
+      exportedAt: new Date().toISOString(),
+      totalProducts: products.length,
+      products,
+    };
+  }
+
+  async downloadSupplierExport(supplierId: string, format: "json" | "csv" = "json"): Promise<void> {
+    const data = await this.exportSupplierCatalog(supplierId);
+    const safeName = (data.supplier.name || "fornecedor")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "-")
+      .replace(/-+/g, "-");
+    const filename = `catalogo-${safeName}-${Date.now()}`;
+
+    if (format === "json") {
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${filename}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      const headers = ["ID", "Título", "SKU", "Preço", "Moeda", "Categoria", "URL_Original", "Imagens"];
+      const rows = data.products.map((p) => [
+        `"${p.id}"`,
+        `"${(p.title || "").replace(/"/g, '""')}"`,
+        `"${p.sku || ""}"`,
+        p.price,
+        `"${p.currency}"`,
+        `"${p.category || ""}"`,
+        `"${p.url || ""}"`,
+        `"${(p.images || []).join(";")}"`,
+      ]);
+      const csvContent = "\uFEFF" + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${filename}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  // ==========================================
+  // VITRINES DE VENDA (CLIENT STOREFRONTS)
+  // ==========================================
+  private defaultStorefronts: StorefrontStore[] = [
+    {
+      id: "store-tech-zone",
+      name: "Tech Zone Store",
+      slug: "tech-zone",
+      niche: "Eletrônicos & Tech",
+      description: "Vitrine de alta performance em eletrônicos, setup gamer e periféricos.",
+      logoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=60",
+      bannerUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1600&auto=format&fit=crop&q=80",
+      status: "published",
+      templateId: "tech-dark",
+      colors: {
+        primary: "#06b6d4",
+        secondary: "#3b82f6",
+        background: "#0a0a0c",
+        surface: "#141418",
+        text: "#f8fafc",
+        textMuted: "#94a3b8",
+        border: "#27272a",
+      },
+      sections: [
+        {
+          id: "sec-1",
+          type: "announcement",
+          title: "Barra de Anúncios",
+          enabled: true,
+          content: { message: "⚡ FRETE GRÁTIS EM TODA LINHA TECH ACIMA DE R$ 199", linkText: "Comprar Agora" },
+        },
+        {
+          id: "sec-2",
+          type: "hero",
+          title: "Banner Principal Hero",
+          enabled: true,
+          content: {
+            headline: "O FUTURO DO SEU SETUP COMEÇA AQUI",
+            subheadline: "Produtos selecionados com garantia oficial e despacho imediato para todo o Brasil.",
+            ctaText: "Explorar Produtos",
+            badge: "Lançamentos 2026",
+          },
+        },
+        {
+          id: "sec-3",
+          type: "benefits",
+          title: "Vantagens da Loja",
+          enabled: true,
+          content: {
+            b1Title: "Envio Imediato", b1Desc: "Despacho em até 24h úteis",
+            b2Title: "Garantia Total", b2Desc: "30 dias para trocas e devoluções",
+            b3Title: "Compra 100% Segura", b3Desc: "Criptografia ponta a ponta",
+            b4Title: "Suporte VIP", b4Desc: "Atendimento dedicado via WhatsApp",
+          },
+        },
+        {
+          id: "sec-4",
+          type: "featured_products",
+          title: "Vitrine em Destaque",
+          enabled: true,
+          content: { limit: 8, layout: "grid-4" },
+        },
+        {
+          id: "sec-5",
+          type: "newsletter",
+          title: "Captura de Clientes",
+          enabled: true,
+          content: { headline: "Receba cupons exclusivos no seu e-mail", buttonText: "Cadastrar" },
+        },
+      ],
+      assignedProductIds: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metrics: {
+        visits: 3420,
+        orders: 142,
+        revenue: 48920.5,
+        conversionRate: 4.15,
+      },
+    },
+    {
+      id: "store-nordic-minimal",
+      name: "Nordic Minimal Decor",
+      slug: "nordic-minimal",
+      niche: "Casa & Decoração",
+      description: "Estética escandinava, sofisticação e conforto para sua casa.",
+      logoUrl: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=200&auto=format&fit=crop&q=60",
+      bannerUrl: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1600&auto=format&fit=crop&q=80",
+      status: "published",
+      templateId: "cozy-home",
+      colors: {
+        primary: "#d97706",
+        secondary: "#b45309",
+        background: "#0c0a09",
+        surface: "#1c1917",
+        text: "#fafaf9",
+        textMuted: "#a8a29e",
+        border: "#292524",
+      },
+      sections: [
+        {
+          id: "sec-1",
+          type: "announcement",
+          title: "Barra de Anúncios",
+          enabled: true,
+          content: { message: "🌿 Coleção Casa Conforto com até 30% OFF", linkText: "Ver Coleção" },
+        },
+        {
+          id: "sec-2",
+          type: "hero",
+          title: "Banner Principal Hero",
+          enabled: true,
+          content: {
+            headline: "DESIGN ESCANDINAVO PARA O SEU LAR",
+            subheadline: "Peças exclusivas com acabamento artesanal e sustentabilidade comprovada.",
+            ctaText: "Descobrir Coleção",
+            badge: "Edição Limitada",
+          },
+        },
+        {
+          id: "sec-3",
+          type: "featured_products",
+          title: "Vitrine em Destaque",
+          enabled: true,
+          content: { limit: 6, layout: "grid-3" },
+        },
+      ],
+      assignedProductIds: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metrics: {
+        visits: 1890,
+        orders: 68,
+        revenue: 29400.0,
+        conversionRate: 3.6,
+      },
+    },
+  ];
+
+  private getStoredStorefronts(): StorefrontStore[] {
+    if (typeof window === "undefined") return this.defaultStorefronts;
+    try {
+      const raw = localStorage.getItem("pub_ecom_storefronts");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return this.defaultStorefronts;
+  }
+
+  private saveStoredStorefronts(stores: StorefrontStore[]): void {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem("pub_ecom_storefronts", JSON.stringify(stores));
+    } catch {}
+  }
+
+  async getStorefronts(): Promise<StorefrontStore[]> {
+    return this.getStoredStorefronts();
+  }
+
+  async getStorefront(idOrSlug: string): Promise<StorefrontStore | null> {
+    const list = this.getStoredStorefronts();
+    return list.find((s) => s.id === idOrSlug || s.slug === idOrSlug) || null;
+  }
+
+  async createStorefront(data: Partial<StorefrontStore>): Promise<StorefrontStore> {
+    const list = this.getStoredStorefronts();
+    const id = `store-${Date.now()}`;
+    const slug = (data.slug || data.name || "loja")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "-")
+      .replace(/-+/g, "-");
+
+    const newStore: StorefrontStore = {
+      id,
+      name: data.name || "Nova Loja Virtual",
+      slug,
+      niche: data.niche || "Geral & Variedades",
+      description: data.description || "Vitrine oficial de produtos selecionados.",
+      logoUrl: data.logoUrl || null,
+      bannerUrl: data.bannerUrl || null,
+      status: data.status || "published",
+      templateId: data.templateId || "tech-dark",
+      colors: data.colors || {
+        primary: "#38bdf8",
+        secondary: "#6366f1",
+        background: "#09090b",
+        surface: "#18181b",
+        text: "#fafafa",
+        textMuted: "#a1a1aa",
+        border: "#27272a",
+      },
+      sections: data.sections || [
+        {
+          id: "sec-ann",
+          type: "announcement",
+          title: "Barra de Anúncios",
+          enabled: true,
+          content: { message: "⚡ OFERTAS EXCLUSIVAS POR TEMPO LIMITADO" },
+        },
+        {
+          id: "sec-hero",
+          type: "hero",
+          title: "Banner Hero",
+          enabled: true,
+          content: {
+            headline: "BEM-VINDO À NOSSA LOJA",
+            subheadline: "Os melhores produtos selecionados com garantia e entrega rápida.",
+            ctaText: "Ver Produtos",
+          },
+        },
+        {
+          id: "sec-feat",
+          type: "featured_products",
+          title: "Produtos em Destaque",
+          enabled: true,
+          content: { limit: 8 },
+        },
+        {
+          id: "sec-benefits",
+          type: "benefits",
+          title: "Vantagens",
+          enabled: true,
+          content: {},
+        },
+      ],
+      assignedProductIds: data.assignedProductIds || [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metrics: {
+        visits: 0,
+        orders: 0,
+        revenue: 0,
+        conversionRate: 0,
+      },
+    };
+
+    const nextList = [newStore, ...list];
+    this.saveStoredStorefronts(nextList);
+    return newStore;
+  }
+
+  async updateStorefront(id: string, patch: Partial<StorefrontStore>): Promise<StorefrontStore> {
+    const list = this.getStoredStorefronts();
+    const idx = list.findIndex((s) => s.id === id || s.slug === id);
+    if (idx === -1) {
+      throw new Error(`Storefront '${id}' não encontrada`);
+    }
+
+    const current = list[idx]!;
+    const updated: StorefrontStore = {
+      ...current,
+      ...patch,
+      colors: patch.colors ? { ...current.colors, ...patch.colors } : current.colors,
+      sections: patch.sections || current.sections,
+      updatedAt: new Date().toISOString(),
+    };
+
+    list[idx] = updated;
+    this.saveStoredStorefronts(list);
+    return updated;
+  }
+
+  async deleteStorefront(id: string): Promise<boolean> {
+    const list = this.getStoredStorefronts();
+    const nextList = list.filter((s) => s.id !== id && s.slug !== id);
+    this.saveStoredStorefronts(nextList);
+    return true;
   }
 }
 

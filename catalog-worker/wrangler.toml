@@ -1,5 +1,5 @@
 name = "pub-ecom-catalog-worker"
-main = "src/index.ts"
+main = "dist/index.js"
 compatibility_date = "2026-08-21"
 compatibility_flags = [ "nodejs_compat" ]
 

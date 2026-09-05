@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Activity,
@@ -24,30 +24,33 @@ import {
   Layers,
   BarChart,
   LogOut,
-  ChevronRight,
+  UserCheck,
+  ShieldCheck,
+  Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-const navGroups = [
+// Master Operation Navigation (Full Holding Ecosystem)
+const masterNavGroups = [
   {
-    label: "Operação",
+    label: "Operação Master",
     items: [
       { label: "Dashboard Master", icon: LayoutDashboard, href: "/dashboard" },
       { label: "Live Shop", icon: Activity, href: "/dashboard/live" },
       { label: "Lojas", icon: Store, href: "/dashboard/stores" },
-      { label: "Pedidos", icon: Package, href: "/dashboard/orders" },
+      { label: "Pedidos da Rede", icon: Package, href: "/dashboard/orders" },
     ],
   },
   {
-    label: "Produtos & Logística",
+    label: "Produtos & Fornecedores",
     items: [
-      { label: "Catálogo", icon: Box, href: "/dashboard/products" },
-      { label: "Importar Produto", icon: Search, href: "/dashboard/ingestion" },
-      { label: "Fornecedores", icon: Truck, href: "/dashboard/stores" },
+      { label: "Catálogo Geral", icon: Box, href: "/dashboard/products" },
+      { label: "Fornecedores & Scrapers", icon: Truck, href: "/dashboard/suppliers" },
       { label: "Estoque", icon: Layers, href: "/dashboard/inventory" },
     ],
   },
@@ -61,7 +64,7 @@ const navGroups = [
     ],
   },
   {
-    label: "Crescimento",
+    label: "Crescimento & Growth",
     items: [
       { label: "Audience Engine", icon: Target, href: "/dashboard/audience" },
       { label: "Funil de Aquisição", icon: TrendingUp, href: "/dashboard/live" },
@@ -69,7 +72,7 @@ const navGroups = [
     ],
   },
   {
-    label: "Parceiros",
+    label: "Parceiros & Rede",
     items: [
       { label: "Afiliados", icon: Share2, href: "/dashboard/affiliates" },
       { label: "Influencers", icon: Users, href: "/dashboard/influencers" },
@@ -83,27 +86,113 @@ const navGroups = [
   },
 ];
 
+// Lojista Partner Navigation (Curated, Clean, Focused on Client Store)
+const lojistaNavGroups = [
+  {
+    label: "Minha Loja",
+    items: [
+      { label: "Visão Geral da Loja", icon: LayoutDashboard, href: "/dashboard" },
+      { label: "Minhas Lojas (Builder)", icon: Store, href: "/dashboard/stores" },
+      { label: "Meus Produtos Espelhados", icon: Box, href: "/dashboard/products" },
+      { label: "Pedidos da Minha Loja", icon: Package, href: "/dashboard/orders" },
+    ],
+  },
+  {
+    label: "Vendas & Logística",
+    items: [
+      { label: "Minhas Vendas & Saldo", icon: BarChart3, href: "/dashboard/finance" },
+      { label: "Rastreio das Encomendas", icon: Truck, href: "/dashboard/tracking" },
+      { label: "Campanhas & Cupons", icon: Megaphone, href: "/dashboard/marketing" },
+    ],
+  },
+  {
+    label: "Minha Conta",
+    items: [
+      { label: "Dados da Empresa", icon: Settings, href: "/dashboard/settings" },
+    ],
+  },
+];
+
+type UserRole = "MASTER" | "LOJISTA";
+
 export function Shell({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+
+  const [userRole, setUserRole] = React.useState<UserRole>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("pub_ecom_role") as UserRole;
+      if (stored === "LOJISTA" || stored === "MASTER") return stored;
+    }
+    return "MASTER";
+  });
+
+  const toggleRole = () => {
+    const nextRole: UserRole = userRole === "MASTER" ? "LOJISTA" : "MASTER";
+    setUserRole(nextRole);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pub_ecom_role", nextRole);
+    }
+    toast.success(
+      nextRole === "MASTER"
+        ? "Modo MASTER ativado: acesso total às ferramentas da holding."
+        : "Modo LOJISTA ativado: visão simplificada da loja do cliente.",
+    );
+  };
+
+  const navGroups = userRole === "MASTER" ? masterNavGroups : lojistaNavGroups;
 
   return (
     <div className="pub-ecom flex h-screen overflow-hidden selection:bg-[var(--hub-primary)] selection:text-[var(--hub-primary-foreground)]">
       {/* Official Hub Sidebar */}
       <aside className="hub-sidebar w-[var(--hub-sidebar-width)] flex flex-col z-50 shrink-0">
-        <div className="p-8 border-b border-[var(--hub-border)]/50">
+        <div className="p-6 border-b border-[var(--hub-border)]/50">
           <Link to="/dashboard" className="flex items-center gap-4 group">
-            <div className="h-10 w-10 bg-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-600/20 transition-transform group-hover:scale-105">
+            <div
+              className={cn(
+                "h-10 w-10 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105",
+                userRole === "MASTER"
+                  ? "bg-red-600 shadow-red-600/20"
+                  : "bg-cyan-500 shadow-cyan-500/20",
+              )}
+            >
               <CircleDollarSign className="h-6 w-6 text-white" />
             </div>
             <div>
               <span className="text-xl font-black tracking-tighter text-white block leading-none">
                 PUB ECOM
               </span>
-              <span className="text-[10px] font-black text-red-500 tracking-[0.2em] uppercase mt-1 block">
-                Master Operation
+              <span
+                className={cn(
+                  "text-[9px] font-black tracking-[0.2em] uppercase mt-1 block",
+                  userRole === "MASTER" ? "text-red-500" : "text-cyan-400",
+                )}
+              >
+                {userRole === "MASTER" ? "Master Operation" : "Portal do Lojista"}
               </span>
             </div>
           </Link>
+
+          {/* Quick Role Switcher (PUB Holding vs Client View) */}
+          <button
+            onClick={toggleRole}
+            className={cn(
+              "mt-4 w-full py-1.5 px-3 rounded-lg border text-[10px] font-black uppercase tracking-wider flex items-center justify-between transition-all",
+              userRole === "MASTER"
+                ? "bg-red-950/30 border-red-800/40 text-red-300 hover:bg-red-950/50"
+                : "bg-cyan-950/30 border-cyan-800/40 text-cyan-300 hover:bg-cyan-950/50",
+            )}
+            title="Alternar entre visão do Operador Master e visão do Cliente Lojista"
+          >
+            <span className="flex items-center gap-1.5">
+              {userRole === "MASTER" ? (
+                <ShieldCheck className="h-3.5 w-3.5 text-red-400" />
+              ) : (
+                <Building className="h-3.5 w-3.5 text-cyan-400" />
+              )}
+              {userRole === "MASTER" ? "Operador Master" : "Cliente Lojista"}
+            </span>
+            <span className="text-[9px] opacity-70 underline">Trocar</span>
+          </button>
         </div>
 
         <ScrollArea className="flex-1 px-4 py-6">
@@ -154,12 +243,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3 bg-black/40 p-3 rounded-xl border border-[var(--hub-border)]">
             <Avatar className="h-9 w-9 rounded-lg border border-[var(--hub-border)]/50">
               <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>AM</AvatarFallback>
+              <AvatarFallback>MP</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-black text-white truncate italic">Central Operator</p>
+              <p className="text-[12px] font-black text-white truncate italic">
+                {userRole === "MASTER" ? "Matheus Paes (CEO)" : "Lojista Parceiro"}
+              </p>
               <p className="text-[9px] text-[var(--hub-muted)] uppercase font-bold tracking-widest">
-                Master Access
+                {userRole === "MASTER" ? "Acesso Total Master" : "Loja Conectada"}
               </p>
             </div>
             <Button
@@ -187,13 +278,19 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <Search className="h-4 w-4 text-[var(--hub-muted)] group-focus-within:text-[var(--hub-primary)]" />
               <input
                 type="text"
-                placeholder="Pesquisar na operação..."
+                placeholder={
+                  userRole === "MASTER"
+                    ? "Pesquisar na holding..."
+                    : "Pesquisar na minha loja..."
+                }
                 className="bg-transparent border-none text-[12px] font-bold text-white focus:outline-none w-full placeholder:text-[var(--hub-muted)]"
               />
             </div>
             <div className="h-6 w-[1px] bg-[var(--hub-border)] mx-2 hidden lg:block" />
             <div className="text-[11px] text-[var(--hub-muted)] font-bold uppercase tracking-widest hidden xl:block">
-              Operação Ativa · 100% de performance
+              {userRole === "MASTER"
+                ? "Operação PUB Holding · 100% de Performance"
+                : "Painel do Lojista · Lojas e Catálogo Sincronizados"}
             </div>
           </div>
 
@@ -202,9 +299,23 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <div className="h-1.5 w-1.5 rounded-full bg-[var(--hub-primary)]" />
               1.284 ONLINE
             </div>
-            <Button className="h-10 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[11px] font-black uppercase tracking-[0.2em] px-6 shadow-lg shadow-red-600/20">
-              Novo Lojista
-            </Button>
+
+            {userRole === "MASTER" ? (
+              <Button
+                onClick={() => (window.location.href = "/dashboard/stores")}
+                className="h-10 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[11px] font-black uppercase tracking-[0.2em] px-6 shadow-lg shadow-red-600/20"
+              >
+                + Nova Loja
+              </Button>
+            ) : (
+              <Button
+                onClick={() => (window.location.href = "/dashboard/stores")}
+                className="h-10 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-black uppercase tracking-[0.2em] px-6 shadow-lg shadow-cyan-600/20"
+              >
+                Minha Loja
+              </Button>
+            )}
+
             <Button
               variant="ghost"
               size="icon"

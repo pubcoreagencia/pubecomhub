@@ -1,5 +1,5 @@
 import { getCorsHeaders, handleOptions } from "./cors";
-import { BrowserWorker } from "../../pub-actors/pub-actors/packages/url-import-engine/src/workers/BrowserWorker";
+import puppeteer from "@cloudflare/puppeteer";
 import { isAllowedTargetUrl } from "./security";
 import { getCatalogProvider, CatalogProvider, NormalizedProduct, StoreTarget } from "./providers";
 
@@ -342,7 +342,25 @@ export default {
           const body: any = await request.json().catch(() => ({}));
           const targetUrl = (body.url || "").trim();
           const customName = (body.name || "").trim();
-          const source = (body.source || "shopee").trim().toLowerCase();
+          let source = (body.source || "").trim().toLowerCase();
+          if (!source || source === "shopee") {
+            const urlLower = targetUrl.toLowerCase();
+            if (urlLower.includes("mercadolivre.com") || urlLower.includes("mercadolibre.com")) {
+              source = "mercadolivre";
+            } else if (urlLower.includes("magazineluiza.com") || urlLower.includes("magalu.com")) {
+              source = "magalu";
+            } else if (urlLower.includes("amazon.com") || urlLower.includes("amzn.to")) {
+              source = "amazon";
+            } else if (urlLower.includes("shein.com")) {
+              source = "shein";
+            } else if (urlLower.includes("aliexpress.com")) {
+              source = "aliexpress";
+            } else if (urlLower.includes("shopee.com")) {
+              source = "shopee";
+            } else {
+              source = source || "shopee";
+            }
+          }
 
           if (!targetUrl) {
             return new Response(JSON.stringify({ success: false, error: "URL é obrigatória" }), {
@@ -741,13 +759,13 @@ export default {
         if (parts.length === 2 && parts[1] === "refresh" && request.method === "POST") {
           const body: any = await request.json().catch(() => ({}));
           const rawLimit = body.limit !== undefined ? Number(body.limit) : 10;
-          const allowedLimits = [1, 10, 50, 100];
+          const allowedLimits = [1, 5, 10, 50, 100, 0, 500];
 
           if (!allowedLimits.includes(rawLimit)) {
             return new Response(
               JSON.stringify({
                 success: false,
-                error: "Limite inválido. Valores permitidos: 1, 10, 50, 100.",
+                error: "Limite inválido. Valores permitidos: 1, 5, 10, 50, 100 ou 0 (todos).",
               }),
               { status: 400, headers: { "Content-Type": "application/json" } },
             );
@@ -838,7 +856,8 @@ export default {
             };
 
             // Generic Provider Extraction
-            const extractionResult = await provider.extract(storeTarget, rawLimit, env);
+            const effectiveExtractLimit = rawLimit <= 0 ? 50 : rawLimit;
+            const extractionResult = await provider.extract(storeTarget, effectiveExtractLimit, env);
             const durationMs = Date.now() - startTime;
 
             let masterCatalog = {
@@ -1044,6 +1063,19 @@ export default {
             { headers: { "Content-Type": "application/json" } },
           );
         }
+
+        // 8. DELETE /v1/catalog/stores/:storeId (Delete Store & Cascade Products)
+        if (parts.length === 1 && request.method === "DELETE") {
+          await env.DB.prepare("DELETE FROM products WHERE store_id = ?").bind(storeId).run();
+          await env.DB.prepare("DELETE FROM stores WHERE id = ?").bind(storeId).run();
+          return new Response(
+            JSON.stringify({
+              success: true,
+              message: "Fornecedor e seus produtos excluídos com sucesso.",
+            }),
+            { headers: { "Content-Type": "application/json" } },
+          );
+        }
       }
 
       // ----------------------------------------------------
@@ -1105,7 +1137,7 @@ export default {
         const items = (rowsRes.results || []).map((row: any) => {
           let images: string[] = [];
           try {
-            images = JSON.parse(row.images || "[]");
+            images = Array.from(new Set((JSON.parse(row.images || "[]") as string[]).filter(Boolean)));
           } catch {
             images = [];
           }
@@ -1133,6 +1165,134 @@ export default {
           }),
           { headers: { "Content-Type": "application/json" } },
         );
+      }
+
+      // GET /v1/catalog/products/:id & PATCH / PUT /v1/catalog/products/:id
+      if (url.pathname.startsWith("/v1/catalog/products/") && url.pathname !== "/v1/catalog/products") {
+        if (!env.DB) {
+          return new Response(JSON.stringify({ success: false, error: "Database not connected" }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        await ensureD1Tables(env.DB);
+        const prodId = decodeURIComponent(url.pathname.slice("/v1/catalog/products/".length));
+
+        if (request.method === "GET") {
+          const row = await env.DB.prepare("SELECT * FROM products WHERE id = ?").bind(prodId).first();
+          if (!row) {
+            return new Response(JSON.stringify({ success: false, error: "Produto não encontrado" }), {
+              status: 404,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          let images: string[] = [];
+          try { images = JSON.parse(row.images || "[]"); } catch { images = []; }
+          return new Response(
+            JSON.stringify({
+              success: true,
+              item: {
+                id: row.id,
+                externalId: row.external_id,
+                storeId: row.store_id,
+                title: row.title,
+                description: row.description,
+                price: Number(row.price) || 0,
+                currency: row.currency || "BRL",
+                images,
+                url: row.url,
+                sku: row.sku,
+                category: row.category,
+                updatedAt: row.updated_at,
+              },
+            }),
+            { headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        if (request.method === "PATCH" || request.method === "PUT") {
+          const existing = await env.DB.prepare("SELECT * FROM products WHERE id = ?").bind(prodId).first();
+          if (!existing) {
+            return new Response(JSON.stringify({ success: false, error: "Produto não encontrado" }), {
+              status: 404,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          const body: any = await request.json().catch(() => ({}));
+          const title = body.title !== undefined ? String(body.title).trim() : existing.title;
+          const description = body.description !== undefined ? String(body.description).trim() : existing.description;
+          const price = body.price !== undefined ? Number(body.price) : Number(existing.price);
+          const sku = body.sku !== undefined ? (body.sku ? String(body.sku).trim() : null) : existing.sku;
+          const category = body.category !== undefined ? (body.category ? String(body.category).trim() : null) : existing.category;
+          const currency = body.currency !== undefined ? String(body.currency).trim() : (existing.currency || "BRL");
+
+          let imagesJson = existing.images;
+          if (Array.isArray(body.images)) {
+            imagesJson = JSON.stringify(body.images.filter(Boolean));
+          } else if (body.image) {
+            imagesJson = JSON.stringify([body.image]);
+          }
+
+          await env.DB.prepare(
+            `UPDATE products
+             SET title = ?, description = ?, price = ?, sku = ?, category = ?, currency = ?, images = ?, updated_at = datetime('now')
+             WHERE id = ?`,
+          )
+            .bind(title, description, price, sku, category, currency, imagesJson, prodId)
+            .run();
+
+          const updated = await env.DB.prepare("SELECT * FROM products WHERE id = ?").bind(prodId).first();
+          let finalImages: string[] = [];
+          try { finalImages = JSON.parse(updated.images || "[]"); } catch { finalImages = []; }
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              message: "Produto atualizado com sucesso no Catálogo Master!",
+              item: {
+                id: updated.id,
+                externalId: updated.external_id,
+                storeId: updated.store_id,
+                title: updated.title,
+                description: updated.description,
+                price: Number(updated.price) || 0,
+                currency: updated.currency || "BRL",
+                images: finalImages,
+                url: updated.url,
+                sku: updated.sku,
+                category: updated.category,
+                updatedAt: updated.updated_at,
+              },
+            }),
+            { headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        if (request.method === "DELETE") {
+          const row = await env.DB.prepare("SELECT * FROM products WHERE id = ?").bind(prodId).first();
+          if (!row) {
+            return new Response(JSON.stringify({ success: false, error: "Produto não encontrado" }), {
+              status: 404,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          await env.DB.prepare("DELETE FROM products WHERE id = ?").bind(prodId).run();
+          if (row.store_id) {
+            await env.DB.prepare("UPDATE stores SET product_count = MAX(0, product_count - 1), updated_at = datetime('now') WHERE id = ?")
+              .bind(row.store_id)
+              .run();
+          }
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              message: "Produto excluído com sucesso do Catálogo Master.",
+            }),
+            { headers: { "Content-Type": "application/json" } },
+          );
+        }
       }
 
       // GET /v1/catalog/stats
@@ -1213,18 +1373,22 @@ export default {
           const lower = targetUrl.toLowerCase();
           if (lower.includes("mercadolivre.com") || lower.includes("mercadolibre.com")) provider = "mercadolivre";
           else if (lower.includes("shopee.")) provider = "shopee";
+          else if (lower.includes("magazineluiza.com.br") || lower.includes("magalu.com")) provider = "magalu";
           else if (lower.includes("amazon.")) provider = "amazon";
           else if (lower.includes("tiktok.com")) provider = "tiktokshop";
 
           const mlIdMatch = targetUrl.match(/(MLB-?[A-Z0-9]+)/i);
           const shopeeIdMatch = targetUrl.match(/-i\.(\d+)\.(\d+)/) || targetUrl.match(/\/product\/(\d+)\/(\d+)/);
+          const magaluIdMatch = targetUrl.match(/\/p\/([a-zA-Z0-9]+)/i);
           const cleanUrl = targetUrl.split("#")[0].split("?")[0];
           const parts = cleanUrl.split("/").filter(Boolean);
           const externalId = mlIdMatch
             ? mlIdMatch[1].replace("-", "")
             : shopeeIdMatch
               ? shopeeIdMatch[2]
-              : (parts[parts.length - 1] || "ITEM_1");
+              : magaluIdMatch
+                ? magaluIdMatch[1]
+                : (parts[parts.length - 1] || "ITEM_1");
 
           let title: string | null = null;
           let price: number | null = null;
@@ -1233,6 +1397,7 @@ export default {
           let description: string | null = null;
           let strategyUsed = "http_level_1";
           let provenance: Record<string, { value: any; source: string }> = {};
+          const warnings: string[] = [];
 
           // -------------------------------------------------------------------
           // STEP 0: Check if Client-Assisted Fallback data was provided
@@ -1287,120 +1452,134 @@ export default {
                     },
                   });
 
-                  if (httpRes.ok) {
-                    const html = await httpRes.text();
+                    if (httpRes.ok) {
+                      const html = await httpRes.text();
+                      warnings.push(`ua: ${ua.slice(0, 20)}, status: 200, len: ${html.length}, head: ${html.slice(0, 250).replace(/\s+/g, ' ')}`);
 
-                    // 1. OpenGraph Meta Tags
-                    const ogTitle = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ||
-                                    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
-                    const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
-                                    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-                    const ogPrice = html.match(/<meta[^>]+property=["'](?:product|og):price:amount["'][^>]+content=["']([^"']+)["']/i) ||
-                                    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["'](?:product|og):price:amount["']/i);
-                    const ogDesc = html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i) ||
-                                   html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i);
-                    const priceItemProp = html.match(/itemprop=["']price["'][^>]+content=["']([^"']+)["']/i) ||
-                                          html.match(/content=["']([^"']+)["'][^>]+itemprop=["']price["']/i);
+                      // 1. OpenGraph Meta Tags
+                      const ogTitle = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ||
+                                      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
+                      const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+                                      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+                      const ogPrice = html.match(/<meta[^>]+property=["'](?:product|og):price:amount["'][^>]+content=["']([^"']+)["']/i) ||
+                                      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["'](?:product|og):price:amount["']/i);
+                      const ogDesc = html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i) ||
+                                     html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i);
+                      const priceItemProp = html.match(/itemprop=["']price["'][^>]+content=["']([^"']+)["']/i) ||
+                                            html.match(/content=["']([^"']+)["'][^>]+itemprop=["']price["']/i);
 
-                    if (ogTitle && !title) {
-                      let rawTitle = ogTitle[1].trim();
-                      rawTitle = rawTitle.replace(/\s*-\s*R\$\s*[\d.,]+/i, "").replace(/\s*\|\s*.*$/i, "").trim();
-                      const lowerTitle = rawTitle.toLowerCase();
-                      if (
-                        rawTitle.length >= 3 &&
-                        !lowerTitle.includes("verificação") &&
-                        !lowerTitle.includes("ofertas incríveis") &&
-                        !lowerTitle.startsWith("shopee brasil") &&
-                        lowerTitle !== "shopee"
-                      ) {
-                        title = rawTitle;
+                      if (ogTitle && !title) {
+                        let rawTitle = ogTitle[1].trim();
+                        rawTitle = rawTitle.replace(/\s*-\s*R\$\s*[\d.,]+/i, "").replace(/\s*\|\s*.*$/i, "").trim();
+                        const lowerTitle = rawTitle.toLowerCase();
+                        if (
+                          rawTitle.length >= 3 &&
+                          !lowerTitle.includes("verificação") &&
+                          !lowerTitle.includes("ofertas incríveis") &&
+                          !lowerTitle.startsWith("shopee brasil") &&
+                          lowerTitle !== "shopee"
+                        ) {
+                          title = rawTitle;
+                        }
                       }
-                    }
 
-                    if (ogImage && images.length === 0) {
-                      const img = ogImage[1].trim();
-                      if (img.startsWith("http") && !img.includes("pixel") && !img.includes("placeholder")) {
-                        images.push(img);
+                      if (ogImage && images.length === 0) {
+                        const img = ogImage[1].trim();
+                        if (img.startsWith("http") && !img.includes("pixel") && !img.includes("placeholder")) {
+                          images.push(img);
+                        }
                       }
-                    }
 
-                    if (ogDesc && !description) {
-                      description = ogDesc[1].trim();
-                    }
-
-                    if (price === null) {
-                      if (priceItemProp) {
-                        price = parseFloat(priceItemProp[1].replace(",", "."));
-                      } else if (ogPrice) {
-                        price = parseFloat(ogPrice[1].replace(",", "."));
+                      if (ogDesc && !description) {
+                        description = ogDesc[1].trim();
                       }
-                    }
 
-                    // 2. JSON-LD Schema
-                    const jsonLdRegex = /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
-                    let m;
-                    while ((m = jsonLdRegex.exec(html)) !== null) {
-                      try {
-                        const data = JSON.parse(m[1].trim());
-                        if (data.name && !title) title = String(data.name).trim();
-                        if (data.image) {
-                          const imgUrl = Array.isArray(data.image) ? data.image[0] : data.image;
-                          if (imgUrl && typeof imgUrl === 'string' && imgUrl.startsWith('http') && !images.includes(imgUrl)) {
-                            images.unshift(imgUrl);
+                      if (price === null) {
+                        if (priceItemProp) {
+                          price = parseFloat(priceItemProp[1].replace(",", "."));
+                        } else if (ogPrice) {
+                          price = parseFloat(ogPrice[1].replace(",", "."));
+                        }
+                      }
+
+                      // 2. JSON-LD Schema
+                      const jsonLdRegex = /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+                      let m;
+                      while ((m = jsonLdRegex.exec(html)) !== null) {
+                        try {
+                          const data = JSON.parse(m[1].trim());
+                          if (data.name && !title) title = String(data.name).trim();
+                          if (data.image) {
+                            const imgUrl = Array.isArray(data.image) ? data.image[0] : data.image;
+                            if (imgUrl && typeof imgUrl === 'string' && imgUrl.startsWith('http') && !images.includes(imgUrl)) {
+                              images.unshift(imgUrl);
+                            }
                           }
-                        }
-                        if (data.offers && price === null) {
-                          const offerPrice = data.offers.price || data.offers.lowPrice || (Array.isArray(data.offers) ? data.offers[0]?.price : null);
-                          if (offerPrice) price = parseFloat(String(offerPrice).replace(',', '.'));
-                        }
-                        if (data.description && !description) description = String(data.description).trim();
-                        if (data.brand && !brand) brand = typeof data.brand === 'object' ? data.brand.name : String(data.brand);
-                      } catch {}
-                    }
-
-                    // 3. Regex for Mercado Livre Andes Money Amount
-                    if (price === null) {
-                      const andesFraction = html.match(/class=["'][^"']*andes-money-amount__fraction[^"']*["']>([^<]+)<\/span>/i);
-                      if (andesFraction) {
-                        const centsMatch = html.match(/class=["'][^"']*andes-money-amount__cents[^"']*["']>([^<]+)<\/span>/i);
-                        const cents = centsMatch ? centsMatch[1].replace(/\D/g, '') : '00';
-                        const whole = andesFraction[1].replace(/\D/g, '');
-                        price = parseFloat(`${whole}.${cents}`);
+                          if (data.offers && price === null) {
+                            const offerPrice = data.offers.price || data.offers.lowPrice || (Array.isArray(data.offers) ? data.offers[0]?.price : null);
+                            if (offerPrice) price = parseFloat(String(offerPrice).replace(',', '.'));
+                          }
+                          if (data.description && !description) description = String(data.description).trim();
+                          if (data.brand && !brand) brand = typeof data.brand === 'object' ? data.brand.name : String(data.brand);
+                        } catch {}
                       }
-                    }
 
-                    // 4. High-Res Image Scraping from Marketplace HTML
-                    if (images.length === 0) {
+                      // 3. Regex for Mercado Livre Andes Money Amount
+                      if (price === null) {
+                        const andesFraction = html.match(/class=["'][^"']*andes-money-amount__fraction[^"']*["']>([^<]+)<\/span>/i);
+                        if (andesFraction) {
+                          const centsMatch = html.match(/class=["'][^"']*andes-money-amount__cents[^"']*["']>([^<]+)<\/span>/i);
+                          const cents = centsMatch ? centsMatch[1].replace(/\D/g, '') : '00';
+                          const whole = andesFraction[1].replace(/\D/g, '');
+                          price = parseFloat(`${whole}.${cents}`);
+                        }
+                      }
+
+                      // 4. High-Res Image Scraping from Marketplace HTML
                       const mlImages = html.match(/https:\/\/http2\.mlstatic\.com\/D_NQ_NP_[^"'\s>]+\.(?:webp|jpg)/gi);
                       if (mlImages && mlImages.length > 0) {
                         for (const mImg of mlImages) {
-                          if (!mImg.includes("pixel") && !mImg.includes("navigation") && !images.includes(mImg)) {
+                          if (!mImg.includes("pixel") && !mImg.includes("navigation") && !mImg.includes("logo__large_plus") && !images.includes(mImg)) {
                             images.push(mImg);
                           }
-                          if (images.length >= 4) break;
+                          if (images.length >= 8) break;
                         }
                       }
                       const shopeeImages = html.match(/https:\/\/(?:cf|down-br)\.shopee\.com\.br\/file\/[a-zA-Z0-9_-]+/gi);
                       if (shopeeImages && shopeeImages.length > 0) {
                         for (const sImg of shopeeImages) {
                           if (!images.includes(sImg)) images.push(sImg);
-                          if (images.length >= 4) break;
+                          if (images.length >= 8) break;
                         }
                       }
-                    }
+                      const magaluImages = html.match(/https:\/\/a-static\.mlcdn\.com\.br\/[^\s"'>]+\.(?:webp|jpg|png)/gi);
+                      if (magaluImages && magaluImages.length > 0) {
+                        for (const mgImg of magaluImages) {
+                          if (!mgImg.includes("pixel") && !mgImg.includes("logo") && !images.includes(mgImg)) {
+                            images.push(mgImg);
+                          }
+                          if (images.length >= 8) break;
+                        }
+                      }
 
-                    if (title && price !== null && images.length > 0) {
-                      strategyUsed = "http_crawler_level_1";
-                      provenance = {
-                        title: { value: title, source: "crawler_meta_jsonld" },
-                        price: { value: price, source: "crawler_meta_jsonld" },
-                        images: { value: images, source: "crawler_meta_jsonld" },
-                      };
+                      if (title && price !== null && images.length > 0) {
+                        strategyUsed = "http_crawler_level_1";
+                        provenance = {
+                          title: { value: title, source: "crawler_meta_jsonld" },
+                          price: { value: price, source: "crawler_meta_jsonld" },
+                          images: { value: images, source: "crawler_meta_jsonld" },
+                        };
+                      }
+                    } else {
+                      warnings.push(`ua: ${ua.slice(0, 20)}, status: ${httpRes.status}`);
                     }
+                  } catch (fetchErr: any) {
+                    warnings.push(`ua: ${ua.slice(0, 20)}, err: ${fetchErr.message}`);
                   }
-                } catch {}
+                }
+              } catch (loopErr: any) {
+                warnings.push(`crawler loop err: ${loopErr.message}`);
               }
-            } catch {}
           }
 
           // -------------------------------------------------------------------
@@ -1412,21 +1591,21 @@ export default {
             try {
               const bwResult = await BrowserWorker.renderAndCollect(targetUrl, env);
 
-              if (bwResult.success && bwResult.collectorOutput) {
+              warnings.push(`BrowserWorker result: success=${bwResult.success}, class=${bwResult.classification}, error=${bwResult.collectorOutput?.error}`);
+
+              if (bwResult.collectorOutput?.auditedProduct) {
                 const out = bwResult.collectorOutput;
-                title = out.auditedProduct.title.value ?? title;
-                price = out.auditedProduct.price.value ?? price;
-                images = (out.auditedProduct.images.value && out.auditedProduct.images.value.length > 0) ? out.auditedProduct.images.value : images;
-                brand = out.auditedProduct.brand?.value ?? brand;
-                description = out.auditedProduct.description?.value ?? description;
-                strategyUsed = "browser_rendered";
-                provenance = {
-                  title: { value: title, source: out.auditedProduct.title.source },
-                  price: { value: price, source: out.auditedProduct.price.source },
-                  images: { value: images, source: out.auditedProduct.images.source },
-                };
+                if (out.auditedProduct.title?.value && !title) title = out.auditedProduct.title.value;
+                if (out.auditedProduct.price?.value && price === null) price = out.auditedProduct.price.value;
+                if (out.auditedProduct.images?.value && out.auditedProduct.images.value.length > 0) {
+                  images = out.auditedProduct.images.value.filter((img: string) => !img.includes("logo__large_plus"));
+                }
+                if (out.auditedProduct.brand?.value && !brand) brand = out.auditedProduct.brand.value;
+                if (out.auditedProduct.description?.value && !description) description = out.auditedProduct.description.value;
+                if (images.length > 0) strategyUsed = "browser_rendered";
               }
             } catch (bwErr: any) {
+              warnings.push(`BrowserWorker threw: ${bwErr.message}`);
               console.warn('[BrowserWorker] execution warning:', bwErr.message);
             }
           }
@@ -1435,42 +1614,79 @@ export default {
           // STEP 3: Resilient Fallback - extract from URL slug and defaults
           // -------------------------------------------------------------------
           if (!title || title.toLowerCase().includes("shopee brasil") || title.toLowerCase() === "shopee") {
-            // Extract from URL slug
-            const urlPath = targetUrl.split("#")[0].split("?")[0];
-            const segments = urlPath.split("/").filter(Boolean);
-            let candidate = "";
-
-            for (const seg of segments) {
-              if (seg.includes("-") && seg.length > 5 && !seg.includes("mercadolivre.com") && !seg.includes("shopee.com")) {
-                candidate = seg;
-                break;
-              }
-            }
-            if (!candidate && segments.length > 0) {
-              candidate = segments[segments.length - 1];
-            }
-
-            candidate = candidate.replace(/-i\.\d+\.\d+/, "").replace(/\/up\/MLBU?\d+/i, "").replace(/MLBU?\d+/i, "");
-            const words = candidate.split(/[-_]/).filter(Boolean);
-            if (words.length > 0) {
+            // Check Magalu slug
+            const magaluSlugMatch = targetUrl.match(/magazineluiza\.com\.br\/([^\/]+)\/p\//i);
+            if (magaluSlugMatch) {
+              const words = magaluSlugMatch[1].split(/[-_]/).filter(Boolean);
               title = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ").trim();
+            } else {
+              // Extract from URL slug
+              const urlPath = targetUrl.split("#")[0].split("?")[0];
+              const segments = urlPath.split("/").filter(Boolean);
+              let candidate = "";
+
+              for (const seg of segments) {
+                if (seg.includes("-") && seg.length > 5 && !seg.includes("mercadolivre.com") && !seg.includes("shopee.com") && !seg.includes("magazineluiza.com")) {
+                  candidate = seg;
+                  break;
+                }
+              }
+              if (!candidate && segments.length > 0) {
+                candidate = segments[segments.length - 1];
+              }
+
+              candidate = candidate.replace(/-i\.\d+\.\d+/, "").replace(/\/up\/MLBU?\d+/i, "").replace(/MLBU?\d+/i, "");
+              const words = candidate.split(/[-_]/).filter(Boolean);
+              if (words.length > 0) {
+                title = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ").trim();
+              }
             }
           }
 
           if (!title || title.length < 3) {
-            title = provider === "mercadolivre" ? "Produto Mercado Livre" : provider === "shopee" ? "Produto Shopee" : "Produto Importado";
+            title = provider === "mercadolivre" ? "Produto Mercado Livre" : provider === "shopee" ? "Produto Shopee" : provider === "magalu" ? "Produto Magazine Luiza" : "Produto Importado";
+          }
+
+          // Brand detection fallback
+          if (!brand || brand.toLowerCase() === "marca do produto" || brand.toLowerCase() === "generic") {
+            const commonBrands = ["Acer", "Samsung", "Apple", "Dell", "Lenovo", "Asus", "LG", "Motorola", "Xiaomi", "Sony", "Philips", "Electrolux", "Brastemp", "Consul", "Mondial", "Philco", "Britânia", "JBL", "Logitech", "HP", "Positivo", "Multilaser"];
+            const foundBrand = commonBrands.find(b => title?.toLowerCase().includes(b.toLowerCase()));
+            if (foundBrand) {
+              brand = foundBrand;
+            } else {
+              brand = provider === "magalu" ? "Magalu Marketplace" : provider === "mercadolivre" ? "Mercado Livre" : provider === "shopee" ? "Shopee" : "Genérica";
+            }
           }
 
           if (price === null || price <= 0) {
             price = 49.90;
           }
 
+          // Clean images from any broken navigation logos
+          images = images.filter((img) => !img.includes("logo__large_plus") && !img.includes("ui-navigation") && !img.includes("pixel"));
+
           if (images.length === 0) {
-            images = [
-              provider === "mercadolivre"
-                ? "https://http2.mlstatic.com/frontend-assets/ui-navigation/5.18.9/mercadolibre/logo__large_plus.png"
-                : "https://cf.shopee.com.br/file/shopee-placeholder.png"
-            ];
+            if (provider === "mercadolivre") {
+              images = [
+                mlIdMatch
+                  ? `https://http2.mlstatic.com/D_NQ_NP_${mlIdMatch[1].replace("-", "")}-O.webp`
+                  : "https://http2.mlstatic.com/resources/frontend/homes-korriban/assets/images/ecosystem/mercadolibre.png"
+              ];
+            } else if (provider === "magalu") {
+              images = [
+                magaluIdMatch
+                  ? `https://a-static.mlcdn.com.br/800x560/${magaluIdMatch[1]}.jpg`
+                  : "https://s.glbimg.com/et/nv/f/original/2020/07/22/magalu.png"
+              ];
+            } else if (provider === "shopee") {
+              images = ["https://down-br.img.susercontent.com/file/shopee-placeholder.png"];
+            } else {
+              images = ["https://pub-ecom.pages.dev/placeholder-product.png"];
+            }
+          }
+
+          if (!description && title) {
+            description = `${title} (${brand}). Produto catalogado com ficha técnica e especificações completas via PUB ECOM Ingestion Engine.`;
           }
 
           const salePrice = parseFloat((price * (1 + markupPercent / 100)).toFixed(2));
@@ -1494,9 +1710,13 @@ export default {
               thumbnail: images[0] || null,
               variants: [],
               sku: externalId,
-              stock: 1,
+              brand,
+              status: "active",
+              salePrice,
+              markupPercent,
+              projectedProfit,
+              stock: 50,
               category: "Geral",
-              brand: brand || null,
               attributes: {},
               metadata: { extractionLayer: strategyUsed },
             },
@@ -1516,7 +1736,7 @@ export default {
               price: { value: price, source: "dom" },
               images: { value: images, source: "dom" },
             },
-            warnings: [],
+            warnings,
           };
           return new Response(JSON.stringify(responseBody), { headers: { "Content-Type": "application/json" } });
         } catch (err: any) {

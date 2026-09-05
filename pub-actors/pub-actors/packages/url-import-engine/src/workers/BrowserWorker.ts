@@ -1,3 +1,4 @@
+import puppeteer from "@cloudflare/puppeteer";
 import { BrowserCollectorOutput } from "../../../browser-collector/src/BrowserCollector.js";
 
 export type BrowserPageClassification =
@@ -28,9 +29,6 @@ export class BrowserWorker {
     let browser: any = null;
 
     try {
-      // @ts-ignore
-      const puppeteerPkg = "@cloudflare/puppeteer";
-      const { default: puppeteer } = await import(puppeteerPkg);
       let page: any = null;
 
       if (env?.BROWSER) {

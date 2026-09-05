@@ -15,6 +15,20 @@ export const Route = createFileRoute("/api/catalog/products/$productId")({
           new Response(JSON.stringify({ error: "Endpoint proxy não encontrado" }), { status: 404 })
         );
       },
+      PATCH: async ({ request }): Promise<Response> => {
+        const response = await handleCatalogProxy(request);
+        return (
+          response ||
+          new Response(JSON.stringify({ error: "Endpoint proxy não encontrado" }), { status: 404 })
+        );
+      },
+      PUT: async ({ request }): Promise<Response> => {
+        const response = await handleCatalogProxy(request);
+        return (
+          response ||
+          new Response(JSON.stringify({ error: "Endpoint proxy não encontrado" }), { status: 404 })
+        );
+      },
       DELETE: async ({ request }): Promise<Response> => {
         const response = await handleCatalogProxy(request);
         return (
