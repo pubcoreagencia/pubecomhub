@@ -243,31 +243,70 @@ export function extractFromDomLinks(
   targetShopId?: string,
 ): any[] {
   const items: any[] = [];
-  const productRegex = /i\.(\d{4,})\.(\d{4,})(?:[/?#]|$)/i;
-  const productRegexAlt = /-i\.(\d{4,})\.(\d{4,})(?:[/?#]|$)/i;
+  // Shopee link formats:
+  // 1. -i.12345.67890 or i.12345.67890
+  // 2. /product/12345/67890
+  // 3. /product-slug-i.12345.67890
+  const productRegex = /[.-]i\.(\d{4,})\.(\d{4,})(?:[/?#]|$)/i;
+  const productRegexSlash = /\/product\/(\d{4,})\/(\d{4,})(?:[/?#]|$)/i;
   const seenItemIds = new Set<string>();
 
   for (const link of links) {
     const href = link.href || "";
-    const match = href.match(productRegex) || href.match(productRegexAlt);
-    if (match && match[1] && match[2]) {
-      const sid = match[1];
-      const iid = match[2];
+    let sid = "";
+    let iid = "";
 
+    const match1 = href.match(productRegex);
+    if (match1 && match1[1] && match1[2]) {
+      sid = match1[1];
+      iid = match1[2];
+    } else {
+      const match2 = href.match(productRegexSlash);
+      if (match2 && match2[1] && match2[2]) {
+        sid = match2[1];
+        iid = match2[2];
+      }
+    }
+
+    if (sid && iid) {
       if (targetShopId && sid !== targetShopId) {
         continue;
       }
 
       if (!seenItemIds.has(iid)) {
         seenItemIds.add(iid);
+        // Clean title
+        let cleanName = (link.text || "").replace(/\s+/g, " ").trim();
+        if (!cleanName || cleanName.length < 4 || cleanName.toLowerCase().startsWith("r$")) {
+          // Try to derive from URL slug
+          try {
+            const urlObj = new URL(href);
+            const pathParts = urlObj.pathname.split("/").filter(Boolean);
+            const slugPart = pathParts[0] || "";
+            const slugWithoutId = slugPart.replace(/-i\.\d+\.\d+$/, "");
+            if (slugWithoutId && slugWithoutId.length > 3) {
+              cleanName = decodeURIComponent(slugWithoutId).replace(/-/g, " ");
+              cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+            }
+          } catch {}
+        }
+
+        if (!cleanName || cleanName.length < 3) {
+          cleanName = `Produto Shopee ${iid}`;
+        }
+
+        // Clean image
+        let img = link.imgSrc || "";
+        if (img.startsWith("//")) img = "https:" + img;
+
         items.push({
           item_basic: {
             itemid: iid,
             shopid: sid,
-            name: link.text?.trim() || `Produto ${iid}`,
+            name: cleanName,
             price: 0,
             currency: "BRL",
-            images: link.imgSrc ? [link.imgSrc] : [],
+            images: img ? [img] : [],
             url: href,
           },
         });

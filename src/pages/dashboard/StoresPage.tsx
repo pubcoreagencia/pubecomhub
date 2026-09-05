@@ -766,7 +766,7 @@ export default function StoresPage() {
         {/* Modal: Nova Loja */}
         {isModalOpen && (
           <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-[#0f0f13] border border-[var(--hub-border)] rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="bg-[#0f0f13] border border-[var(--hub-border)] rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
               <div className="p-6 border-b border-[var(--hub-border)] flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
@@ -787,7 +787,100 @@ export default function StoresPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleCreateStorefront} className="p-6 space-y-4">
+              <form onSubmit={handleCreateStorefront} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+                {/* Seleção de Template Visual */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Layers className="h-3.5 w-3.5 text-cyan-400" />
+                      Escolher Template Pré-Configurado
+                    </label>
+                    {selectedTemplate && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTemplate(null)}
+                        className="text-[10px] text-red-400 hover:underline uppercase font-bold tracking-wider"
+                      >
+                        Limpar Template
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[var(--hub-muted)]">
+                    Selecione um template pronto com vitrine temática e paleta de cores ou crie a partir do zero:
+                  </p>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTemplate(null)}
+                      className={cn(
+                        "p-2.5 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between",
+                        !selectedTemplate
+                          ? "bg-cyan-500/10 border-cyan-400 ring-1 ring-cyan-400/50"
+                          : "bg-black/40 border-[var(--hub-border)] hover:border-white/30"
+                      )}
+                    >
+                      <div className="h-12 w-full rounded-lg bg-neutral-900 border border-dashed border-neutral-700 flex items-center justify-center text-[10px] text-neutral-400 font-bold uppercase">
+                        Em Branco
+                      </div>
+                      <div className="mt-2">
+                        <div className="text-[11px] font-bold text-white leading-tight">Do Zero</div>
+                        <div className="text-[9px] text-[var(--hub-muted)]">Configuração procedural</div>
+                      </div>
+                    </button>
+
+                    {STORE_TEMPLATES.map((tpl) => {
+                      const isSelected = selectedTemplate?.id === tpl.id;
+                      return (
+                        <button
+                          key={tpl.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedTemplate(tpl);
+                            if (!storeName || STORE_TEMPLATES.some((t) => t.name === storeName)) {
+                              setStoreName(tpl.name);
+                              setStoreSlug(
+                                tpl.name
+                                  .toLowerCase()
+                                  .replace(/[^a-z0-9]/g, "-")
+                                  .replace(/-+/g, "-")
+                              );
+                            }
+                            setStoreNiche(tpl.niche);
+                            setStoreDesc(tpl.subheadline);
+                          }}
+                          className={cn(
+                            "p-2.5 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between group",
+                            isSelected
+                              ? "bg-cyan-500/10 border-cyan-400 ring-2 ring-cyan-400/50"
+                              : "bg-black/40 border-[var(--hub-border)] hover:border-white/30"
+                          )}
+                        >
+                          <div className="h-12 w-full rounded-lg overflow-hidden relative">
+                            <img
+                              src={tpl.previewImage}
+                              alt={tpl.name}
+                              className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                            <div
+                              className="absolute top-1 right-1 h-3.5 w-3.5 rounded-full border border-white/40 shadow"
+                              style={{ backgroundColor: tpl.colors.primary }}
+                            />
+                          </div>
+                          <div className="mt-2">
+                            <div className="text-[11px] font-bold text-white leading-tight truncate">
+                              {tpl.name}
+                            </div>
+                            <div className="text-[9px] text-cyan-400 font-bold truncate">
+                              {tpl.niche}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
                     Nome da Loja *
@@ -837,11 +930,11 @@ export default function StoresPage() {
                     <span>Cores sugeridas para {storeNiche}:</span>
                     <div
                       className="h-4 w-4 rounded-full border border-white/20"
-                      style={{ backgroundColor: NICHE_PALETTES[storeNiche].primary }}
+                      style={{ backgroundColor: selectedTemplate?.colors.primary || NICHE_PALETTES[storeNiche].primary }}
                     />
                     <div
                       className="h-4 w-4 rounded-full border border-white/20"
-                      style={{ backgroundColor: NICHE_PALETTES[storeNiche].secondary }}
+                      style={{ backgroundColor: selectedTemplate?.colors.secondary || NICHE_PALETTES[storeNiche].secondary }}
                     />
                   </div>
                 </div>

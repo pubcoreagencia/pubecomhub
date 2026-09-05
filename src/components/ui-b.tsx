@@ -62,7 +62,7 @@ export function CardMetric({
   );
 }
 
-export function HubTable({ children, headers }: { children: React.ReactNode; headers: string[] }) {
+export function HubTable({ children, headers }: { children: React.ReactNode; headers: (React.ReactNode | string)[] }) {
   return (
     <div className="hub-card hub-gradient-border overflow-hidden">
       <table className="w-full text-left text-[11px]">
