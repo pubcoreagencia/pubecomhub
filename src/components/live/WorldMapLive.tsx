@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Globe, MapPin, Eye, ShoppingBag, ShieldCheck, Smartphone, Laptop, Sparkles, Activity, Filter, Zap } from "lucide-react";
+import { Globe, MapPin, Eye, ShoppingBag, ShieldCheck, Smartphone, Laptop, Sparkles, Activity, Filter, Zap, RotateCw } from "lucide-react";
 
 export interface GeoVisitor {
   id: string;
@@ -33,19 +33,280 @@ interface WorldMapLiveProps {
   onSelectVisitor: (v: GeoVisitor) => void;
 }
 
+// Low-poly continents data mapped with key coastline points (lat, lng)
+const CONTINENTS_POLYGONS: [number, number][][] = [
+  // South America
+  [
+    [12, -72], [10, -60], [5, -52], [-2, -44], [-8, -35], [-23, -42],
+    [-35, -53], [-55, -67], [-53, -75], [-37, -73], [-18, -70], [-5, -81],
+    [5, -77], [10, -75], [12, -72]
+  ],
+  // North America
+  [
+    [70, -160], [72, -130], [60, -85], [50, -55], [45, -65], [30, -80],
+    [25, -80], [20, -97], [15, -93], [8, -77], [18, -105], [32, -117],
+    [48, -125], [60, -145], [65, -168], [70, -160]
+  ],
+  // Europe
+  [
+    [71, 28], [65, 40], [55, 30], [45, 35], [40, 27], [36, -5],
+    [43, -9], [48, -4], [54, 8], [58, 6], [63, 10], [70, 20], [71, 28]
+  ],
+  // Africa
+  [
+    [37, 10], [32, 32], [28, 34], [12, 44], [12, 51], [-5, 40],
+    [-25, 33], [-34, 18], [-34, 26], [-15, 12], [5, 2], [5, -10],
+    [15, -17], [28, -13], [35, -5], [37, 10]
+  ],
+  // Asia
+  [
+    [77, 105], [70, 180], [60, 165], [50, 140], [38, 120], [30, 122],
+    [22, 114], [10, 107], [1, 104], [10, 92], [22, 90], [25, 68],
+    [15, 53], [30, 48], [40, 50], [55, 60], [68, 75], [77, 105]
+  ],
+  // Australia
+  [
+    [-11, 142], [-15, 146], [-28, 153], [-37, 150], [-38, 140],
+    [-32, 115], [-22, 114], [-15, 124], [-12, 136], [-11, 142]
+  ]
+];
+
 export const WorldMapLive: React.FC<WorldMapLiveProps> = ({
   visitors,
   selectedVisitor,
   onSelectVisitor,
 }) => {
   const [filterAction, setFilterAction] = React.useState<string>("all");
+  const [rotation, setRotation] = React.useState<{ x: number; y: number }>({ x: 15, y: -45 });
+  const [isDragging, setIsDragging] = React.useState<boolean>(false);
+  const [autoRotate, setAutoRotate] = React.useState<boolean>(true);
+  const lastMousePos = React.useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
-  // Equirectangular projection: converts lat/lng to percentage coordinates
-  const getCoordinates = (lat: number, lng: number) => {
-    const x = ((lng + 180) / 360) * 100;
-    const y = ((90 - lat) / 180) * 100;
-    return { x: `${x}%`, y: `${y}%`, rawX: (lng + 180) * (1000 / 360), rawY: (90 - lat) * (500 / 180) };
+  // Auto rotation ticker
+  React.useEffect(() => {
+    if (!autoRotate || isDragging) return;
+    const interval = setInterval(() => {
+      setRotation((prev) => ({ ...prev, y: (prev.y + 0.35) % 360 }));
+    }, 30);
+    return () => clearInterval(interval);
+  }, [autoRotate, isDragging]);
+
+  // Project Spherical Coordinates (lat, lng) onto 3D Sphere viewport
+  const project3D = (lat: number, lng: number, radius: number, cx: number, cy: number, rotX: number, rotY: number) => {
+    const phi = (lat * Math.PI) / 180;
+    const theta = ((lng + rotY) * Math.PI) / 180;
+    const tilt = (rotX * Math.PI) / 180;
+
+    const x0 = radius * Math.cos(phi) * Math.sin(theta);
+    const y0 = -radius * Math.sin(phi);
+    const z0 = radius * Math.cos(phi) * Math.cos(theta);
+
+    const y1 = y0 * Math.cos(tilt) - z0 * Math.sin(tilt);
+    const z1 = y0 * Math.sin(tilt) + z0 * Math.cos(tilt);
+
+    const isVisible = z1 > 0;
+    return {
+      x: cx + x0,
+      y: cy + y1,
+      z: z1,
+      visible: isVisible,
+    };
   };
+
+  // Render 3D Earth Globe on HTML5 Canvas
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const cx = width / 2;
+    const cy = height / 2;
+    const radius = Math.min(width, height) * 0.42;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // 1. Atmosphere Radial Outer Glow
+    const outerAtmosphere = ctx.createRadialGradient(cx, cy, radius * 0.95, cx, cy, radius * 1.35);
+    outerAtmosphere.addColorStop(0, "rgba(56, 189, 248, 0.4)");
+    outerAtmosphere.addColorStop(0.5, "rgba(14, 165, 233, 0.15)");
+    outerAtmosphere.addColorStop(1, "rgba(3, 7, 18, 0)");
+    ctx.fillStyle = outerAtmosphere;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius * 1.35, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Earth Sphere Base Ocean Shadow & Depth
+    const oceanGrad = ctx.createRadialGradient(
+      cx - radius * 0.35,
+      cy - radius * 0.35,
+      radius * 0.1,
+      cx,
+      cy,
+      radius
+    );
+    oceanGrad.addColorStop(0, "#082f49");
+    oceanGrad.addColorStop(0.65, "#031525");
+    oceanGrad.addColorStop(1, "#020712");
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fillStyle = oceanGrad;
+    ctx.fill();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.clip();
+
+    // 3. Coordinate Grid Lines
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.18)";
+    ctx.lineWidth = 0.75;
+    ctx.setLineDash([3, 4]);
+
+    [-60, -30, 0, 30, 60].forEach((lat) => {
+      ctx.beginPath();
+      let started = false;
+      for (let lng = -180; lng <= 180; lng += 5) {
+        const p = project3D(lat, lng, radius, cx, cy, rotation.x, rotation.y);
+        if (p.visible) {
+          if (!started) {
+            ctx.moveTo(p.x, p.y);
+            started = true;
+          } else {
+            ctx.lineTo(p.x, p.y);
+          }
+        } else {
+          started = false;
+        }
+      }
+      ctx.stroke();
+    });
+
+    for (let lng = -180; lng < 180; lng += 30) {
+      ctx.beginPath();
+      let started = false;
+      for (let lat = -85; lat <= 85; lat += 5) {
+        const p = project3D(lat, lng, radius, cx, cy, rotation.x, rotation.y);
+        if (p.visible) {
+          if (!started) {
+            ctx.moveTo(p.x, p.y);
+            started = true;
+          } else {
+            ctx.lineTo(p.x, p.y);
+          }
+        } else {
+          started = false;
+        }
+      }
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    // 4. Continents
+    CONTINENTS_POLYGONS.forEach((polygon) => {
+      ctx.beginPath();
+      let hasVisible = false;
+      polygon.forEach(([lat, lng], i) => {
+        const p = project3D(lat, lng, radius, cx, cy, rotation.x, rotation.y);
+        if (p.visible) hasVisible = true;
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.closePath();
+
+      if (hasVisible) {
+        ctx.fillStyle = "rgba(14, 116, 144, 0.55)";
+        ctx.fill();
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+    });
+
+    // 5. São Paulo Beacon & Arcs
+    const sp = project3D(-23.55, -46.63, radius, cx, cy, rotation.x, rotation.y);
+    if (sp.visible) {
+      const majorHubs = [
+        { lat: 25.76, lng: -80.19 },
+        { lat: 50.11, lng: 8.68 },
+        { lat: 35.67, lng: 139.65 },
+      ];
+      majorHubs.forEach((hub) => {
+        const hp = project3D(hub.lat, hub.lng, radius, cx, cy, rotation.x, rotation.y);
+        if (hp.visible) {
+          ctx.beginPath();
+          ctx.moveTo(sp.x, sp.y);
+          const midX = (sp.x + hp.x) / 2 + (sp.y - hp.y) * 0.2;
+          const midY = (sp.y + hp.y) / 2 - (sp.x - hp.x) * 0.2;
+          ctx.quadraticCurveTo(midX, midY, hp.x, hp.y);
+          ctx.strokeStyle = "rgba(34, 197, 94, 0.5)";
+          ctx.setLineDash([4, 4]);
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      });
+
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(56, 189, 248, 0.4)";
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = "#38bdf8";
+      ctx.fill();
+    }
+
+    // 6. Realistic 3D Specular Shading
+    const specular = ctx.createRadialGradient(
+      cx - radius * 0.4,
+      cy - radius * 0.4,
+      radius * 0.05,
+      cx,
+      cy,
+      radius
+    );
+    specular.addColorStop(0, "rgba(255, 255, 255, 0.22)");
+    specular.addColorStop(0.3, "rgba(56, 189, 248, 0.08)");
+    specular.addColorStop(0.8, "rgba(0, 0, 0, 0.4)");
+    specular.addColorStop(1, "rgba(0, 0, 0, 0.85)");
+    ctx.fillStyle = specular;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+
+    // 7. Outer Globe Rim Border
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.8)";
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+  }, [rotation]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    lastMousePos.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const dx = e.clientX - lastMousePos.current.x;
+    const dy = e.clientY - lastMousePos.current.y;
+    lastMousePos.current = { x: e.clientX, y: e.clientY };
+
+    setRotation((prev) => ({
+      x: Math.max(-60, Math.min(60, prev.x - dy * 0.4)),
+      y: (prev.y + dx * 0.5) % 360,
+    }));
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
 
   const getActionColor = (action: GeoVisitor["action"]) => {
     switch (action) {
@@ -105,7 +366,7 @@ export const WorldMapLive: React.FC<WorldMapLiveProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-black uppercase tracking-wider text-white italic">
-                Radar Global de Vendas & Telemetria
+                Globo Terrestre 3D • Telemetria LiveShop
               </span>
               <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-black text-emerald-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -113,7 +374,7 @@ export const WorldMapLive: React.FC<WorldMapLiveProps> = ({
               </span>
             </div>
             <p className="text-[10px] font-mono text-cyan-400/70">
-              Cloudflare Anycast • São Paulo Core Hub • {filteredVisitors.length} Compradores Monitorados
+              Arraste para girar o globo • Anycast Cloudflare • São Paulo Core Hub • {filteredVisitors.length} Compradores Ativos
             </p>
           </div>
         </div>
@@ -136,249 +397,125 @@ export const WorldMapLive: React.FC<WorldMapLiveProps> = ({
           </div>
         </div>
 
-        {/* Action Filter Pills */}
-        <div className="flex items-center gap-1 bg-black/70 backdrop-blur-md p-1 rounded-xl border border-white/10 text-[10px] font-bold">
-          {[
-            { id: "all", label: "Todos", icon: "🌐" },
-            { id: "purchased", label: "Compras", icon: "🦆" },
-            { id: "checkout", label: "Checkout", icon: "💰" },
-            { id: "cart", label: "Carrinho", icon: "🪙" },
-            { id: "viewing", label: "Visitas", icon: "💬" },
-          ].map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFilterAction(f.id)}
-              className={cn(
-                "px-2.5 py-1 rounded-lg transition-all flex items-center gap-1",
-                filterAction === f.id
-                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/20"
-                  : "text-zinc-400 hover:text-white"
-              )}
-            >
-              <span>{f.icon}</span>
-              <span>{f.label}</span>
-            </button>
-          ))}
+        {/* Controls: Auto-Rotate & Action Filter */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setAutoRotate(!autoRotate)}
+            className={cn(
+              "px-2.5 py-1 rounded-xl text-[10px] font-mono flex items-center gap-1.5 border transition-all pointer-events-auto",
+              autoRotate
+                ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
+                : "bg-black/60 text-zinc-400 border-white/10"
+            )}
+            title="Pausar / Retomar Rotação Automática"
+          >
+            <RotateCw className={cn("h-3 w-3", autoRotate && "animate-spin")} style={{ animationDuration: "6s" }} />
+            <span>{autoRotate ? "Auto Giro ON" : "Auto Giro OFF"}</span>
+          </button>
+
+          {/* Action Filter Pills */}
+          <div className="flex items-center gap-1 bg-black/70 backdrop-blur-md p-1 rounded-xl border border-white/10 text-[10px] font-bold">
+            {[
+              { id: "all", label: "Todos", icon: "🌐" },
+              { id: "purchased", label: "Compras", icon: "🦆" },
+              { id: "checkout", label: "Checkout", icon: "💰" },
+              { id: "cart", label: "Carrinho", icon: "🪙" },
+              { id: "viewing", label: "Visitas", icon: "💬" },
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilterAction(f.id)}
+                className={cn(
+                  "px-2.5 py-1 rounded-lg transition-all flex items-center gap-1",
+                  filterAction === f.id
+                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-500/20"
+                    : "text-zinc-400 hover:text-white"
+                )}
+              >
+                <span>{f.icon}</span>
+                <span>{f.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* SVG High-Fidelity World Map Canvas */}
-      <svg
-        className="absolute inset-0 w-full h-full object-fill pointer-events-none"
-        viewBox="0 0 1000 500"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <filter id="cyanGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
-            <stop offset="50%" stopColor="#22c55e" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.8" />
-          </linearGradient>
-          <radialGradient id="radarSweepGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#030712" stopOpacity="0" />
-          </radialGradient>
-        </defs>
+      {/* 3D Earth Globe HTML5 Canvas */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <canvas
+          ref={canvasRef}
+          width={1000}
+          height={600}
+          className="max-w-full max-h-full object-contain"
+        />
+      </div>
 
-        <rect width="1000" height="500" fill="url(#radarSweepGlow)" />
+      {/* Interactive Buyer Markers Placed on the 3D Sphere Hemisphere */}
+      {canvasRef.current && (
+        <div className="absolute inset-0 pointer-events-none">
+          {filteredVisitors.map((visitor) => {
+            const cx = 500;
+            const cy = 300;
+            const radius = Math.min(1000, 600) * 0.42;
 
-        {/* Lat/Long Coordinate Grid Lines */}
-        <g stroke="#38bdf8" strokeWidth="0.5" opacity="0.2" strokeDasharray="3 4">
-          {/* Equator & Tropics */}
-          <line x1="0" y1="250" x2="1000" y2="250" strokeWidth="1" opacity="0.4" />
-          <line x1="0" y1="185" x2="1000" y2="185" />
-          <line x1="0" y1="315" x2="1000" y2="315" />
-          <line x1="0" y1="120" x2="1000" y2="120" />
-          <line x1="0" y1="380" x2="1000" y2="380" />
+            const proj = project3D(visitor.lat, visitor.lng, radius, cx, cy, rotation.x, rotation.y);
+            if (!proj.visible) return null;
 
-          {/* Meridians */}
-          <line x1="200" y1="0" x2="200" y2="500" />
-          <line x1="350" y1="0" x2="350" y2="500" />
-          <line x1="500" y1="0" x2="500" y2="500" strokeWidth="1" opacity="0.4" />
-          <line x1="650" y1="0" x2="650" y2="500" />
-          <line x1="800" y1="0" x2="800" y2="500" />
-        </g>
+            const color = getActionColor(visitor.action);
+            const badge = getActionHabboBadge(visitor.action);
+            const isSelected = selectedVisitor?.id === visitor.id;
 
-        {/* ========================================================================= */}
-        {/* DETAILED HIGH-DEFINITION SVG CONTINENT POLYGONS */}
-        {/* ========================================================================= */}
-        <g fill="#0b1329" stroke="#38bdf8" strokeWidth="1.1" opacity="0.85" filter="url(#cyanGlow)">
-          {/* AMÉRICA DO SUL (Brasil, Argentina, Chile, Colômbia) */}
-          <path
-            d="
-              M 275,230 
-              L 300,225 L 340,240 L 375,260 L 385,285 L 375,320 L 360,350 L 345,380 
-              L 325,415 L 310,445 L 300,455 L 292,440 L 295,405 L 285,360 L 270,320 
-              L 260,285 L 255,260 L 265,240 Z
-            "
-          />
+            const leftPct = (proj.x / 1000) * 100;
+            const topPct = (proj.y / 600) * 100;
 
-          {/* AMÉRICA DO NORTE (EUA, Canadá, Alasca, México) */}
-          <path
-            d="
-              M 80,85 
-              L 125,70 L 160,55 L 210,50 L 260,55 L 300,70 L 325,95 L 310,120 
-              L 290,140 L 280,165 L 275,190 L 255,215 L 240,225 L 225,215 L 205,190 
-              L 180,175 L 150,165 L 120,135 L 95,110 Z
-            "
-          />
+            return (
+              <div
+                key={visitor.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectVisitor(visitor);
+                }}
+                className="absolute z-30 cursor-pointer pointer-events-auto transform -translate-x-1/2 -translate-y-1/2 group/pin transition-all duration-100"
+                style={{
+                  left: `${leftPct}%`,
+                  top: `${topPct}%`,
+                }}
+              >
+                {/* Concentric Radar Wave */}
+                <div
+                  className="absolute -inset-3.5 rounded-full animate-ping opacity-60 pointer-events-none"
+                  style={{ backgroundColor: color }}
+                />
+                <div
+                  className="absolute -inset-1 rounded-full opacity-70 pointer-events-none"
+                  style={{ backgroundColor: color }}
+                />
 
-          {/* GROENLÂNDIA */}
-          <path d="M 330,40 L 375,35 L 390,60 L 365,80 L 340,75 L 325,55 Z" />
-
-          {/* EUROPA (Reino Unido, Península Ibérica, França, Alemanha, Escandinávia, Itália) */}
-          <path
-            d="
-              M 445,100 
-              L 470,85 L 505,80 L 535,90 L 555,105 L 560,125 L 545,145 L 530,165 
-              L 510,170 L 490,175 L 465,160 L 450,140 L 440,120 Z
-            "
-          />
-          {/* Grã-Bretanha & Irlanda */}
-          <path d="M 430,95 L 445,90 L 448,110 L 435,115 Z" />
-
-          {/* ÁFRICA (Norte, Saara, Chifre da África, África do Sul, Madagascar) */}
-          <path
-            d="
-              M 455,180 
-              L 500,175 L 545,185 L 575,215 L 585,250 L 570,290 L 555,330 L 535,365 
-              L 510,380 L 490,365 L 475,330 L 455,280 L 445,230 L 445,195 Z
-            "
-          />
-          {/* Madagascar */}
-          <path d="M 585,320 L 595,315 L 600,345 L 590,350 Z" />
-
-          {/* ÁSIA (Oriente Médio, Rússia, Índia, China, Sudeste Asiático) */}
-          <path
-            d="
-              M 565,85 
-              L 620,70 L 700,60 L 780,65 L 845,95 L 870,130 L 855,170 L 820,195 
-              L 780,215 L 740,240 L 705,255 L 670,240 L 640,215 L 600,195 L 575,150 
-              L 560,115 Z
-            "
-          />
-          {/* Península Indiana */}
-          <path d="M 670,205 L 705,220 L 710,255 L 690,275 L 675,250 Z" />
-          {/* Japão */}
-          <path d="M 865,140 L 880,150 L 875,175 L 860,165 Z" />
-
-          {/* OCEANIA & AUSTRÁLIA */}
-          <path
-            d="
-              M 770,305 
-              L 820,295 L 875,310 L 895,340 L 885,380 L 845,400 L 805,395 L 775,365 
-              L 760,335 Z
-            "
-          />
-          {/* Nova Zelândia */}
-          <path d="M 905,385 L 920,380 L 925,415 L 910,420 Z" />
-        </g>
-
-        {/* ========================================================================= */}
-        {/* GLOBAL FLIGHT & DATA ARCS (Conexão São Paulo Core Hub com o Mundo) */}
-        {/* ========================================================================= */}
-        <g stroke="url(#arcGrad)" fill="none" strokeWidth="1.5" opacity="0.6">
-          {/* São Paulo (335, 340) -> Miami/EUA (235, 175) */}
-          <path
-            d="M 335,340 Q 260,230 235,175"
-            strokeDasharray="6 6"
-            className="animate-[dash_20s_linear_infinite]"
-          />
-          {/* São Paulo (335, 340) -> Frankfurt/Europa (485, 125) */}
-          <path
-            d="M 335,340 Q 420,180 485,125"
-            strokeDasharray="6 6"
-            className="animate-[dash_25s_linear_infinite]"
-          />
-          {/* São Paulo (335, 340) -> Tóquio/Ásia (870, 155) */}
-          <path
-            d="M 335,340 Q 600,120 870,155"
-            strokeDasharray="6 6"
-            className="animate-[dash_30s_linear_infinite]"
-          />
-          {/* São Paulo (335, 340) -> Londres (445, 105) */}
-          <path
-            d="M 335,340 Q 380,180 445,105"
-            strokeDasharray="6 6"
-            className="animate-[dash_22s_linear_infinite]"
-          />
-        </g>
-
-        {/* Pulse Beacon no Hub Central (São Paulo / Brasil) */}
-        <circle cx="335" cy="340" r="14" fill="#0ea5e9" opacity="0.2" className="animate-ping" />
-        <circle cx="335" cy="340" r="5" fill="#38bdf8" />
-        <circle cx="335" cy="340" r="2.5" fill="#ffffff" />
-      </svg>
-
-      {/* Radar Sweep Effect */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-30"
-        style={{
-          background: "linear-gradient(90deg, transparent 40%, rgba(56, 189, 248, 0.45) 50%, transparent 60%)",
-          backgroundSize: "200% 100%",
-          animation: "radarSweep 7s linear infinite",
-        }}
-      />
-
-      {/* ========================================================================= */}
-      {/* INTERACTIVE PULSATING VISITOR PINS WITH HABBO AVATAR BADGES */}
-      {/* ========================================================================= */}
-      {filteredVisitors.map((visitor) => {
-        const coords = getCoordinates(visitor.lat, visitor.lng);
-        const color = getActionColor(visitor.action);
-        const badge = getActionHabboBadge(visitor.action);
-        const isSelected = selectedVisitor?.id === visitor.id;
-
-        return (
-          <div
-            key={visitor.id}
-            onClick={() => onSelectVisitor(visitor)}
-            className="absolute z-30 cursor-pointer transform -translate-x-1/2 -translate-y-1/2 group/pin"
-            style={{
-              left: coords.x,
-              top: coords.y,
-            }}
-          >
-            {/* Concentric Radar Ping Waves */}
-            <div
-              className="absolute -inset-3.5 rounded-full animate-ping opacity-60 pointer-events-none"
-              style={{ backgroundColor: color }}
-            />
-            <div
-              className="absolute -inset-1 rounded-full opacity-70 pointer-events-none"
-              style={{ backgroundColor: color }}
-            />
-
-            {/* Habbo Avatar Speech Bubble Pin */}
-            <div
-              className={cn(
-                "relative flex items-center gap-1.5 px-2 py-1 rounded-xl shadow-xl transition-all duration-300 backdrop-blur-md",
-                isSelected
-                  ? "scale-110 ring-2 ring-white bg-black/90 border-2"
-                  : "scale-90 hover:scale-105 bg-black/80 border"
-              )}
-              style={{ borderColor: color }}
-            >
-              <span className="text-xs">{badge.emoji}</span>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-black leading-tight text-white whitespace-nowrap">
-                  {visitor.name.split(' ')[0]}
-                </span>
-                <span className="text-[8px] font-mono leading-none text-zinc-400 whitespace-nowrap">
-                  {visitor.city}
-                </span>
+                {/* Habbo Avatar Speech Bubble Pin */}
+                <div
+                  className={cn(
+                    "relative flex items-center gap-1.5 px-2 py-1 rounded-xl shadow-2xl transition-all duration-300 backdrop-blur-md",
+                    isSelected
+                      ? "scale-115 ring-2 ring-white bg-black/90 border-2"
+                      : "scale-90 hover:scale-110 bg-black/85 border"
+                  )}
+                  style={{ borderColor: color }}
+                >
+                  <span className="text-xs">{badge.emoji}</span>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black leading-tight text-white whitespace-nowrap">
+                      {visitor.name.split(" ")[0]}
+                    </span>
+                    <span className="text-[8px] font-mono leading-none text-zinc-400 whitespace-nowrap">
+                      {visitor.city}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* SELECTED BUYER DOSSIER DRAWER (Card de Detalhes Completo do Comprador) */}

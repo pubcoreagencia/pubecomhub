@@ -307,7 +307,7 @@ export default function LiveShopPage() {
               )}
             >
               <Globe className="h-4 w-4" />
-              Mapa Mundi (Lat/Long)
+              Globo Terrestre 3D (Live Radar)
             </button>
             <button
               onClick={() => setActiveTab("journey")}
